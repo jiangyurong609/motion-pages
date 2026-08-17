@@ -1,6 +1,6 @@
 ---
 name: threejs-hero
-description: Build immersive Three.js landing/hero pages as a single self-contained HTML file — foggy 3D world + crisp DOM overlay, mouse-orbit parallax, pointer particles, wireframe scan intro, glass cards with scan-line reveal. Use when asked for a "3D landing page", "Three.js hero", "living/breathing homepage", or to apply the Sylva-style 3D effect to a brand.
+description: Build production-ready immersive Three.js landing/hero pages — foggy 3D world + crisp DOM overlay, mouse-orbit parallax, pointer particles, wireframe scan intro, glass cards with scan-line reveal; responsive to phone/tablet, touch-aware, with a mandatory multi-viewport screenshot loop and a design-review (aesthetic + conversion) pass. Use when asked for a "3D landing page", "Three.js hero", "living/breathing homepage", or to apply the Sylva-style 3D effect to a brand.
 ---
 
 # Three.js Immersive Hero Pages
@@ -16,14 +16,29 @@ Read it before building — it demonstrates every pattern below.
 
 ## Architecture (non-negotiables)
 
-1. **One self-contained `.html` file.** Three.js via CDN import map
-   (`{"imports":{"three":"https://unpkg.com/three@0.170.0/build/three.module.js"}}`).
+1. **One `.html` file + a vendored `vendor/three.module.js` beside it.** Load three
+   local-first with a CDN fallback — never CDN-only (first paint waits on the CDN ⇒
+   visitors stare at a blank void), and never local-only (`file://` blocks local ES
+   module imports with a CORS "origin null" error, so standalone preview dies):
+   ```js
+   let THREE;
+   try { THREE = await import("./vendor/three.module.js"); }        // instant when served
+   catch { THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"); }
+   ```
    Everything else inline. Card/photo art = inline SVG gradients, never external images.
-2. **Three layers, fixed, in this z-order:**
-   - `.ghost` (z 0) — optional giant translucent brand wordmark (~36vw, white at 3%).
+2. **Three layers + a vignette, fixed, in this z-order:**
+   - `.atmo` (z 0) — 2–3 large soft `radial-gradient` light blooms (one behind the
+     headline, one near the focal card, one low horizon glow). A flat single-color
+     background reads as dead space, not atmosphere.
+   - `.ghost` (z 0) — optional giant translucent brand wordmark, **sized so the whole
+     word fits the viewport** (total width ≈ 65vw ⇒ ~10.5vw font for a 9-letter word).
+     A wordmark that overflows crops into gibberish ("RONTD"). Place it low (top ~70%)
+     so the 3D world overlaps it — occlusion sells the depth.
    - `<canvas>` (z 1) — the world, `WebGLRenderer({alpha:true})` with NO
-     `scene.background`, so the ghost text sits BEHIND the 3D world; body CSS carries
+     `scene.background`, so atmo + ghost sit BEHIND the 3D world; body CSS carries
      the background color.
+   - `.vignette` (z 1, after canvas) — radial darkening toward the edges; frames the
+     shot and pushes the eye to the hero + CTA.
    - `#ui` (z 2) — DOM overlay; `pointer-events:none` on the layer, `auto` on
      interactive elements.
 3. **Monochromatic fog world:** `scene.fog = new Fog(WORLD, ~8, ~24)` where `WORLD` ==
@@ -81,9 +96,13 @@ Never put two of these on the same element via `transform`.
 - **Wireframe scan intro (Death Stranding)** — for each limb also add a LOW-POLY wire
   clone (`TubeGeometry(curve, 34, r*1.02, 7)`, `MeshBasicMaterial{wireframe}`) — low
   segment counts give the clean triangulated scan look; full-res wireframe is noise.
-  All final materials start `transparent:true, opacity:0`; over ~2.2 s (elapsed-time
-  driven, smoothstepped) fade finals 0→1 and wires .55→0. Flip `body.ready` at ~2.3 s
-  (setTimeout) to stagger the DOM entrance after the scan.
+  All final materials start `transparent:true, opacity:0`; over ~1.4 s (elapsed-time
+  driven, smoothstepped) fade finals 0→1 and wires .55→0. **Intro budget: the page must
+  feel settled by ~2.5 s** — longer intros test as "slow", not cinematic. Flip
+  `body.ready` from the FIRST RENDERED FRAME (+ ~0.9 s), never a fixed timeout: if the
+  lib loads slowly the whole choreography just shifts later instead of UI floating over
+  a blank void. Add a ~3 s plain-`<script>` fallback that adds `.ready` anyway so a
+  WebGL failure never leaves the page blank.
 - **Scan-line image reveal** — `::after` overlay on card art: dark cover with a bright
   2 px line, `background-size:100% 220%`, keyframe sweeps `background-position` to
   −120%, `forwards`, staggered delays per card.
@@ -99,22 +118,60 @@ Never put two of these on the same element via `transform`.
 
 - Pill navbar top-center: icon disc + 3–4 uppercase letter-spaced links (10.5px,
   `.18em`), one active filled pill, `backdrop-filter:blur(16px)`, dark 50% bg.
-- Hero: left-aligned light-weight rounded-font headline (Quicksand 500, ~56px,
-  2 lines), small muted paragraph to its right, dark pill CTA with icon.
+- Hero reads top-to-bottom in ONE left column: category badge → headline (Quicksand
+  500, ~56–60px, 2 lines, one value word in a gradient `background-clip:text` accent) →
+  **subheadline DIRECTLY UNDER the H1** (≥15px, key value phrases in `<b>`) → CTA row.
+  Never park the explainer paragraph beside the headline in tiny muted type — that is
+  where the core value goes to die.
+- CTA row: the primary CTA must be the highest-contrast element on the page —
+  brand-gradient fill + colored glow shadow; a dark pill on a dark world is camouflage.
+  Label = action + time-to-value ("Start free — live in 5 minutes →"). Secondary
+  demo button beside it: glowing pulsing ring + a TEXT label naming the content and its
+  honest length ("Hear it answer a call · 1½-minute demo") — bare play circles get
+  ignored, and check the real media duration (`mdls -name kMDItemDurationSeconds`),
+  not the filename.
+- Trust line: ✓-marked risk reversals ("No credit card · Keep your number · Cancel
+  anytime") sit DIRECTLY UNDER the CTA row at ≥13px — risk reversal works at the point
+  of decision, never orphaned in a far corner of the viewport.
 - Glass cards: white `#f7f8f4`, 22px radius, 9px padding, art block 15px radius with
   inline-SVG gradient art, kicker (10px uppercase) + 18.5px claim, small circular
   action button bottom-right; standalone `rotate:±1.4deg`; deep soft shadow.
-- Floating stat chips: tiny label + bold value with a `❋` marker, text-shadow for
-  legibility over the world; vertical `DISCOVER` micro-label on the right edge.
-- Ghost play-button with concentric `::before/::after` rings.
+- Stat chips: frosted-glass pills (blur + border, matching the nav) with a small-caps
+  label over a ~21px bold value — bare floating micro-text over the world is invisible.
+- Every interactive element must WORK on day 1: demo button opens a `<video>` modal
+  (Esc / backdrop / × close, `aria-label`s, `preload="metadata"`, `<source>` list =
+  local-relative file then site-absolute fallback); nav/CTA links point at the REAL
+  app's routes and verified anchor ids (`/#how`, `/onboarding`) — relative when the
+  hero will be mounted in the app, absolute only for a standalone share.
+
+## Responsive + touch (mandatory — this ships to phones on day 1)
+
+Absolute desktop positioning collapses into a card-pile on a 390px screen. Two
+breakpoints minimum:
+
+- **Phone (`max-width:740px`)** — single column: nav becomes a full-width bar
+  (logo left, CTA right, middle links hidden; don't try to keep it center-pinned —
+  `left:4%;right:4%;justify-content:space-between`). Hero/sub/CTA span `left/right:6%`;
+  CTA full-width; trust ✓s stack vertically. HIDE the stat chips, secondary cards and
+  edge micro-labels; keep ONE product card peeking from a bottom corner
+  (`right:-24px;bottom:-34px;rotate:4deg`) as an artistic cue.
+- **Tablet (`741–1180px`)** — keep the collage but shrink cards (~215px), drop one
+  chip, and re-check that no card covers the demo button's label.
+- **Touch = no `pointermove`, ever.** Gate on a `hasPointer` flag: until the first
+  pointer event, drive the camera with a slow idle drift
+  (`pointer.x = sin(t*.22)*.35`) so the world still breathes on phones (and on desktop
+  before the first mouse move).
+- **`prefers-reduced-motion: reduce`** ⇒ treat as still mode (skip scan/entrance, no
+  camera drift; ambient particles may remain).
 
 ## Build order (follow strictly)
 
 1. Static DOM overlay + palette (verify with a screenshot before any 3D).
 2. Scene + fog + lights + camera. 3. Limbs + fuzz instancing. 4. Orbit parallax
    (canvas + DOM). 5. Particles. 6. Pulses/creature. 7. Wireframe scan intro.
-8. Card scan reveals + staggered entrance. 9. Screenshot-verify loop. 10. Polish:
-   color balance, fog distances, easing.
+8. Card scan reveals + staggered entrance. 9. Responsive breakpoints + touch fallback.
+10. Screenshot-verify loop (all viewports). 11. Design-review pass (below).
+12. Polish: color balance, fog distances, easing.
 
 ## Self-verify loop (mandatory — "self-verify until perfect")
 
@@ -122,19 +179,71 @@ Headless Chrome renders WebGL via SwiftShader:
 
 ```bash
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"   # mac
-"$CHROME" --headless=new --enable-unsafe-swiftshader --window-size=1440,900 \
+"$CHROME" --headless=new --enable-unsafe-swiftshader --window-size=1600,900 \
   --screenshot=out.png --virtual-time-budget=8000 "file:///abs/path/page.html?still"
 ```
 
-- `?still` shot (settled composition) + a no-param shot at `--virtual-time-budget=1100`
-  (mid-scan: wireframe should be clearly visible) are the two standard checks.
+- Screenshot **all three viewports**: 1600×900 (desktop), 820×1180 (tablet),
+  390×844 (phone) — plus a no-param desktop shot at `--virtual-time-budget=1100`
+  (mid-scan: wireframe should be clearly visible).
 - READ the screenshots and compare against the reference/brief: layer order, limb
   composition (lower half, air between), text contrast, card legibility, creature
-  visible, nothing clipped, ghost text subtle (barely there).
+  visible, nothing clipped, ghost wordmark fully readable.
 - A fully black/empty canvas ⇒ JS error before first frame: re-run with
   `--enable-logging=stderr 2>&1 | grep -iE "error|uncaught"`.
-- Iterate until the still could pass as a dribbble shot, then `open page.html` for
-  real-time motion feel (headless can't judge easing).
+
+Headless traps (each one produces a FALSE failure or false pass):
+
+- `--disable-gpu` throws inside `new WebGLRenderer()` — the whole module dies, so you
+  get UI-less ghost-only shots. Use `--enable-unsafe-swiftshader` (or
+  `--use-angle=swiftshader`) instead.
+- **Chrome enforces a ~500px minimum window width** (old AND new headless): a
+  `--window-size=390,...` shot silently renders the layout at 500px and crops the PNG —
+  the right edge looks clipped when the CSS is actually fine. For true phone renders,
+  load the page in a `<iframe style="width:390px;height:844px">` harness (needs
+  `--allow-file-access-from-files`) and crop the iframe region.
+- Layout doubt ≠ screenshot truth: when a shot contradicts the CSS, inject a debug
+  `<script>` logging `getComputedStyle` + `getBoundingClientRect` + `innerWidth` into a
+  COPY of the page and read the console — measure before churning on "fixes".
+
+## Design-review pass (aesthetic + conversion — after the technical loop passes)
+
+Rendering correctly is not the same as being designed well. Re-read the settled
+desktop still as a principal designer + CRO lead. Every item below has caused a real
+revision round; check all of them:
+
+1. **Value scan test** — in 5 seconds a stranger can answer: what is it, who is it
+   for, what do I get? (badge = category, H1 = promise, subhead = concrete mechanics).
+2. **Squint test** — squint at the shot: the FIRST element that pops must be the
+   primary CTA, the second the headline. If the CTA doesn't win, raise its contrast,
+   not its size.
+3. **Trust adjacency** — risk-reversal ✓s touching the CTA row, ≥13px.
+4. **No dead micro-text** — any number or claim worth showing gets ≥20px value type in
+   a glass chip; if it's not worth that size, cut it.
+5. **Wordmark integrity** — background brand text fully readable, partially occluded
+   by the world (depth), never cropped by the viewport (gibberish).
+6. **Light exists** — the frame has visible light sources (atmo blooms + vignette),
+   not one flat fill color.
+7. **One winner per region** — no two elements of equal visual weight competing in the
+   same corner; mute or move the loser.
+8. **Intro stopwatch** — reload and count: settled ≤ ~2.5 s, and the scene is NEVER
+   blank while UI is visible.
+9. **Interaction audit** — click every link and button in the real browser: correct
+   destinations, demo plays with sound, Esc closes, labels honest (durations, stats).
+10. Then `open page.html` for motion feel — easing, flap speed, parallax amplitude are
+    judgment calls headless can't make.
+
+## Ship checklist (mounting into a real webapp)
+
+- Copy `vendor/three.module.js` + media into the app's static dir (`public/`); keep
+  the local-first import path valid from the mounted route.
+- Links: relative, pointing at anchor ids/routes that exist in the app (grep them).
+- Meta: `<title>`, meta description, OG/Twitter image, favicon (inherit the app's).
+- A11y: `aria-label` on icon-only buttons, Esc/backdrop close on modals, visible focus,
+  `prefers-reduced-motion` handled, text contrast ≥ 4.5:1 over the world (text-shadow
+  counts).
+- Perf sanity: pixelRatio clamped, no shadow maps, instancing for repeats, video
+  `preload="metadata"` — then Lighthouse the mounted route.
 
 ## Theming a brand
 

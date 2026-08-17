@@ -12,18 +12,24 @@
   body{font-family:"Quicksand",-apple-system,sans-serif;color:var(--ink)}
 
   /* layers: ghost wordmark UNDER transparent canvas, UI on top */
-  .ghost{position:fixed;left:50%;top:62%;transform:translate(-50%,-50%);z-index:0;
-    font-size:26vw;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.03);user-select:none;white-space:nowrap}
+  .atmo{position:fixed;inset:0;z-index:0;pointer-events:none;background:
+      radial-gradient(1100px 700px at 12% 28%, rgba(99,102,241,.16), transparent 62%),
+      radial-gradient(900px 620px at 76% 70%, rgba(52,211,153,.09), transparent 60%),
+      radial-gradient(1500px 900px at 50% 118%, rgba(129,140,248,.17), transparent 58%)}
+  .ghost{position:fixed;left:50%;top:71%;transform:translate(-50%,-50%);z-index:0;
+    font-size:10.5vw;font-weight:500;letter-spacing:.04em;color:rgba(255,255,255,.05);user-select:none;white-space:nowrap}
   canvas#world{position:fixed;inset:0;z-index:1;display:block}
+  .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:
+      radial-gradient(135% 105% at 50% 42%, transparent 58%, rgba(8,10,20,.5) 100%)}
   #ui{position:fixed;inset:0;z-index:2;pointer-events:none}
   #ui a,#ui button{pointer-events:auto}
 
   /* parallax on .px wrappers; entrance on .enter inners — never share transform */
   .px{position:absolute;inset:0;pointer-events:none}
-  .enter{opacity:0;translate:0 16px;transition:opacity .9s ease,translate .9s ease}
+  .enter{opacity:0;translate:0 16px;transition:opacity .7s ease,translate .7s ease}
   body.ready .enter{opacity:1;translate:0 0}
-  body.ready .d1{transition-delay:.05s} .d2{transition-delay:.22s}
-  body.ready .d3{transition-delay:.4s}  .d4{transition-delay:.58s} .d5{transition-delay:.75s}
+  body.ready .d1{transition-delay:.04s} .d2{transition-delay:.14s}
+  body.ready .d3{transition-delay:.26s} .d4{transition-delay:.38s} .d5{transition-delay:.5s}
   body.still .enter{transition:none;opacity:1;translate:0 0}
   body.still .art.reveal::after{display:none}
 
@@ -38,24 +44,33 @@
   nav a.active{background:rgba(255,255,255,.13);color:var(--ink)}
   nav a.go{background:var(--ink);color:#1d2233}
 
-  .hero{position:absolute;left:5.5%;top:27%;max-width:600px}
-  .badge{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
-      color:var(--muted);font-weight:600}
+  .hero{position:absolute;left:5.5%;top:24%;max-width:620px}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+      color:#c3cadd;font-weight:600}
   .badge i{width:7px;height:7px;border-radius:99px;background:var(--ok);box-shadow:0 0 12px var(--ok)}
   h1{font-weight:500;font-size:clamp(38px,4.4vw,60px);line-height:1.14;letter-spacing:.01em;margin-top:14px}
-  .sub{position:absolute;left:calc(5.5% + 400px);top:31%;max-width:220px;font-size:12.5px;line-height:1.7;color:var(--muted)}
-  .cta{position:absolute;left:5.5%;top:56%;display:inline-flex;align-items:center;gap:10px;
-      background:rgba(15,18,30,.85);border:1px solid rgba(255,255,255,.1);color:var(--ink);
-      font:600 13.5px/1 "Quicksand";padding:15px 26px;border-radius:999px;cursor:pointer;
-      box-shadow:0 14px 34px rgba(5,8,20,.45);transition:transform .2s;pointer-events:auto}
-  .cta:hover{transform:translateY(-2px)}
-  .cta .arrow{color:var(--accent)}
-  .play{position:absolute;left:calc(5.5% + 250px);top:55.4%;width:58px;height:58px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);display:grid;place-items:center;
-      cursor:pointer;pointer-events:auto}
-  .play::before,.play::after{content:"";position:absolute;inset:-16px;border-radius:999px;border:1px solid rgba(255,255,255,.10)}
-  .play::after{inset:-34px;border-color:rgba(255,255,255,.05)}
-  .play svg{margin-left:3px}
+  h1 .hl{background:linear-gradient(100deg,#a5b4fc,#c4b5fd);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{position:absolute;left:5.5%;top:46%;max-width:480px;font-size:15px;line-height:1.75;color:#c3cadd;
+      text-shadow:0 1px 10px rgba(8,10,22,.8)}
+  .sub b{color:var(--ink);font-weight:600}
+  .ctarow{position:absolute;left:5.5%;top:59%;display:flex;align-items:center;gap:20px}
+  .cta{display:inline-flex;align-items:center;gap:10px;
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;color:#fff;
+      font:600 15.5px/1 "Quicksand";padding:18px 30px;border-radius:999px;cursor:pointer;
+      box-shadow:0 14px 44px rgba(99,102,241,.5),0 2px 10px rgba(5,8,20,.4);
+      transition:transform .2s,box-shadow .2s;pointer-events:auto}
+  .cta:hover{transform:translateY(-2px);box-shadow:0 18px 54px rgba(99,102,241,.65),0 2px 10px rgba(5,8,20,.4)}
+  .cta .arrow{color:#e0e7ff}
+  .demo{display:inline-flex;align-items:center;gap:12px;background:none;border:none;cursor:pointer;pointer-events:auto;
+      color:var(--ink);font:600 13px/1.3 "Quicksand";text-align:left}
+  .demo .ring{position:relative;width:52px;height:52px;border-radius:999px;flex:none;
+      border:1px solid rgba(165,180,252,.55);background:rgba(99,102,241,.18);display:grid;place-items:center;
+      box-shadow:0 0 22px rgba(129,140,248,.4);animation:ringpulse 2.4s ease-in-out infinite;transition:transform .2s}
+  .demo:hover .ring{transform:scale(1.06)}
+  @keyframes ringpulse{50%{box-shadow:0 0 40px rgba(129,140,248,.8)}}
+  .demo .ring::before{content:"";position:absolute;inset:-12px;border-radius:999px;border:1px solid rgba(165,180,252,.22)}
+  .demo .ring svg{margin-left:3px}
+  .demo small{display:block;font-weight:500;color:var(--muted);font-size:11px;margin-top:2px}
 
   .cardpos{position:absolute}
   #cardpos1{right:24%;top:26%}
@@ -67,8 +82,8 @@
   .card .art{border-radius:15px;height:122px;position:relative;overflow:hidden}
   .card .art.reveal::after{content:"";position:absolute;inset:0;
       background:linear-gradient(180deg,rgba(21,25,40,.94) 0%,rgba(21,25,40,.94) 49.6%,#a5f3fc 50%,transparent 50.4%,transparent 100%);
-      background-size:100% 220%;background-position:0 0;animation:scan 1.15s 2.5s cubic-bezier(.6,.05,.3,1) forwards}
-  #cardpos2 .art.reveal::after{animation-delay:2.85s}
+      background-size:100% 220%;background-position:0 0;animation:scan 1s 1.55s cubic-bezier(.6,.05,.3,1) forwards}
+  #cardpos2 .art.reveal::after{animation-delay:1.8s}
   @keyframes scan{to{background-position:0 -120%}}
   .card .body{padding:11px 9px 8px}
   .card .kicker{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#64748b;font-weight:700}
@@ -86,47 +101,97 @@
       font-size:11.5px;color:#065f46;font-weight:600}
   .booked .tick{width:20px;height:20px;border-radius:99px;background:#10b981;color:#fff;display:grid;place-items:center;font-size:11px;flex:none}
 
-  .chip{position:absolute;font-size:10.5px;color:#c3cadd;line-height:1.5;text-shadow:0 1px 8px rgba(8,10,22,.7)}
-  .chip b{display:block;color:#fff;font-size:12.5px;font-weight:600}
-  .chip::before{content:"❋";position:absolute;left:-22px;top:2px;opacity:.6;font-size:13px}
-  #chip1{right:7.5%;top:28%}
-  #chip2{right:4.5%;top:38%}
+  .chip{position:absolute;color:#c3cadd;line-height:1.4;
+      background:rgba(17,20,32,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:12px 18px 13px 42px}
+  .chip span{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+  .chip b{display:block;color:#fff;font-size:21px;font-weight:600;margin-top:2px;letter-spacing:-.01em}
+  .chip::before{content:"❋";position:absolute;left:16px;top:14px;opacity:.7;font-size:14px;color:#a5b4fc}
+  #chip1{right:7.5%;top:25%}
+  #chip2{right:4.5%;top:36%}
   .discover{position:absolute;right:2%;top:52%;transform:translateY(-50%);writing-mode:vertical-rl;
     font-size:10px;letter-spacing:.55em;color:rgba(255,255,255,.3);text-transform:uppercase}
-  .foot{position:absolute;left:5.5%;bottom:5.5%;font-size:12px;color:#c3cadd;text-shadow:0 1px 10px rgba(8,10,22,.9)}
+  .foot{position:absolute;left:5.5%;top:70%;display:flex;gap:22px;font-size:13px;font-weight:500;
+      color:#aab3cc;text-shadow:0 1px 10px rgba(8,10,22,.9)}
+  .foot i{color:var(--ok);font-style:normal;margin-right:7px;font-size:12px}
+
+  /* ---- tablet: keep the world, tighten the collage ---- */
+  @media (max-width:1180px) and (min-width:741px){
+    .sub{max-width:400px}
+    .card{width:214px}
+    .card .art{height:104px}
+    #chip1{right:4.5%;top:12%}
+    #chip2{display:none}
+    #cardpos1{right:4%;top:27%}
+    #cardpos2{right:5%;top:58%}
+  }
+
+  /* ---- phone: single column, one peeking card ---- */
+  @media (max-width:740px){
+    nav{left:4%;right:4%;margin-left:0;justify-content:space-between}
+    nav a:not(.go){display:none}
+    nav .logo{width:38px;height:38px}
+    .hero{left:6%;right:6%;top:12%;max-width:none}
+    .badge{font-size:10px;letter-spacing:.1em}
+    h1{font-size:clamp(36px,11vw,44px)}
+    .sub{left:6%;right:6%;top:34%;max-width:none;font-size:14px;line-height:1.7}
+    .ctarow{left:6%;right:6%;top:53%;flex-direction:column;align-items:stretch;gap:15px}
+    .cta{justify-content:center}
+    .foot{left:6%;right:auto;top:75%;flex-direction:column;gap:8px;font-size:12px}
+    .chip,.discover,#cardpos1{display:none}
+    #cardpos2{right:-24px;top:auto;bottom:-34px}
+    #cardpos2 .card{width:212px;rotate:4deg}
+    #cardpos2 .card .art{height:96px}
+    .ghost{font-size:24vw;top:64%}
+  }
+
+  #demoModal{position:fixed;inset:0;z-index:5;display:none;place-items:center;background:rgba(8,10,20,.78);
+      backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  #demoModal.open{display:grid}
+  #demoModal .frame{position:relative;width:min(880px,92vw)}
+  #demoModal video{width:100%;aspect-ratio:16/9;border-radius:18px;display:block;background:#000;
+      box-shadow:0 30px 90px rgba(0,0,0,.65)}
+  #demoModal .close{position:absolute;top:-46px;right:-6px;background:none;border:none;color:var(--ink);
+      font-size:30px;line-height:1;cursor:pointer;padding:6px}
 </style>
 </head>
 <body>
+<div class="atmo"></div>
 <div class="ghost">FRONTDESK</div>
 <canvas id="world"></canvas>
+<div class="vignette"></div>
 
 <div id="ui">
   <div class="px" data-px="6">
     <nav class="enter d1">
       <div class="logo">☎</div>
-      <a href="https://frontdeskhq.co" class="active">Receptionist</a>
-      <a href="https://frontdeskhq.co/#how">How it works</a>
-      <a href="https://frontdeskhq.co/#pricing">Pricing</a>
-      <a href="https://frontdeskhq.co/onboarding" class="go">Start free →</a>
+      <a href="/" class="active">Receptionist</a>
+      <a href="/#how">How it works</a>
+      <a href="/#pricing">Pricing</a>
+      <a href="/onboarding" class="go">Start free →</a>
     </nav>
   </div>
 
   <div class="px" data-px="10">
     <div class="hero">
-      <div class="badge enter d1"><i></i>FrontDesk · AI phone receptionist</div>
-      <h1 class="enter d2">Never miss<br/>a call again.</h1>
+      <div class="badge enter d1"><i></i>FrontDesk · AI phone receptionist for small business</div>
+      <h1 class="enter d2">Never miss<br/>a <span class="hl">call</span> again.</h1>
     </div>
     <div class="discover enter d5">Always on</div>
   </div>
 
   <div class="px" data-px="13">
-    <p class="sub enter d2">FrontDesk answers your phone 24/7 — books appointments on your Google Calendar, answers questions, and takes messages in a natural voice. Keep your number.</p>
-    <button class="cta enter d3" onclick="location.href='https://frontdeskhq.co/onboarding'">
-      Set up your receptionist <span class="arrow">→</span>
-    </button>
-    <button class="play enter d4" aria-label="Watch demo">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="#eef1f8"><path d="M8 5v14l11-7z"/></svg>
-    </button>
+    <p class="sub enter d2">An AI receptionist that <b>answers your phone 24/7</b>, <b>books appointments</b> straight onto your Google Calendar, and texts you what happened — in a natural voice, on the number you already have.</p>
+    <div class="ctarow">
+      <button class="cta enter d3" onclick="location.href='/onboarding'">
+        Start free — live in 5 minutes <span class="arrow">→</span>
+      </button>
+      <button class="demo enter d4" id="demoBtn" aria-label="Watch demo">
+        <span class="ring"><svg width="15" height="15" viewBox="0 0 24 24" fill="#eef1f8"><path d="M8 5v14l11-7z"/></svg></span>
+        <span>Hear it answer a call<small>1½-minute demo</small></span>
+      </button>
+    </div>
+    <p class="foot enter d5"><span><i>✓</i>No credit card to try</span><span><i>✓</i>Keep your existing number</span><span><i>✓</i>Cancel anytime</span></p>
   </div>
 
   <div class="px" data-px="18">
@@ -159,19 +224,44 @@
   <div class="px" data-px="8">
     <div class="chip enter d4" id="chip1"><span>Calls to small businesses</span><b>62% go unanswered</b></div>
     <div class="chip enter d5" id="chip2"><span>Missed callers</span><b>85% never call back</b></div>
-    <p class="foot enter d5">No credit card to try · Keep your existing number · Set up in five minutes</p>
   </div>
 </div>
 
-<script type="importmap">
-{"imports":{"three":"https://unpkg.com/three@0.170.0/build/three.module.js"}}
+<div id="demoModal" aria-hidden="true">
+  <div class="frame">
+    <button class="close" aria-label="Close demo">×</button>
+    <video controls playsinline preload="metadata">
+      <source src="video/demo-36s-16x9.mp4" type="video/mp4"/>
+      <source src="/demo.mp4" type="video/mp4"/>
+    </video>
+  </div>
+</div>
+
+<script>
+(() => {
+  const modal = document.getElementById("demoModal");
+  const vid = modal.querySelector("video");
+  const close = () => { modal.classList.remove("open"); modal.setAttribute("aria-hidden","true"); vid.pause(); };
+  document.getElementById("demoBtn").addEventListener("click", () => {
+    modal.classList.add("open"); modal.setAttribute("aria-hidden","false"); vid.play();
+  });
+  modal.querySelector(".close").addEventListener("click", close);
+  modal.addEventListener("click", e => { if (e.target === modal) close(); });
+  addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+  setTimeout(() => document.body.classList.add("ready"), 3000); // fallback if WebGL never starts
+})();
 </script>
+
 <script type="module">
-import * as THREE from "three";
+/* local copy is instant when served over http; file:// blocks it (CORS) so fall back to CDN */
+let THREE;
+try { THREE = await import("./vendor/three.module.js"); }
+catch { THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"); }
 
 /* ---------- world: muted slate-indigo fog, transparent canvas ---------- */
 const WORLD = 0x252a3d;
-const STILL = new URLSearchParams(location.search).has("still");
+const STILL = new URLSearchParams(location.search).has("still")
+  || matchMedia("(prefers-reduced-motion: reduce)").matches;
 const canvas = document.getElementById("world");
 const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -304,7 +394,9 @@ if (STILL){ sState = "rest"; spark.position.copy(restPoint); }
 
 /* ---------- pointer: orbit + DOM parallax ---------- */
 const pointer = {x:0, y:0};
+let hasPointer = false;
 addEventListener("pointermove", e => {
+  hasPointer = true;
   pointer.x = (e.clientX/innerWidth)*2 - 1;
   pointer.y = (e.clientY/innerHeight)*2 - 1;
   for (const el of document.querySelectorAll(".px")){
@@ -314,9 +406,9 @@ addEventListener("pointermove", e => {
 });
 
 /* ---------- wireframe scan intro, elapsed-time driven ---------- */
-const SCAN_START = .5, SCAN_SECS = 2.2;
+const SCAN_START = .3, SCAN_SECS = 1.4;
 if (STILL) document.body.classList.add("ready", "still");
-else setTimeout(() => document.body.classList.add("ready"), 2300);
+let announced = STILL;
 
 function resize(){
   renderer.setSize(innerWidth, innerHeight, false);
@@ -337,6 +429,7 @@ function tick(){
   halo.material.opacity = k*.15;
   for (const m of wireMats) m.opacity = .55*(1-k);
 
+  if (!hasPointer && !STILL){ pointer.x = Math.sin(t*.22)*.35; pointer.y = Math.cos(t*.17)*.18; }
   camera.position.lerp(new THREE.Vector3(
     CAM_HOME.x + pointer.x*1.0, CAM_HOME.y - pointer.y*.6, CAM_HOME.z), .045);
   camera.lookAt(LOOK_AT);
@@ -366,7 +459,7 @@ function tick(){
   wR.rotation.y = Math.PI - flap*.5 - .25;
   const pointerWorld = new THREE.Vector3(pointer.x*7, -pointer.y*4, restPoint.z);
   if (sState === "fly"){
-    sT = Math.min(sT + dt*.32, 1);
+    sT = Math.min(sT + dt*.45, 1);
     spark.position.lerpVectors(sFrom, restPoint, THREE.MathUtils.smoothstep(sT,0,1));
     spark.position.y += Math.sin(sT*Math.PI*3)*.5*(1-sT);
     if (sT >= 1) sState = "rest";
@@ -381,6 +474,10 @@ function tick(){
   }
 
   renderer.render(scene, camera);
+  if (!announced){
+    announced = true;
+    setTimeout(() => document.body.classList.add("ready"), 900);
+  }
   requestAnimationFrame(tick);
 }
 tick();
