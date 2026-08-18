@@ -167,15 +167,15 @@
       color:#aab3cc;text-shadow:0 1px 10px rgba(8,10,22,.9)}
   .foot i{color:var(--ok);font-style:normal;margin-right:7px;font-size:12px}
 
-  /* ---- tablet: keep the world, tighten the collage ---- */
-  @media (max-width:1180px) and (min-width:741px){
+  /* ---- tablet: chips stack top-right, cards below — never hide a stat ---- */
+  @media (max-width:1380px) and (min-width:741px){
     .sub{max-width:400px}
     .card{width:214px}
     .card .art{height:104px}
-    #chip1{right:4.5%;top:12%}
-    #chip2{display:none}
-    #cardpos1{right:4%;top:27%}
-    #cardpos2{right:5%;top:58%}
+    #chip1{right:4.5%;top:11%}
+    #chip2{right:4.5%;top:calc(11% + 78px)}
+    #cardpos1{right:4%;top:31%}
+    #cardpos2{right:5%;top:62%}
   }
 
   /* ---- phone: single column, one peeking card ---- */
