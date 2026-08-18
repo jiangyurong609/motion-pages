@@ -57,8 +57,11 @@ CSS `transform` — and silently clobber each other. Separate them:
   `inset:0`), shifted via the standalone `translate` property from JS.
 - **Entrance** → `.enter` class on the INNER element, animating `opacity` +
   `translate`, flipped by adding `.ready` to `<body>`.
-- **Element's own placement** → nav centering via `left:50%; margin-left:-<w/2>px`
-  (not translateX), card tilt via the standalone `rotate` property.
+- **Element's own placement** → nav centering via
+  `inset-inline:0; margin-inline:auto; width:fit-content` (never `translate:-50%` —
+  the entrance animation owns `translate` and will clobber it, pinning the nav at 50%
+  and cropping it off-screen; this exact regression shipped once), card tilt via the
+  standalone `rotate` property.
 
 Never put two of these on the same element via `transform`.
 
