@@ -57,6 +57,13 @@
       transition:opacity .35s var(--e);
       background:radial-gradient(90px 46px at var(--mx,50%) var(--my,0%),rgba(255,255,255,.12),transparent 70%)}
   nav:hover::after{opacity:1}
+  /* per-pill cursor light — the hovered pill's fill is lit by the pointer, not static */
+  nav a{position:relative;overflow:hidden}
+  nav a::after{content:"";position:absolute;inset:0;border-radius:999px;opacity:0;pointer-events:none;
+      transition:opacity .3s var(--e);
+      background:radial-gradient(64px 36px at var(--mx,50%) var(--my,30%),rgba(255,255,255,.2),transparent 72%)}
+  nav a:hover::after{opacity:1}
+  nav a.active::after{display:none}
   nav a.active{background:#eef1f8;color:#1d2233;box-shadow:0 4px 14px rgba(5,8,20,.45)}
   nav a.active:hover{background:#fff;color:#1d2233;transform:none;border-color:transparent;
       box-shadow:0 6px 18px rgba(5,8,20,.5)}
@@ -297,7 +304,7 @@
   setTimeout(() => document.body.classList.add("settled"), 4200);  // delays gone even on the fallback path
 
   /* fluid UI: cursor-following light on shader surfaces (drives --mx/--my) */
-  for (const el of document.querySelectorAll(".cta, nav")){
+  for (const el of document.querySelectorAll(".cta, nav, nav a")){
     el.addEventListener("pointermove", e => {
       const r = el.getBoundingClientRect();
       el.style.setProperty("--mx", ((e.clientX - r.left)/r.width*100).toFixed(1) + "%");

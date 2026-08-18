@@ -54,6 +54,13 @@
       background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
       border-color:rgba(255,255,255,.14);
       box-shadow:0 6px 16px rgba(10,12,8,.35),inset 0 1px 0 rgba(255,255,255,.12)}
+  /* per-pill cursor light — the hovered pill's fill is lit by the pointer, not static */
+  nav a{position:relative;overflow:hidden}
+  nav a::after{content:"";position:absolute;inset:0;border-radius:999px;opacity:0;pointer-events:none;
+      transition:opacity .3s var(--e);
+      background:radial-gradient(64px 36px at var(--mx,50%) var(--my,30%),rgba(255,255,255,.2),transparent 72%)}
+  nav a:hover::after{opacity:1}
+  nav a.active::after{display:none}
   /* active: solid white pill, dark text, raised */
   nav a.active{background:#f2f4ee;color:#20241d;box-shadow:0 4px 14px rgba(10,12,8,.4)}
   nav a.active:hover{background:#fff;color:#20241d;transform:none;border-color:transparent;
@@ -407,7 +414,7 @@ else setTimeout(() => {
 }, 2300);
 
 /* fluid UI: cursor-following light on shader surfaces (drives --mx/--my) */
-for (const el of document.querySelectorAll(".cta, nav")){
+for (const el of document.querySelectorAll(".cta, nav, nav a")){
   el.addEventListener("pointermove", e => {
     const r = el.getBoundingClientRect();
     el.style.setProperty("--mx", ((e.clientX - r.left)/r.width*100).toFixed(1) + "%");

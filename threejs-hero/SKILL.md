@@ -187,10 +187,13 @@ surface behaves like a lit object. Pure CSS + ~10 lines of JS, no libraries:
   (`inset 0 -9px 18px -6px rgba(255,255,255,.38)`), top hairline; hover brightens the
   glass and scales 1.07.
   Needs `overflow:hidden` and content wrapped above the pseudos (`.cta>*{z-index:2}`).
-- **JS** — one `pointermove` listener per shader surface (CTA, nav) writing
-  button-local `--mx/--my` percentages from `getBoundingClientRect()`.
-- **Nav glass** — same cursor light on the pill bar; links get a soft pill bg on hover,
-  not just a color change.
+- **JS** — one `pointermove` listener per shader surface (CTA, nav bar, AND each nav
+  link — `".cta, nav, nav a"`) writing element-local `--mx/--my` percentages from
+  `getBoundingClientRect()`.
+- **Nav glass** — cursor light on the pill bar, plus a scoped light inside each
+  link's hover pill (`nav a::after` radial at `--mx/--my`; `display:none` on
+  `.active` — light on a solid white pill is invisible noise). The hovered pill's
+  fill follows the pointer instead of being a static gradient.
 - **Cards** — lift on the WRAPPER (`.cardpos:hover{translate:0 -6px}` — the wrapper has
   no `.enter`, so no transform-trap conflict), tilt flattens to `rotate:0`, shadow
   deepens, art scales 1.05 over .8s; corner icon button inverts + `scale(1.12)
