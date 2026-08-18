@@ -38,15 +38,29 @@
   .discover{position:absolute;right:2.2%;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;
     font-size:10px;letter-spacing:.55em;color:rgba(255,255,255,.3);text-transform:uppercase}
 
-  nav{position:absolute;top:26px;left:50%;margin-left:-231px;display:flex;align-items:center;gap:3px;
+  nav{position:absolute;top:26px;left:50%;margin-left:-231px;display:flex;align-items:center;gap:4px;
       background:rgba(32,36,29,.5);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-      border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:5px;pointer-events:auto}
-  nav .logo{width:34px;height:34px;border-radius:999px;background:#20241d;display:grid;place-items:center;font-size:15px}
+      border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:6px;pointer-events:auto}
+  nav .logo{width:36px;height:36px;border-radius:13px;background:#f2f4ee;color:#20241d;display:grid;place-items:center;
+      box-shadow:0 4px 12px rgba(10,12,8,.35);transition:transform .3s var(--e)}
+  nav .logo:hover{transform:rotate(-6deg) scale(1.05)}
   nav a{display:inline-flex;align-items:center;gap:7px;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
       color:var(--muted);text-decoration:none;padding:10px 15px;border-radius:999px;font-weight:600;
-      transition:color .3s var(--e),background .3s var(--e)}
-  nav a:hover{color:var(--ink);background:rgba(255,255,255,.07)}
-  nav a.active{background:rgba(255,255,255,.13);color:var(--ink)}
+      border:1px solid transparent;
+      transition:color .3s var(--e),background .3s var(--e),border-color .3s var(--e),
+                 transform .3s var(--e),box-shadow .3s var(--e)}
+  /* hover: raised dark pill — gradient, hairline border, lift + inner top light */
+  nav a:hover{color:var(--ink);transform:translateY(-1px);
+      background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
+      border-color:rgba(255,255,255,.14);
+      box-shadow:0 6px 16px rgba(10,12,8,.35),inset 0 1px 0 rgba(255,255,255,.12)}
+  /* active: solid white pill, dark text, raised */
+  nav a.active{background:#f2f4ee;color:#20241d;box-shadow:0 4px 14px rgba(10,12,8,.4)}
+  nav a.active:hover{background:#fff;color:#20241d;transform:none;border-color:transparent;
+      box-shadow:0 6px 18px rgba(10,12,8,.45)}
+  /* the door/ENTER link reads as a distinct bordered button even at rest */
+  nav a.door{border-color:rgba(255,255,255,.13);background:rgba(255,255,255,.04);color:#d7dccb;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
   nav a svg{opacity:.75}
   /* cursor-following light across the nav glass */
   nav::after{content:"";position:absolute;inset:0;border-radius:999px;opacity:0;pointer-events:none;
@@ -68,20 +82,33 @@
       pointer-events:auto}
   .cta>*{position:relative;z-index:2}
   .cta::before{content:"";position:absolute;top:-60%;bottom:-60%;left:-45%;width:42%;z-index:1;rotate:14deg;
-      background:linear-gradient(105deg,transparent 18%,rgba(255,255,255,.5) 50%,transparent 82%);
+      background:linear-gradient(105deg,transparent 18%,rgba(255,246,224,.55) 50%,transparent 82%);
       filter:blur(5px);animation:sheen 5.5s var(--e) infinite}
   @keyframes sheen{0%,55%{left:-45%}85%,100%{left:115%}}
+  /* hover light: cursor-following spot + warm dawn under-glow seeping from the bottom edge */
   .cta::after{content:"";position:absolute;inset:0;z-index:1;opacity:0;transition:opacity .35s var(--e);
-      background:radial-gradient(130px 70px at var(--mx,50%) var(--my,20%),rgba(255,255,255,.3),transparent 65%)}
+      background:
+        radial-gradient(130px 70px at var(--mx,50%) var(--my,20%),rgba(255,255,255,.26),transparent 65%),
+        radial-gradient(115% 95% at 50% 132%,rgba(255,199,112,.55),rgba(255,199,112,0) 58%)}
   .cta:hover{transform:translateY(-2px);
-      box-shadow:0 20px 48px rgba(10,12,8,.55),0 0 34px rgba(232,255,214,.14),inset 0 1px 0 rgba(255,255,255,.28)}
+      box-shadow:0 20px 48px rgba(10,12,8,.55),0 14px 38px -8px rgba(255,190,110,.4),
+                 inset 0 1px 0 rgba(255,255,255,.28),inset 0 -12px 26px -14px rgba(255,214,150,.55)}
   .cta:hover::after{opacity:1}
   .cta:active{transform:translateY(0) scale(.97)}
+  /* frosted glass disc: milky toward the bottom, world blurred through it, bright bottom rim */
   .play{position:absolute;left:13.5%;top:56%;width:58px;height:58px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);display:grid;place-items:center;
+      border:1px solid rgba(255,255,255,.28);display:grid;place-items:center;
+      background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.16) 62%,rgba(255,255,255,.32));
+      backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+      box-shadow:0 10px 26px rgba(10,12,8,.35),inset 0 1px 0 rgba(255,255,255,.18),
+                 inset 0 -9px 18px -6px rgba(255,255,255,.38);
       cursor:pointer;pointer-events:auto;
-      transition:opacity .9s ease,translate .9s ease,transform .35s var(--e),background .35s var(--e)}
-  .play:hover{transform:scale(1.07);background:rgba(255,255,255,.13)}
+      transition:opacity .9s ease,translate .9s ease,transform .35s var(--e),
+                 background .35s var(--e),box-shadow .35s var(--e)}
+  .play:hover{transform:scale(1.07);
+      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.24) 62%,rgba(255,255,255,.42));
+      box-shadow:0 14px 32px rgba(10,12,8,.4),inset 0 1px 0 rgba(255,255,255,.25),
+                 inset 0 -9px 20px -6px rgba(255,255,255,.5)}
   .play::before,.play::after{content:"";position:absolute;inset:-16px;border-radius:999px;border:1px solid rgba(255,255,255,.10);
       animation:ripple 3.4s ease-out infinite}
   .play::after{inset:-34px;border-color:rgba(255,255,255,.05);animation-delay:1.7s}
@@ -129,11 +156,11 @@
 <div id="ui">
   <div class="px" data-px="6">
     <nav class="enter d1">
-      <div class="logo">🌳</div>
-      <a href="#" class="active"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M5 10l7-7 7 7"/></svg>Grove</a>
-      <a href="#">Habitats</a>
-      <a href="#">Journal</a>
-      <a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Enter</a>
+      <div class="logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 6 10h3l-4 6h6v4h2v-4h6l-4-6h3z"/></svg></div>
+      <a href="#" class="active"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V9M12 9C12 6 9 4 6 4c0 3 3 5 6 5zm0 0c0-3 3-5 6-5 0 3-3 5-6 5z"/></svg>Grove</a>
+      <a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 19l6-9 4 5 3-4 5 8z"/></svg>Habitats</a>
+      <a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Journal</a>
+      <a href="#" class="door"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3h5v18h-5M3 12h11M10 8l4 4-4 4"/></svg>Enter</a>
     </nav>
   </div>
 

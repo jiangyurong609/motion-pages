@@ -40,18 +40,30 @@
   nav{position:absolute;top:26px;left:50%;margin-left:-243px;display:flex;align-items:center;gap:3px;
       background:rgba(17,20,32,.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
       border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:5px;pointer-events:auto}
-  nav .logo{width:34px;height:34px;border-radius:999px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
-      display:grid;place-items:center;font-size:14px}
+  nav .logo{width:36px;height:36px;border-radius:13px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      display:grid;place-items:center;font-size:14px;box-shadow:0 4px 12px rgba(5,8,20,.4);
+      transition:transform .3s var(--e)}
+  nav .logo:hover{transform:rotate(-6deg) scale(1.05)}
   nav a{display:inline-flex;align-items:center;gap:7px;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
       color:var(--muted);text-decoration:none;padding:10px 15px;border-radius:999px;font-weight:600;
-      transition:color .3s var(--e),background .3s var(--e)}
-  nav a:hover{color:var(--ink);background:rgba(255,255,255,.07)}
+      border:1px solid transparent;
+      transition:color .3s var(--e),background .3s var(--e),border-color .3s var(--e),
+                 transform .3s var(--e),box-shadow .3s var(--e)}
+  nav a:hover{color:var(--ink);transform:translateY(-1px);
+      background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
+      border-color:rgba(255,255,255,.14);
+      box-shadow:0 6px 16px rgba(5,8,20,.4),inset 0 1px 0 rgba(255,255,255,.12)}
   nav::after{content:"";position:absolute;inset:0;border-radius:999px;opacity:0;pointer-events:none;
       transition:opacity .35s var(--e);
       background:radial-gradient(90px 46px at var(--mx,50%) var(--my,0%),rgba(255,255,255,.12),transparent 70%)}
   nav:hover::after{opacity:1}
-  nav a.active{background:rgba(255,255,255,.13);color:var(--ink)}
-  nav a.go{background:var(--ink);color:#1d2233}
+  nav a.active{background:#eef1f8;color:#1d2233;box-shadow:0 4px 14px rgba(5,8,20,.45)}
+  nav a.active:hover{background:#fff;color:#1d2233;transform:none;border-color:transparent;
+      box-shadow:0 6px 18px rgba(5,8,20,.5)}
+  nav a.go{background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,0) 45%),linear-gradient(135deg,#6366f1,#8b5cf6);
+      color:#fff;box-shadow:0 4px 16px rgba(99,102,241,.45),inset 0 1px 0 rgba(255,255,255,.25)}
+  nav a.go:hover{color:#fff;transform:translateY(-1px);border-color:transparent;
+      box-shadow:0 7px 22px rgba(99,102,241,.6),inset 0 1px 0 rgba(255,255,255,.3)}
 
   .hero{position:absolute;left:5.5%;top:24%;max-width:620px}
   .badge{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
@@ -75,9 +87,12 @@
       filter:blur(5px);animation:sheen 5.5s var(--e) infinite}
   @keyframes sheen{0%,55%{left:-45%}85%,100%{left:115%}}
   .cta::after{content:"";position:absolute;inset:0;z-index:1;opacity:0;transition:opacity .35s var(--e);
-      background:radial-gradient(140px 74px at var(--mx,50%) var(--my,20%),rgba(255,255,255,.32),transparent 65%)}
+      background:
+        radial-gradient(140px 74px at var(--mx,50%) var(--my,20%),rgba(255,255,255,.3),transparent 65%),
+        radial-gradient(115% 95% at 50% 132%,rgba(196,181,253,.55),rgba(196,181,253,0) 58%)}
   .cta:hover{transform:translateY(-2px);
-      box-shadow:0 20px 58px rgba(99,102,241,.7),0 2px 10px rgba(5,8,20,.4),inset 0 1px 0 rgba(255,255,255,.35)}
+      box-shadow:0 20px 58px rgba(99,102,241,.7),0 14px 38px -8px rgba(139,92,246,.55),0 2px 10px rgba(5,8,20,.4),
+                 inset 0 1px 0 rgba(255,255,255,.35),inset 0 -12px 26px -14px rgba(196,181,253,.5)}
   .cta:hover::after{opacity:1}
   .cta:active{transform:translateY(0) scale(.97)}
   .cta .arrow{color:#e0e7ff}
@@ -85,8 +100,12 @@
   .demo{display:inline-flex;align-items:center;gap:12px;background:none;border:none;cursor:pointer;pointer-events:auto;
       color:var(--ink);font:600 13px/1.3 "Quicksand";text-align:left}
   .demo .ring{position:relative;width:52px;height:52px;border-radius:999px;flex:none;
-      border:1px solid rgba(165,180,252,.55);background:rgba(99,102,241,.18);display:grid;place-items:center;
-      box-shadow:0 0 22px rgba(129,140,248,.4);animation:ringpulse 2.4s ease-in-out infinite;transition:transform .2s}
+      border:1px solid rgba(165,180,252,.55);display:grid;place-items:center;
+      background:linear-gradient(180deg,rgba(99,102,241,.08),rgba(129,140,248,.22) 62%,rgba(165,180,252,.38));
+      backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+      box-shadow:0 0 22px rgba(129,140,248,.4),inset 0 1px 0 rgba(255,255,255,.15),
+                 inset 0 -9px 18px -6px rgba(199,210,254,.45);
+      animation:ringpulse 2.4s ease-in-out infinite;transition:transform .2s}
   .demo:hover .ring{transform:scale(1.06)}
   @keyframes ringpulse{50%{box-shadow:0 0 40px rgba(129,140,248,.8)}}
   .demo .ring::before{content:"";position:absolute;inset:-12px;border-radius:999px;border:1px solid rgba(165,180,252,.22)}
@@ -191,9 +210,9 @@
   <div class="px" data-px="6">
     <nav class="enter d1">
       <div class="logo">☎</div>
-      <a href="/" class="active">Receptionist</a>
-      <a href="/#how">How it works</a>
-      <a href="/#pricing">Pricing</a>
+      <a href="/" class="active"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 012-2h2l2 5-2 2a13 13 0 006 6l2-2 5 2v2a2 2 0 01-2 2A17 17 0 014 5z"/></svg>Receptionist</a>
+      <a href="/#how"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M10 9l5 3-5 3z"/></svg>How it works</a>
+      <a href="/#pricing"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4L11 3H4v7l9.6 10.4a2 2 0 002.8 0l4.2-4.2a2 2 0 000-2.8z"/><circle cx="7.5" cy="6.5" r="1" fill="currentColor"/></svg>Pricing</a>
       <a href="/onboarding" class="go">Start free →</a>
     </nav>
   </div>

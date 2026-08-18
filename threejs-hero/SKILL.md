@@ -122,8 +122,16 @@ Never put two of these on the same element via `transform`.
 
 ## DOM overlay kit (matches the reference look)
 
-- Pill navbar top-center: icon disc + 3–4 uppercase letter-spaced links (10.5px,
-  `.18em`), one active filled pill, `backdrop-filter:blur(16px)`, dark 50% bg.
+- Pill navbar top-center, `backdrop-filter:blur(16px)`, dark 50% bg — with the
+  reference's full state system (a color-change-only nav reads as basic):
+  - logo chip: white ROUNDED-SQUARE (radius ~13px, not a circle) with a monochrome
+    brand glyph, raised shadow, playful hover (`rotate(-6deg) scale(1.05)`);
+  - EVERY link gets an 11px stroke icon + uppercase letter-spaced label (10.5px `.18em`);
+  - active link: SOLID white pill, dark text, raised shadow — not a translucent wash;
+  - hover: a raised pill materializes — vertical gradient bg, hairline
+    `rgba(255,255,255,.14)` border, `translateY(-1px)`, inner top light + drop shadow;
+  - the nav's own CTA (Enter/Start free): visually distinct at rest — bordered
+    glass pill, or a mini shader-gradient pill for conversion-focused brands.
 - Hero reads top-to-bottom in ONE left column: category badge → headline (Quicksand
   500, ~56–60px, 2 lines, one value word in a gradient `background-clip:text` accent) →
   **subheadline DIRECTLY UNDER the H1** (≥15px, key value phrases in `<b>`) → CTA row.
@@ -165,7 +173,19 @@ surface behaves like a lit object. Pure CSS + ~10 lines of JS, no libraries:
      even when idle;
   3. **cursor-following light** — `::after` radial gradient centered at
      `var(--mx) var(--my)`, `opacity:0→1` on hover;
-  4. hover bloom: lift −2px + brighter outer glow; `:active{scale(.97)}`.
+  4. hover bloom: lift −2px + brighter outer glow; `:active{scale(.97)}`;
+  5. **backlit under-glow on hover** (the reference's signature) — the button looks lit
+     from behind its bottom edge: stack a second radial in the same `::after`
+     (`radial-gradient(115% 95% at 50% 132%, <glow>, transparent 58%)`) plus a bottom
+     outer shadow (`0 14px 38px -8px <glow>`) and a bottom inset
+     (`inset 0 -12px 26px -14px <glow>`). Glow color is brand light: warm dawn gold for
+     nature themes, the accent (e.g. violet) for tech brands. Tint the sheen streak the
+     same temperature.
+- **Frosted-glass play disc** — not a flat translucent circle: vertical gradient going
+  milky toward the bottom (`rgba(255,255,255,.03) → .16 @62% → .32`),
+  `backdrop-filter:blur(7px)` so the world refracts through it, bright bottom inner rim
+  (`inset 0 -9px 18px -6px rgba(255,255,255,.38)`), top hairline; hover brightens the
+  glass and scales 1.07.
   Needs `overflow:hidden` and content wrapped above the pseudos (`.cta>*{z-index:2}`).
 - **JS** — one `pointermove` listener per shader surface (CTA, nav) writing
   button-local `--mx/--my` percentages from `getBoundingClientRect()`.
@@ -245,6 +265,11 @@ Headless traps (each one produces a FALSE failure or false pass):
 - Layout doubt ≠ screenshot truth: when a shot contradicts the CSS, inject a debug
   `<script>` logging `getComputedStyle` + `getBoundingClientRect` + `innerWidth` into a
   COPY of the page and read the console — measure before churning on "fixes".
+- **Hover states ARE screenshotable**: make a debug copy with
+  `sed 's/:hover/.dbg/g' page.html > dbg.html`, append a script adding `.dbg` to one
+  nav link, the CTA, and the play disc, then screenshot in `?still` mode. Verify the
+  raised nav pill, the backlit under-glow, and the glass brightening — don't ship
+  hover styling on faith.
 
 ## Design-review pass (aesthetic + conversion — after the technical loop passes)
 
