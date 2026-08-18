@@ -289,6 +289,22 @@ branch([[-15,-5.0,-11],[-7,-3.8,-10],[ 0,-5.2,-10],[6,-3.9,-10],[14,-5.2,-11]], 
   inst.instanceColor.needsUpdate = true;
   scene.add(inst);
 }
+/* deep background trees — bare trunk silhouettes almost swallowed by fog (3rd depth plane) */
+{
+  const mat = new THREE.MeshStandardMaterial({color:0x3d4633, roughness:.95, transparent:true, opacity:0});
+  finalMats.push(mat);
+  for (const [x, z, h, r, lean] of [[-6.5,-11,9,.42,-.05],[-2.5,-13.5,11,.55,.03],[2.8,-10.5,8,.36,.06],
+                                     [7.5,-14,12,.6,-.04],[11.5,-12,9,.44,.05]]){
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(r*.5, r, h, 8), mat);
+    trunk.position.set(x, h/2 - 7, z);
+    trunk.rotation.z = lean;
+    scene.add(trunk);
+    const limb = new THREE.Mesh(new THREE.CylinderGeometry(r*.2, r*.32, h*.42, 6), mat);
+    limb.position.set(x + r*2.2, h*.62 - 7, z);
+    limb.rotation.z = -.85 + lean;
+    scene.add(limb);
+  }
+}
 /* tiny white flowers on the two front branches */
 {
   const COUNT = 260;

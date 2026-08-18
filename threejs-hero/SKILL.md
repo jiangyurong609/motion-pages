@@ -87,6 +87,12 @@ Never put two of these on the same element via `transform`.
   upward-biased random directions, scale .5–1.5, per-instance `setColorAt` with HSL
   jitter (hue .25±.06, sat .3–.5, light .2–.4 for moss). A second sparse InstancedMesh
   adds micro-details (white flowers, sparks).
+- **Deep scenery silhouettes (3rd depth plane)** — 4–6 bare vertical shapes at
+  z ≈ −10…−14 so the fog almost swallows them: tree trunks with one lean limb for a
+  forest, utility poles with a crossarm for an urban/tech world — whatever the brand's
+  world implies. Vary height/lean, share the scan's fade-in materials. Without this
+  plane the world reads as tubes floating in a void; with it, the fog implies a whole
+  landscape (the reference's background trees).
 - **"Orbit using mouse"** — pointer → small target offset
   (±1.0 x, ∓0.6 y), `camera.position.lerp(target,.045)` every frame, `lookAt` fixed.
   DOM `.px` wrappers translate −pointer·(6–24 px) at different rates per layer.

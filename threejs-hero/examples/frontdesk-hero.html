@@ -377,6 +377,21 @@ wire([[-15,-5.0,-11],[-7,-3.8,-10],[ 0,-5.2,-10],[6,-3.9,-10],[14,-5.2,-11]],   
   scene.add(inst);
 }
 
+/* deep background utility poles — faint silhouettes carrying the wires (3rd depth plane) */
+{
+  const mat = new THREE.MeshStandardMaterial({color:0x333a58, roughness:.95, transparent:true, opacity:0});
+  finalMats.push(mat);
+  for (const [x, z, h, lean] of [[-7.5,-11,8,.03],[-1.5,-13.5,9.5,-.02],[4.5,-10.5,7.5,.04],[10,-14,9,-.03]]){
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(.09, .14, h, 8), mat);
+    pole.position.set(x, h/2 - 7.5, z);
+    pole.rotation.z = lean;
+    scene.add(pole);
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(.055, .055, 1.7, 6), mat);
+    arm.rotation.z = Math.PI/2;
+    arm.position.set(x, h - 8.1, z);
+    scene.add(arm);
+  }
+}
 /* the receptionist core: glowing orb where the wires converge (right) */
 const core = new THREE.Mesh(new THREE.SphereGeometry(.42, 48, 48),
   new THREE.MeshStandardMaterial({color:0xc7d2fe, emissive:0x818cf8, emissiveIntensity:2.2,
