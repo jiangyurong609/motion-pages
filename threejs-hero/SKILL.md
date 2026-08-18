@@ -268,6 +268,14 @@ Headless traps (each one produces a FALSE failure or false pass):
 - Layout doubt ≠ screenshot truth: when a shot contradicts the CSS, inject a debug
   `<script>` logging `getComputedStyle` + `getBoundingClientRect` + `innerWidth` into a
   COPY of the page and read the console — measure before churning on "fixes".
+- **Scrolled states need CDP, not `--screenshot`**: once the page scrolls (URL
+  fragments, anchor links, scroll-linked effects), Chrome's `--screenshot` CLI can
+  return a fully blank capture even though layout and paint are fine. Drive Chrome
+  over the DevTools Protocol instead (`--remote-debugging-port`, `Target.createTarget`
+  → `Runtime.evaluate` to scroll/measure → `Page.captureScreenshot`), and use
+  `Emulation.setDeviceMetricsOverride` for true phone viewports (also bypasses the
+  500px window minimum). Measure `scrollY`/rects in the same session so you never
+  debug a tooling artifact as a layout bug.
 - **Hover states ARE screenshotable**: make a debug copy with
   `sed 's/:hover/.dbg/g' page.html > dbg.html`, append a script adding `.dbg` to one
   nav link, the CTA, and the play disc, then screenshot in `?still` mode. Verify the
