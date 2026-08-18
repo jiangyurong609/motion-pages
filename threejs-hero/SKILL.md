@@ -144,6 +144,40 @@ Never put two of these on the same element via `transform`.
   app's routes and verified anchor ids (`/#how`, `/onboarding`) — relative when the
   hero will be mounted in the app, absolute only for a standalone share.
 
+## Fluid UI layer (shader buttons + cursor light — the difference between "basic three.js" and the reference)
+
+The reference's fluidity is mostly NOT in the 3D scene — it's that every interactive
+surface behaves like a lit object. Pure CSS + ~10 lines of JS, no libraries:
+
+- **Shader button** (primary CTA, key pills) — four layers on one element:
+  1. glass gradient base stacked over the brand fill:
+     `background:linear-gradient(180deg,rgba(255,255,255,.15),transparent 40%[,rgba(0,0,0,.28)]), <brand>`
+     plus `inset 0 1px 0 rgba(255,255,255,.2)` top rim;
+  2. **idle specular sweep** — a blurred diagonal white streak (`::before`, ~42% wide,
+     `rotate:14deg`, `filter:blur(5px)`) gliding across every ~5.5s
+     (`@keyframes sheen{0%,55%{left:-45%}85%,100%{left:115%}}`) — the button breathes
+     even when idle;
+  3. **cursor-following light** — `::after` radial gradient centered at
+     `var(--mx) var(--my)`, `opacity:0→1` on hover;
+  4. hover bloom: lift −2px + brighter outer glow; `:active{scale(.97)}`.
+  Needs `overflow:hidden` and content wrapped above the pseudos (`.cta>*{z-index:2}`).
+- **JS** — one `pointermove` listener per shader surface (CTA, nav) writing
+  button-local `--mx/--my` percentages from `getBoundingClientRect()`.
+- **Nav glass** — same cursor light on the pill bar; links get a soft pill bg on hover,
+  not just a color change.
+- **Cards** — lift on the WRAPPER (`.cardpos:hover{translate:0 -6px}` — the wrapper has
+  no `.enter`, so no transform-trap conflict), tilt flattens to `rotate:0`, shadow
+  deepens, art scales 1.05 over .8s; corner icon button inverts + `scale(1.12)
+  rotate(8deg)` on hover.
+- **Play/demo rings** — slow ripple outward (`scale .92→1.16`, fade), staggered ~1.7s.
+- **Easing system** — `:root{--e:cubic-bezier(.22,1,.36,1)}` (expo-out) on every
+  micro-interaction, .35–.5s. Default `ease .2s` is what makes a page feel "basic".
+- **⚠️ Stagger-delay trap** — entrance `.d1–.d5` classes set `transition-delay` that
+  would lag every hover FOREVER. Add `body.settled .enter{transition-delay:0s}` and
+  flip `.settled` ~1.6s after `.ready` (immediately in still mode). Also disable
+  sheen/ripple keyframes under `body.still` (they run on the REAL clock and break
+  deterministic screenshots) and under `prefers-reduced-motion`.
+
 ## Responsive + touch (mandatory — this ships to phones on day 1)
 
 Absolute desktop positioning collapses into a card-pile on a 390px screen. Two
@@ -230,6 +264,9 @@ revision round; check all of them:
    blank while UI is visible.
 9. **Interaction audit** — click every link and button in the real browser: correct
    destinations, demo plays with sound, Esc closes, labels honest (durations, stats).
+   Then HOVER everything: every interactive element must respond as a lit object
+   (sheen, cursor light, eased lift — see §Fluid UI). If buttons only change color,
+   the page reads as "basic three.js demo", not the reference.
 10. Then `open page.html` for motion feel — easing, flap speed, parallax amplitude are
     judgment calls headless can't make.
 

@@ -32,6 +32,10 @@
   body.ready .d3{transition-delay:.26s} .d4{transition-delay:.38s} .d5{transition-delay:.5s}
   body.still .enter{transition:none;opacity:1;translate:0 0}
   body.still .art.reveal::after{display:none}
+  /* after the intro, kill stagger delays so hover micro-interactions respond instantly */
+  body.settled .enter{transition-delay:0s}
+  body.still .cta::before,body.still .demo .ring{animation:none}
+  :root{--e:cubic-bezier(.22,1,.36,1)}
 
   nav{position:absolute;top:26px;left:50%;margin-left:-243px;display:flex;align-items:center;gap:3px;
       background:rgba(17,20,32,.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
@@ -39,8 +43,13 @@
   nav .logo{width:34px;height:34px;border-radius:999px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
       display:grid;place-items:center;font-size:14px}
   nav a{display:inline-flex;align-items:center;gap:7px;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
-      color:var(--muted);text-decoration:none;padding:10px 15px;border-radius:999px;font-weight:600;transition:.2s}
-  nav a:hover{color:var(--ink)}
+      color:var(--muted);text-decoration:none;padding:10px 15px;border-radius:999px;font-weight:600;
+      transition:color .3s var(--e),background .3s var(--e)}
+  nav a:hover{color:var(--ink);background:rgba(255,255,255,.07)}
+  nav::after{content:"";position:absolute;inset:0;border-radius:999px;opacity:0;pointer-events:none;
+      transition:opacity .35s var(--e);
+      background:radial-gradient(90px 46px at var(--mx,50%) var(--my,0%),rgba(255,255,255,.12),transparent 70%)}
+  nav:hover::after{opacity:1}
   nav a.active{background:rgba(255,255,255,.13);color:var(--ink)}
   nav a.go{background:var(--ink);color:#1d2233}
 
@@ -54,13 +63,25 @@
       text-shadow:0 1px 10px rgba(8,10,22,.8)}
   .sub b{color:var(--ink);font-weight:600}
   .ctarow{position:absolute;left:5.5%;top:59%;display:flex;align-items:center;gap:20px}
-  .cta{display:inline-flex;align-items:center;gap:10px;
-      background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;color:#fff;
+  .cta{display:inline-flex;align-items:center;gap:10px;position:relative;overflow:hidden;
+      background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,0) 42%),linear-gradient(135deg,#6366f1,#8b5cf6);
+      border:none;color:#fff;
       font:600 15.5px/1 "Quicksand";padding:18px 30px;border-radius:999px;cursor:pointer;
-      box-shadow:0 14px 44px rgba(99,102,241,.5),0 2px 10px rgba(5,8,20,.4);
-      transition:transform .2s,box-shadow .2s;pointer-events:auto}
-  .cta:hover{transform:translateY(-2px);box-shadow:0 18px 54px rgba(99,102,241,.65),0 2px 10px rgba(5,8,20,.4)}
+      box-shadow:0 14px 44px rgba(99,102,241,.5),0 2px 10px rgba(5,8,20,.4),inset 0 1px 0 rgba(255,255,255,.25);
+      transition:opacity .7s ease,translate .7s ease,transform .45s var(--e),box-shadow .45s var(--e);pointer-events:auto}
+  .cta>*{position:relative;z-index:2}
+  .cta::before{content:"";position:absolute;top:-60%;bottom:-60%;left:-45%;width:42%;z-index:1;rotate:14deg;
+      background:linear-gradient(105deg,transparent 18%,rgba(255,255,255,.55) 50%,transparent 82%);
+      filter:blur(5px);animation:sheen 5.5s var(--e) infinite}
+  @keyframes sheen{0%,55%{left:-45%}85%,100%{left:115%}}
+  .cta::after{content:"";position:absolute;inset:0;z-index:1;opacity:0;transition:opacity .35s var(--e);
+      background:radial-gradient(140px 74px at var(--mx,50%) var(--my,20%),rgba(255,255,255,.32),transparent 65%)}
+  .cta:hover{transform:translateY(-2px);
+      box-shadow:0 20px 58px rgba(99,102,241,.7),0 2px 10px rgba(5,8,20,.4),inset 0 1px 0 rgba(255,255,255,.35)}
+  .cta:hover::after{opacity:1}
+  .cta:active{transform:translateY(0) scale(.97)}
   .cta .arrow{color:#e0e7ff}
+  @media (prefers-reduced-motion:reduce){.cta::before,.demo .ring{animation:none}}
   .demo{display:inline-flex;align-items:center;gap:12px;background:none;border:none;cursor:pointer;pointer-events:auto;
       color:var(--ink);font:600 13px/1.3 "Quicksand";text-align:left}
   .demo .ring{position:relative;width:52px;height:52px;border-radius:999px;flex:none;
@@ -72,11 +93,14 @@
   .demo .ring svg{margin-left:3px}
   .demo small{display:block;font-weight:500;color:var(--muted);font-size:11px;margin-top:2px}
 
-  .cardpos{position:absolute}
+  .cardpos{position:absolute;transition:translate .5s var(--e)}
+  .cardpos:hover{translate:0 -6px}
   #cardpos1{right:24%;top:26%}
   #cardpos2{right:5.5%;top:47%}
   .card{position:relative;background:#fbfcfe;color:#0f172a;border-radius:22px;padding:9px;width:248px;
-      box-shadow:0 26px 60px rgba(5,8,18,.5);pointer-events:auto}
+      box-shadow:0 26px 60px rgba(5,8,18,.5);pointer-events:auto;
+      transition:opacity .7s ease,translate .7s ease,rotate .5s var(--e),box-shadow .5s var(--e)}
+  .cardpos:hover .card{rotate:0deg;box-shadow:0 34px 78px rgba(5,8,18,.6)}
   #cardpos1 .card{rotate:-1.4deg}
   #cardpos2 .card{rotate:1.2deg}
   .card .art{border-radius:15px;height:122px;position:relative;overflow:hidden}
@@ -89,7 +113,9 @@
   .card .kicker{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#64748b;font-weight:700}
   .card .claim{font-size:18.5px;font-weight:600;line-height:1.25;margin-top:3px;letter-spacing:-.01em}
   .card .go2{position:absolute;right:14px;bottom:14px;width:32px;height:32px;border-radius:999px;background:#eef1f8;
-      border:none;display:grid;place-items:center;cursor:pointer;font-size:13px;color:#0f172a}
+      border:none;display:grid;place-items:center;cursor:pointer;font-size:13px;color:#0f172a;
+      transition:transform .4s var(--e),background .3s var(--e),color .3s var(--e)}
+  .card .go2:hover{background:#0f172a;color:#eef1f8;transform:scale(1.12) rotate(8deg)}
   .livedot{position:absolute;top:10px;left:12px;display:inline-flex;align-items:center;gap:6px;background:rgba(9,12,24,.6);
       color:#e2e8f0;font-size:9.5px;font-weight:700;letter-spacing:.09em;padding:4px 9px;border-radius:99px}
   .livedot i{width:6px;height:6px;border-radius:99px;background:var(--ok);animation:blink 1.6s infinite}
@@ -248,7 +274,17 @@
   modal.querySelector(".close").addEventListener("click", close);
   modal.addEventListener("click", e => { if (e.target === modal) close(); });
   addEventListener("keydown", e => { if (e.key === "Escape") close(); });
-  setTimeout(() => document.body.classList.add("ready"), 3000); // fallback if WebGL never starts
+  setTimeout(() => document.body.classList.add("ready"), 3000);    // fallback if WebGL never starts
+  setTimeout(() => document.body.classList.add("settled"), 4200);  // delays gone even on the fallback path
+
+  /* fluid UI: cursor-following light on shader surfaces (drives --mx/--my) */
+  for (const el of document.querySelectorAll(".cta, nav")){
+    el.addEventListener("pointermove", e => {
+      const r = el.getBoundingClientRect();
+      el.style.setProperty("--mx", ((e.clientX - r.left)/r.width*100).toFixed(1) + "%");
+      el.style.setProperty("--my", ((e.clientY - r.top)/r.height*100).toFixed(1) + "%");
+    });
+  }
 })();
 </script>
 
@@ -407,7 +443,7 @@ addEventListener("pointermove", e => {
 
 /* ---------- wireframe scan intro, elapsed-time driven ---------- */
 const SCAN_START = .3, SCAN_SECS = 1.4;
-if (STILL) document.body.classList.add("ready", "still");
+if (STILL) document.body.classList.add("ready", "still", "settled");
 let announced = STILL;
 
 function resize(){
@@ -476,7 +512,10 @@ function tick(){
   renderer.render(scene, camera);
   if (!announced){
     announced = true;
-    setTimeout(() => document.body.classList.add("ready"), 900);
+    setTimeout(() => {
+      document.body.classList.add("ready");
+      setTimeout(() => document.body.classList.add("settled"), 1600);
+    }, 900);
   }
   requestAnimationFrame(tick);
 }

@@ -30,6 +30,10 @@
      (CSS transitions/animations run on the real clock, not virtual time) */
   body.still .enter{transition:none;opacity:1;translate:0 0}
   body.still .art.reveal::after{display:none}
+  /* after the intro, kill stagger delays so hover micro-interactions respond instantly */
+  body.settled .enter{transition-delay:0s}
+  body.still .cta::before,body.still .play::before,body.still .play::after{animation:none}
+  :root{--e:cubic-bezier(.22,1,.36,1)}
 
   .discover{position:absolute;right:2.2%;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;
     font-size:10px;letter-spacing:.55em;color:rgba(255,255,255,.3);text-transform:uppercase}
@@ -39,35 +43,65 @@
       border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:5px;pointer-events:auto}
   nav .logo{width:34px;height:34px;border-radius:999px;background:#20241d;display:grid;place-items:center;font-size:15px}
   nav a{display:inline-flex;align-items:center;gap:7px;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
-      color:var(--muted);text-decoration:none;padding:10px 15px;border-radius:999px;font-weight:600;transition:.2s}
-  nav a:hover{color:var(--ink)}
+      color:var(--muted);text-decoration:none;padding:10px 15px;border-radius:999px;font-weight:600;
+      transition:color .3s var(--e),background .3s var(--e)}
+  nav a:hover{color:var(--ink);background:rgba(255,255,255,.07)}
   nav a.active{background:rgba(255,255,255,.13);color:var(--ink)}
   nav a svg{opacity:.75}
+  /* cursor-following light across the nav glass */
+  nav::after{content:"";position:absolute;inset:0;border-radius:999px;opacity:0;pointer-events:none;
+      transition:opacity .35s var(--e);
+      background:radial-gradient(90px 46px at var(--mx,50%) var(--my,0%),rgba(255,255,255,.13),transparent 70%)}
+  nav:hover::after{opacity:1}
 
   .hero{position:absolute;left:5.5%;top:30%;max-width:560px}
   h1{font-weight:500;font-size:clamp(38px,4.3vw,58px);line-height:1.16;letter-spacing:.015em}
   .sub{position:absolute;left:calc(5.5% + 350px);top:31.5%;max-width:200px;font-size:12.5px;line-height:1.7;color:var(--muted)}
+  /* shader button: glass gradient base + idle specular sweep + cursor light + hover bloom */
   .cta{position:absolute;left:calc(5.5% + 350px);top:calc(31.5% + 120px);display:inline-flex;align-items:center;gap:10px;
-      background:rgba(30,34,27,.82);border:1px solid rgba(255,255,255,.08);color:var(--ink);
+      overflow:hidden;
+      background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 40%,rgba(0,0,0,.28)),rgba(30,34,27,.82);
+      border:1px solid rgba(255,255,255,.12);color:var(--ink);
       font:600 13.5px/1 "Quicksand";padding:14px 24px;border-radius:999px;cursor:pointer;
-      box-shadow:0 14px 34px rgba(10,12,8,.4);transition:transform .2s;pointer-events:auto}
-  .cta:hover{transform:translateY(-2px)}
+      box-shadow:0 14px 34px rgba(10,12,8,.4),inset 0 1px 0 rgba(255,255,255,.18);
+      transition:opacity .9s ease,translate .9s ease,transform .45s var(--e),box-shadow .45s var(--e);
+      pointer-events:auto}
+  .cta>*{position:relative;z-index:2}
+  .cta::before{content:"";position:absolute;top:-60%;bottom:-60%;left:-45%;width:42%;z-index:1;rotate:14deg;
+      background:linear-gradient(105deg,transparent 18%,rgba(255,255,255,.5) 50%,transparent 82%);
+      filter:blur(5px);animation:sheen 5.5s var(--e) infinite}
+  @keyframes sheen{0%,55%{left:-45%}85%,100%{left:115%}}
+  .cta::after{content:"";position:absolute;inset:0;z-index:1;opacity:0;transition:opacity .35s var(--e);
+      background:radial-gradient(130px 70px at var(--mx,50%) var(--my,20%),rgba(255,255,255,.3),transparent 65%)}
+  .cta:hover{transform:translateY(-2px);
+      box-shadow:0 20px 48px rgba(10,12,8,.55),0 0 34px rgba(232,255,214,.14),inset 0 1px 0 rgba(255,255,255,.28)}
+  .cta:hover::after{opacity:1}
+  .cta:active{transform:translateY(0) scale(.97)}
   .play{position:absolute;left:13.5%;top:56%;width:58px;height:58px;border-radius:999px;
       border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);display:grid;place-items:center;
-      cursor:pointer;pointer-events:auto}
-  .play::before,.play::after{content:"";position:absolute;inset:-16px;border-radius:999px;border:1px solid rgba(255,255,255,.10)}
-  .play::after{inset:-34px;border-color:rgba(255,255,255,.05)}
+      cursor:pointer;pointer-events:auto;
+      transition:opacity .9s ease,translate .9s ease,transform .35s var(--e),background .35s var(--e)}
+  .play:hover{transform:scale(1.07);background:rgba(255,255,255,.13)}
+  .play::before,.play::after{content:"";position:absolute;inset:-16px;border-radius:999px;border:1px solid rgba(255,255,255,.10);
+      animation:ripple 3.4s ease-out infinite}
+  .play::after{inset:-34px;border-color:rgba(255,255,255,.05);animation-delay:1.7s}
+  @keyframes ripple{0%{transform:scale(.92);opacity:1}70%,100%{transform:scale(1.16);opacity:0}}
   .play svg{margin-left:3px}
+  @media (prefers-reduced-motion:reduce){.cta::before,.play::before,.play::after{animation:none}}
 
-  .cardpos{position:absolute}
+  .cardpos{position:absolute;transition:translate .5s var(--e)}
+  .cardpos:hover{translate:0 -6px}
   #cardpos1{right:26.5%;top:31%}
   #cardpos2{right:6.5%;top:52%}
   .card{position:relative;background:#f7f8f4;color:#20241d;border-radius:22px;padding:9px;width:238px;
-      box-shadow:0 26px 60px rgba(15,18,12,.45);pointer-events:auto}
+      box-shadow:0 26px 60px rgba(15,18,12,.45);pointer-events:auto;
+      transition:opacity .9s ease,translate .9s ease,rotate .5s var(--e),box-shadow .5s var(--e)}
+  .cardpos:hover .card{rotate:0deg;box-shadow:0 34px 78px rgba(15,18,12,.55)}
   #cardpos1 .card{rotate:-1.4deg}
   #cardpos2 .card{rotate:1.2deg}
   .card .art{border-radius:15px;height:120px;position:relative;overflow:hidden}
-  .card .art svg{position:absolute;inset:0;width:100%;height:100%}
+  .card .art svg{position:absolute;inset:0;width:100%;height:100%;transition:transform .8s var(--e)}
+  .cardpos:hover .art svg{transform:scale(1.05)}
   .card .art.reveal::after{content:"";position:absolute;inset:0;
       background:linear-gradient(180deg,rgba(40,46,36,.94) 0%,rgba(40,46,36,.94) 49.6%,#e8ffd6 50%,transparent 50.4%,transparent 100%);
       background-size:100% 220%;background-position:0 0;animation:scan 1.15s 2.5s cubic-bezier(.6,.05,.3,1) forwards}
@@ -77,7 +111,9 @@
   .card .kicker{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8a9180;font-weight:600}
   .card .claim{font-size:18.5px;font-weight:600;line-height:1.25;margin-top:3px;letter-spacing:-.01em}
   .card .go{position:absolute;right:14px;bottom:14px;width:32px;height:32px;border-radius:999px;background:#eceee7;
-      border:none;display:grid;place-items:center;cursor:pointer;font-size:13px;color:#20241d}
+      border:none;display:grid;place-items:center;cursor:pointer;font-size:13px;color:#20241d;
+      transition:transform .4s var(--e),background .3s var(--e),color .3s var(--e)}
+  .card .go:hover{background:#20241d;color:#f7f8f4;transform:scale(1.12) rotate(8deg)}
 
   .chip{position:absolute;font-size:10.5px;color:#d7dccb;line-height:1.5;text-shadow:0 1px 8px rgba(20,24,17,.6)}
   .chip b{display:block;color:#fff;font-size:12.5px;font-weight:600}
@@ -301,7 +337,8 @@ const restPoint = curves[1].getPointAt(.72).clone().add(new THREE.Vector3(0, .75
 let bState = "fly", bT = 0;
 const bFrom = new THREE.Vector3(-8, 3.5, -1);
 butterfly.position.copy(bFrom);
-if (new URLSearchParams(location.search).has("still")){ bState = "rest"; butterfly.position.copy(restPoint); }
+if (new URLSearchParams(location.search).has("still")
+    || matchMedia("(prefers-reduced-motion: reduce)").matches){ bState = "rest"; butterfly.position.copy(restPoint); }
 
 /* ---------------- pointer: orbit + DOM parallax ---------------- */
 const pointer = {x:0, y:0};
@@ -317,10 +354,23 @@ addEventListener("pointermove", e => {
 /* ---------------- wireframe field-scan intro ----------------
    Driven by ELAPSED time so it completes even under headless virtual time.
    Wireframe-only for the first beat, then materials sweep in. */
-const STILL = new URLSearchParams(location.search).has("still");
+const STILL = new URLSearchParams(location.search).has("still")
+  || matchMedia("(prefers-reduced-motion: reduce)").matches;
 const SCAN_START = .5, SCAN_SECS = 2.2;
-if (STILL) document.body.classList.add("ready", "still");
-else setTimeout(() => document.body.classList.add("ready"), 2300);
+if (STILL) document.body.classList.add("ready", "still", "settled");
+else setTimeout(() => {
+  document.body.classList.add("ready");
+  setTimeout(() => document.body.classList.add("settled"), 1800);
+}, 2300);
+
+/* fluid UI: cursor-following light on shader surfaces (drives --mx/--my) */
+for (const el of document.querySelectorAll(".cta, nav")){
+  el.addEventListener("pointermove", e => {
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--mx", ((e.clientX - r.left)/r.width*100).toFixed(1) + "%");
+    el.style.setProperty("--my", ((e.clientY - r.top)/r.height*100).toFixed(1) + "%");
+  });
+}
 
 function resize(){
   renderer.setSize(innerWidth, innerHeight, false);

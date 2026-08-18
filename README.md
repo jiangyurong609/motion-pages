@@ -54,6 +54,11 @@ Then in Claude Code, prompts like these will route through the skill:
 - **Responsive + touch**: phone/tablet breakpoints (single-column phone layout with
   one peeking card), idle camera drift for pointer-less touch devices,
   `prefers-reduced-motion` support.
+- **Fluid UI layer**: Meng-To-style shader buttons (glass gradient + idle specular
+  sweep + cursor-following light + hover bloom), cursor-lit nav glass, card lift with
+  tilt-flatten and art zoom, rippling play rings, an expo-out easing system — pure
+  CSS + ~10 lines of JS, with the stagger-delay trap and still-mode/reduced-motion
+  guards documented.
 - **Ship checklist**: mounting into a real app — static assets, verified routes and
   anchors, meta/OG, a11y, perf sanity.
 
