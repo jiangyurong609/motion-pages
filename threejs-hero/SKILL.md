@@ -217,10 +217,17 @@ breakpoints minimum:
 
 - **Phone (`max-width:740px`)** — single column: nav becomes a full-width bar
   (logo left, CTA right, middle links hidden; don't try to keep it center-pinned —
-  `left:4%;right:4%;justify-content:space-between`). Hero/sub/CTA span `left/right:6%`;
-  CTA full-width; trust ✓s stack vertically. HIDE the stat chips, secondary cards and
-  edge micro-labels; keep ONE product card peeking from a bottom corner
-  (`right:-24px;bottom:-34px;rotate:4deg`) as an artistic cue.
+  `left:4%;right:4%;justify-content:space-between`). Two modes depending on the page:
+  - *One-screen standalone hero* (`overflow:hidden` demo page): hide the stat chips,
+    secondary cards and edge micro-labels; keep ONE card peeking from a bottom corner
+    (`right:-24px;bottom:-34px;rotate:4deg`) as an artistic cue.
+  - *Scrolling product page*: **reflow, never hide** — real users on real phones notice
+    missing stats and cards. Make the hero viewport an auto-height flex column, switch
+    the `.px` parallax layers and their children to `position:static`, and use flex
+    `order` on the layers to sequence badge → H1 → sub → CTA → trust → chips → ALL
+    cards (centered, `width:min(300px,100%)`, slight rotate kept). Gate the DOM
+    parallax off on phones (`if (innerWidth <= 740) return`) — touch-drag fires
+    pointermove and would shift static flow blocks.
 - **Tablet (`741–1180px`)** — keep the collage but shrink cards (~215px), drop one
   chip, and re-check that no card covers the demo button's label.
 - **Touch = no `pointermove`, ever.** Gate on a `hasPointer` flag: until the first
