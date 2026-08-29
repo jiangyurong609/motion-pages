@@ -1,0 +1,25 @@
+Using the threejs-hero skill, apply the foggy living-world hero to MY REAL BRAND as ONE self-contained HTML file. Fill in the brackets, keep every mechanic, then self-verify until it matches.
+
+BRAND INPUT (replace these)
+- Brand: [NAME] — [one-line pitch]. Primary hue: [hue/hex]. Real routes to link: [/#how, /pricing, /onboarding…]. Honest claims only — pull stats and copy from my real site, never invent numbers.
+
+RE-THEME THE WORLD (same recipe, new metaphor)
+- Keep the architecture: atmo blooms → ghost wordmark ([NAME], whole word fits viewport, placed low for occlusion) → transparent canvas with Fog == background color → vignette → DOM overlay.
+- Convert the organic limbs into the brand's metaphor (e.g. glowing connection-wires for comms, supply routes for logistics, vines for wellness): 3 CatmullRomCurve3 tubes lower-half, slim radii, instanced micro-detail hugging them (sparks/leaves/nodes — 10–14k instances, HSL-jittered).
+- Traveling pulses: glowing spheres riding curve.getPointAt((t*speed+off)%1) converging into a focal object (orb/hub/product) — "flow" is the story.
+- Creature → brand spark: a small living element with a fly → rest → flee-on-pointer state machine.
+- Pointer particles + two-layer soft-sprite starfield or dust, additive, radial-gradient sprite maps (never square points). Mouse-orbit parallax + DOM parallax wrappers + idle drift.
+- Wireframe scan intro on the limbs, settled ≤2.5s, first-frame ready flip + failsafe.
+
+CONVERSION-FIRST OVERLAY (this page must sell, not just impress)
+- Pill nav with real links to my routes; logo chip; distinct nav CTA.
+- Hero column: category badge → 2-line headline promising the outcome (one gradient-accent word) → subhead with concrete mechanics in <b> → CTA row: highest-contrast element on the page, label = action + time-to-value ("Start free — live in 5 minutes →"), sheen sweep + cursor-following light + hover under-glow; secondary demo button with pulsing ring AND a text label naming the content + honest length.
+- Trust line: ✓ risk reversals DIRECTLY under the CTA row (≥13px).
+- Working demo modal: <video> with Esc/backdrop/× close, aria-labels, preload=metadata, real media file. 2–3 glass stat chips with REAL numbers (≥20px values).
+- Every link/button works day 1: verified routes and anchor ids, no dead ends.
+
+RESPONSIVE + MODES
+- Phone ≤740px on a scrolling product page: REFLOW, NEVER HIDE — hero becomes an auto-height flex column ordered badge → H1 → sub → CTA → trust → chips → cards; parallax gated off on touch. Tablet: shrink cards, keep collage. prefers-reduced-motion + ?still supported.
+
+SELF-VERIFY + DESIGN REVIEW
+- Headless shots 1600x900 / 820x1180 / phone-width ?still + mid-scan no-param shot; then the design pass: 5-second value scan (what/who/get), squint test (CTA pops first), trust adjacency, no dead micro-text, wordmark integrity, visible light, ≤2.5s intro, click-through audit of every control. Iterate until both the technical loop and the review pass.

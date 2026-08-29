@@ -94,9 +94,12 @@ h2 b{font-weight:600;color:var(--acc2)}
 .shot img{width:100%;height:100%;object-fit:cover;display:block;transition:scale .8s var(--e)}
 .gcard:hover .shot img{scale:1.05}
 .shot .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:.35s var(--e);
- background:rgba(5,8,16,.35)}
+ background:rgba(5,8,16,.35);border:0;cursor:pointer}
 .gcard:hover .shot .play{opacity:1}
 .shot .play span{padding:11px 20px;border-radius:999px;background:rgba(255,255,255,.92);color:#0a1226;font:700 13px/1 inherit}
+.shot .stop{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;border:0;cursor:pointer;
+ background:rgba(10,16,32,.75);color:#fff;font:700 14px/1 inherit;backdrop-filter:blur(6px)}
+.shot .stop:hover{background:rgba(220,60,60,.85)}
 .gbody{padding:18px 18px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
 .gtags{display:flex;gap:6px;flex-wrap:wrap}
 .gtags i{font-style:normal;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);
@@ -133,6 +136,23 @@ h2 b{font-weight:600;color:var(--acc2)}
  background:rgba(90,140,255,.18);color:var(--acc2);font-size:13px}
 .step p{font-size:14px;color:var(--mut)}
 .step p strong{color:var(--ink)}
+/* playground */
+.pg{display:grid;grid-template-columns:320px 1fr;gap:22px;align-items:stretch}
+.pgc{background:linear-gradient(180deg,rgba(140,170,255,.08),rgba(140,170,255,.02)),var(--card);
+ border:1px solid rgba(140,170,255,.16);border-radius:20px;padding:22px;display:flex;flex-direction:column}
+.plab{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mut);margin:14px 0 7px;font-weight:700}
+.plab:first-child{margin-top:0}
+.pin{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(140,170,255,.22);
+ background:rgba(5,8,16,.6);color:var(--ink);font:600 15px/1 inherit;outline:none;transition:.3s var(--e)}
+.pin:focus{border-color:rgba(140,170,255,.55);box-shadow:0 0 0 3px rgba(90,140,255,.15)}
+.hues{display:flex;gap:8px}
+.hue{width:34px;height:34px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:.25s var(--e)}
+.hue.on{border-color:#fff;scale:1.12}
+.modes{display:flex;gap:8px;flex-wrap:wrap}
+.pnote{margin-top:14px;font-size:12px;color:var(--mut)}
+.pgv{border-radius:20px;overflow:hidden;border:1px solid rgba(140,170,255,.16);min-height:420px}
+.pgv iframe{width:100%;height:100%;border:0;display:block}
+@media (max-width:900px){.pg{grid-template-columns:1fr}.pgv{min-height:340px;aspect-ratio:16/10}}
 /* footer */
 footer{padding:60px 6vw 40px;text-align:center;color:var(--mut);font-size:13px}
 footer a{color:var(--acc2);text-decoration:none}
@@ -167,7 +187,7 @@ body.still .cta::before{animation:none}
 <nav class="enter d1">
   <span class="logo" aria-hidden="true">◎</span>
   <a class="mid" href="#examples">Examples</a>
-  <a class="mid" href="#recipes">Recipes</a>
+  <a class="mid" href="#playground">Playground</a>
   <a class="mid" href="#install">Install</a>
   <a class="gh" href="https://github.com/jiangyurong609/threejs-hero-skill">★ <span id="stars">GitHub</span></a>
 </nav>
@@ -198,13 +218,42 @@ body.still .cta::before{animation:none}
   <div class="sec-head">
     <div class="kick">Live examples</div>
     <h2>Pick a world. <b>Copy its prompt.</b></h2>
-    <p class="sec-sub">Every card is a real page built by the skill — open the live demo, then paste the
-      prompt into Claude Code (with the skill installed) to build your own version for your brand.
-      Prompts are round-trip tested: each one has been re-run from scratch against the skill and
-      produced a comparable page on a different brand.</p>
+    <p class="sec-sub">Every card is a real page built by the skill — press <b>▶</b> to run it right
+      here in the grid, then copy its prompt. These aren't vibe one-liners: each prompt is a
+      <b>full build spec</b> — layout, palette, geometry, shader behavior, timings, and the
+      self-verify loop — round-trip tested to reproduce a comparable page on a different brand.</p>
     <div class="chips" id="chips"></div>
   </div>
   <div class="grid" id="grid"></div>
+</section>
+
+<section id="playground">
+  <div class="sec-head">
+    <div class="kick">Playground — this is the input box</div>
+    <h2>Type a brand. <b>Get a world.</b></h2>
+    <p class="sec-sub">Everything below is live — the preview rebuilds as you type. When it feels like
+      yours, copy the prompt: it carries your brand, palette, and archetype into Claude Code.</p>
+  </div>
+  <div class="pg">
+    <div class="pgc">
+      <label class="plab" for="pgBrand">Brand name</label>
+      <input class="pin" id="pgBrand" maxlength="18" value="AURORA" autocomplete="off"/>
+      <label class="plab" for="pgTag">Tagline</label>
+      <input class="pin" id="pgTag" maxlength="64" value="Crafted for pure clarity" autocomplete="off"/>
+      <label class="plab">Palette</label>
+      <div class="hues" id="pgHues"></div>
+      <label class="plab">Archetype</label>
+      <div class="modes" id="pgModes">
+        <button class="chip on" data-mode="halo">Glass product</button>
+        <button class="chip" data-mode="morph">Particle morph</button>
+        <button class="chip" data-mode="liquid">Liquid glass</button>
+      </div>
+      <button class="gbtn primary" id="pgCopy" style="margin-top:18px;padding:14px 0">⧉ Copy the prompt for this world</button>
+      <a class="gbtn" id="pgOpen" href="playground.html" target="_blank" rel="noopener" style="margin-top:10px;padding:13px 0">Open fullscreen ↗</a>
+      <p class="pnote">Interact with the preview — it's the real page: cursor parallax, ripples, swirl.</p>
+    </div>
+    <div class="pgv"><iframe id="pgFrame" title="Your world, live" allow="autoplay"></iframe></div>
+  </div>
 </section>
 
 <section id="clone">
@@ -347,24 +396,38 @@ function render(){
   grid.innerHTML="";
   for(const ex of EXAMPLES.filter(x=>activeCat==="All"||x.cat===activeCat))addCard(ex);
 }
+let activeShot=null;
 function addCard(ex){
   const el=document.createElement("article");el.className="gcard";
   el.innerHTML=`
-    <a class="shot" href="examples/${ex.id}.html" target="_blank" rel="noopener">
+    <div class="shot" data-live="examples/${ex.id}.html">
       <img loading="lazy" src="${ex.img}" alt="${ex.title} screenshot"/>
-      <span class="play"><span>▶ Open live demo</span></span>
-    </a>
+      <button class="play" aria-label="Run ${ex.title} inline"><span>▶ Play it right here</span></button>
+    </div>
     <div class="gbody">
       <div class="gtags"><i style="color:var(--acc2);border-color:rgba(120,170,255,.4)">${ex.cat}</i>${ex.tags.map(t=>`<i>${t}</i>`).join("")}</div>
       <div class="gtitle">${ex.title}</div>
       <p class="gdesc">${ex.desc}</p>
       <div class="grow">
-        <a class="gbtn" href="examples/${ex.id}.html" target="_blank" rel="noopener">Live demo</a>
-        <button class="gbtn primary" data-prompt="${ex.id}">⧉ Copy prompt</button>
+        <a class="gbtn" href="examples/${ex.id}.html" target="_blank" rel="noopener">Open ↗</a>
+        <button class="gbtn primary" data-prompt="${ex.id}">⧉ Copy full prompt</button>
       </div>
     </div>`;
   grid.appendChild(el);
 }
+// delegated play/stop — listeners survive innerHTML swaps; one live world at a time
+grid.addEventListener("click",e=>{
+  const stop=e.target.closest(".stop");
+  if(stop){const shot=stop.closest(".shot");shot.innerHTML=shot.dataset.restore;activeShot=null;return;}
+  const play=e.target.closest(".play");
+  if(!play)return;
+  const shot=play.closest(".shot");
+  if(activeShot&&activeShot!==shot){activeShot.innerHTML=activeShot.dataset.restore;}
+  shot.dataset.restore=shot.innerHTML;
+  shot.innerHTML=`<iframe src="${shot.dataset.live}" title="live demo" style="width:100%;height:100%;border:0;display:block" allow="autoplay"></iframe>
+    <button class="stop" aria-label="Stop demo">✕</button>`;
+  activeShot=shot;
+});
 render();
 
 // live GitHub stars (graceful fallback to "GitHub")
@@ -379,6 +442,54 @@ fetch("https://api.github.com/repos/jiangyurong609/threejs-hero-skill")
 document.getElementById("copyllm").addEventListener("click",()=>copyText(
   "https://jiangyurong609.github.io/threejs-hero-skill/llms.txt",
   "llms.txt link copied — give it to any AI agent ✓"));
+
+// ---------- playground: inputs → live parametrized world → personalized prompt
+const HUES=[222,268,158,12,42,330];
+const pg={brand:"AURORA",tag:"Crafted for pure clarity",hue:222,mode:"halo"};
+const huesEl=document.getElementById("pgHues");
+for(const h of HUES){
+  const b=document.createElement("button");
+  b.className="hue"+(h===pg.hue?" on":"");
+  b.style.background=`hsl(${h},80%,58%)`;b.dataset.hue=h;b.setAttribute("aria-label","hue "+h);
+  b.addEventListener("click",()=>{pg.hue=h;
+    huesEl.querySelectorAll(".hue").forEach(x=>x.classList.toggle("on",x===b));pgUpdate();});
+  huesEl.appendChild(b);
+}
+document.getElementById("pgModes").addEventListener("click",e=>{
+  const b=e.target.closest("[data-mode]");if(!b)return;
+  pg.mode=b.dataset.mode;
+  document.querySelectorAll("#pgModes .chip").forEach(x=>x.classList.toggle("on",x===b));
+  pgUpdate();
+});
+let pgTimer;
+for(const [id,key] of [["pgBrand","brand"],["pgTag","tag"]])
+  document.getElementById(id).addEventListener("input",e=>{
+    pg[key]=e.target.value||("brand"===key?"AURORA":"Crafted for pure clarity");
+    clearTimeout(pgTimer);pgTimer=setTimeout(pgUpdate,450);
+  });
+function pgSrc(){return `playground.html?brand=${encodeURIComponent(pg.brand)}&tag=${encodeURIComponent(pg.tag)}&hue=${pg.hue}&mode=${pg.mode}`;}
+function pgUpdate(){
+  document.getElementById("pgFrame").src=pgSrc();
+  document.getElementById("pgOpen").href=pgSrc();
+}
+pgUpdate();
+const PGRECIPE={
+ halo:`a glass product stage: a fresnel-edge glass capsule (custom ShaderMaterial, additive, never transmission) with glowing emissive buds and a point light inside, a breathing baked halo-ring plane and soft nebula glow behind it, three thin expanding sonar rings (RingGeometry 1.94–2.0, opacity (1-ph)^2*0.4, staggered phases), tilted elliptical orbit lines with traveling glow dots, a two-layer soft-sprite starfield, and mouse-orbit camera parallax with idle drift`,
+ morph:`a particle morph hero: one 3,600-point cloud (soft radial-gradient sprite, additive) morphing on a 7s cycle between a torus, a dome, and a sphere shell with per-particle stagger and sin(ss*PI) mid-flight scatter, a baked halo-ring plane behind it, cursor swirl (tangential push falling off with distance), starfield, and mouse-orbit parallax`,
+ liquid:`a liquid-glass editorial hero: paint the page (giant serif brand wordmark, italic serif tagline, glossy accent orb, faint topographic arcs on ivory #f4efe8) on an offscreen 1920x1080 canvas, then distort it with a raw-WebGL fragment shader — a pool of 24 analytic ripples (sin(band*44)*exp(-band^2*260)*exp(-age*1.6), spawned throttled ~70ms on pointermove, 3-burst on click), a liquid-glass lens pulling uvs toward the cursor, chromatic aberration (R/G/B displacement x1.06/1.0/0.94), wet crest highlights (~0.24), cover-fit in-shader`,
+};
+document.getElementById("pgCopy").addEventListener("click",()=>{
+  const hueName=`hsl(${pg.hue}, 85%, 60%)`;
+  copyText(
+`Using the threejs-hero skill: build ${PGRECIPE[pg.mode]}.
+
+Brand: "${pg.brand}". Tagline: "${pg.tag}".
+Palette: derive everything from base hue ${pg.hue} — accent ${hueName}, page background hsl(${pg.hue}, 45%, 5%)${pg.mode==="liquid"?" (liquid mode: keep the ivory paper background, tint only the orb and accents)":""}, fog color == background color.
+Overlay: crisp DOM only — brand mark top-left, headline from the tagline bottom-left with the last two words in the accent, a corner credit chip. Ghost wordmark of the brand behind the scene, sized to fit the viewport.
+Ship it as ONE self-contained HTML file (vendored three.module.js local-first with CDN fallback where three.js is used), responsive to phone (stack and scale the stage), touch = idle drift instead of pointer events, prefers-reduced-motion and ?still mode included.
+Then self-verify: headless screenshots at 1600x900, 820x1180, and a 500px-wide phone pass, plus ?still determinism — iterate until the composition matches the spec.`,
+  "Your world's prompt copied — paste into Claude Code ✓");
+});
 
 // ---- copy handling (clipboard API + execCommand fallback for file://)
 const INSTALL=`git clone https://github.com/jiangyurong609/threejs-hero-skill.git
@@ -401,7 +512,11 @@ function toast(msg){
 }
 document.addEventListener("click",e=>{
   const p=e.target.closest("[data-prompt]");
-  if(p){const ex=EXAMPLES.find(x=>x.id===p.dataset.prompt);copyText(ex.prompt,"Prompt copied — paste it into Claude Code ✓");}
+  if(p){const ex=EXAMPLES.find(x=>x.id===p.dataset.prompt);
+    // full build-spec prompt lives in prompts/<id>.txt; short prompt is the fallback
+    fetch(`prompts/${ex.id}.txt`).then(r=>r.ok?r.text():Promise.reject())
+      .then(t=>copyText(t,"Full build-spec prompt copied ✓"))
+      .catch(()=>copyText(ex.prompt,"Prompt copied — paste it into Claude Code ✓"));}
   const c=e.target.closest("[data-copy=install]");
   if(c)copyText(INSTALL,"Install commands copied ✓");
   const s=e.target.closest("[data-copy=study]");
@@ -508,6 +623,8 @@ function frame(){
   const local=STILL?0:(t%CYC)/CYC;
   const blend=Math.max(0,(local-5/7)/(2/7));
   const A=targets[seg],B=targets[nxt];
+  // cursor swirl: particles near the pointer get pushed tangentially — the hero is a toy
+  const swx=pointer.x*8-cGroup.position.x,swy=-pointer.y*4.5;
   for(let i=0;i<N;i++){
     const s=Math.max(0,Math.min(1,(blend-stagger[i]*.5)/.5)),ss=s*s*(3-2*s);
     for(let c=0;c<3;c++){
@@ -515,6 +632,11 @@ function frame(){
       v+=Math.sin(i*12.9898+c*4.1+t*1.3)*.14*Math.sin(ss*Math.PI);
       if(!STILL)v+=Math.sin(t*.8+i*.37+c*2)*.012;
       cur[i*3+c]=v;
+    }
+    if(hasPointer&&!STILL){
+      const dx=cur[i*3]-swx,dy=cur[i*3+1]-swy,d2=dx*dx+dy*dy;
+      const f=Math.min(.55,1.8/(d2+1.1));
+      cur[i*3]+=-dy*f*.14;cur[i*3+1]+=dx*f*.14;
     }
   }
   pg.attributes.position.needsUpdate=true;

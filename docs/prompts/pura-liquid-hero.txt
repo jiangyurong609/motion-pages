@@ -1,0 +1,25 @@
+Using the threejs-hero skill, build a liquid-glass editorial hero ("PURA"-class) as ONE self-contained HTML file with NO libraries — raw WebGL only. Follow this spec exactly, then self-verify until it matches.
+
+SOURCE LAYER (what the liquid distorts)
+- Paint the editorial page ONCE on an offscreen 1920x1080 2D canvas: ivory #f4efe8 ground; 9 faint concentric arcs upper-right (rgba(26,23,20,.05)); giant serif display type centered — first word ~30% of height in Didot/Playfair/Georgia stack ("MEASURED"-scale), second word italic lowercase below; a glossy accent orb (layered radial gradients: hot core → deep red #c92f1e → dark rim, plus a white specular blob and a soft ground shadow ellipse); two uppercase micro-caption rows top-left/top-right.
+- Only this painted layer distorts. CTAs and nav stay crisp DOM above the canvas.
+
+SHADER (fullscreen triangle, WebGL1-compatible)
+- Uniforms: source texture, resolution, mouse (0..1), time, and a pool of 24 vec3 ripples (x, y, age).
+- Analytic ripples — NO ping-pong FBO water sim (float render targets die on SwiftShader and old GPUs): per fragment, for each live ripple compute band = dist - age*.34 and wave = sin(band*44) * exp(-band²*260) * exp(-age*1.6); displace the sample uv along the radial by wave*.014; accumulate wave into a crest sum.
+- Liquid-glass lens on the cursor: inl = smoothstep(.16, 0, dist-to-mouse); pull uvs toward the pointer by -inl²*.05; add a thin rim highlight where |dist-.16| ≈ 0.
+- Idle breathing warp: tiny sin/cos uv offset (±.0016) so the page is never dead.
+- Chromatic aberration: sample R/G/B at displacement ×1.06 / 1.0 / 0.94.
+- Wet look: add warm white * clamp(crest,0,1) * .24 (more goes milky). Soft vignette in-shader.
+- Cover-fit the 16:9 source inside the shader by comparing canvas vs texture aspect — resizing must never letterbox.
+
+INPUT
+- pointermove: spawn a ripple at the cursor, throttled ~70ms; write mouse uniform. pointerdown: burst of 3 jittered ripples. Age ripples 1/60 per frame, kill at 3s. No pointer yet (or touch): autopilot — lens drifts on sines, drips a ripple every ~1.1s.
+- ?still: fixed lens position + a preset array of 4–5 ripples at staged ages so the screenshot shows the full distortion language; prefers-reduced-motion = still.
+
+DOM OVERLAY
+- Fashion-editorial chrome: serif wordmark top-left in the accent red; top-right uppercase links + "[ Bag · 0 ]" bordered pill (fills ink on hover); bottom-left product block (Nº caption, serif 24px title, muted line, dark pill CTA that turns accent on hover with lifted shadow); bottom-right uppercase hint ("Move the cursor — the page is liquid"). Film-grain overlay (multiply, ~.05). Staggered entrance, ready failsafe.
+- WebGL unavailable → swap in the flat source canvas so the page still reads.
+
+SELF-VERIFY
+- Headless (SwiftShader) 1600x900 ?still: ripple rings must visibly warp the serif letterforms with chromatic fringes, crest highlights read as wet light not milk, DOM stays crisp; 500x1000 ?still for phone (hint hidden, nav collapsed). Iterate until the distortion is unmistakable in a still.

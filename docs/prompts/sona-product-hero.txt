@@ -1,0 +1,32 @@
+Using the threejs-hero skill, build a glass product-stage hero page ("SONA·1"-class) as ONE self-contained HTML file. Follow this spec exactly, then self-verify until it matches.
+
+ARCHITECTURE
+- Single .html + vendored ./vendor/three.module.js, local-first import with CDN fallback (three@0.170.0). No other dependencies, no build step.
+- Fixed layers in z-order: .atmo gradient background (radial glows + vertical ramp, never a flat fill) → ghost brand wordmark (~16vw, 5% white, top:66%) → transparent WebGL canvas → vignette → film-grain overlay (SVG feTurbulence data-URI, opacity .055, mix-blend overlay) → DOM UI.
+- Palette: page/world #070b16, fog == background color (Fog, near 9 far 26), accent #4d7dff, light accent #7fb2ff, ink #eaf0ff.
+
+SCENE (all product elements in one `stage` group so breakpoints can move it)
+- Glass case: CapsuleGeometry(.92, 1.35, 16, 36) rotated 90°. NEVER MeshPhysicalMaterial transmission (renders opaque gray on SwiftShader). Instead: custom fresnel ShaderMaterial — vF = pow(1-|dot(normal, view)|, 2.4), alpha (vF*.9+.04), additive, DoubleSide, depthWrite false, color #9ec5ff — over a faint dark fill shell (opacity .30, scale .985).
+- Two earbuds inside: sphere heads r=.27 + angled capsule stems, MeshStandardMaterial color #46578a, emissive #2b4ba8 at .55; a PointLight(#7fb0ff, 8, 7) inside the case.
+- Halo: 512px canvas radial-gradient ring texture (bright band peaking rgba(210,230,255,.95) at stop .70) on a 5.6-unit additive plane just behind the product; second 9-unit soft nebula plane (#2a55c0) behind that. Halo breathes (scale ±3–4%).
+- Sonar rings: three RingGeometry(1.94, 2.0, 90), additive #6da3ff, staggered phases; scale 1→2.6 while opacity (1-ph)²*.4 → 0. In ?still mode freeze each ring at a DIFFERENT phase (.18 + i*.8/3... spaced) so the screenshot shows the expanding sequence.
+- Orbital arcs: three tilted EllipseCurve line loops (opacity ~.34) each carrying one small glowing dot at getPointAt((t*speed+phase)%1).
+- Backdrop: two counter-rotating wireframe icosahedra (r 13 detail 2 @ opacity .1; r 8.5 detail 1 @ .06).
+- Particles: 700 drifting pointer-attracted points + a two-layer starfield (900 @ size .05, 140 @ .14) — every Points material uses a 64px radial-gradient canvas sprite map (never bare square points), additive, depthWrite false.
+- Camera: fov 42 at z 10.5; pointer → target offset (±1.0 x, ∓0.6 y), lerp .045; idle sine drift before first pointer event and on touch devices.
+
+INTRO (elapsed-time driven, never accumulated dt)
+- Fade world materials in over ~1.4s smoothstepped; flip body.ready off the first rendered frame (+~0.9s) with a 3s plain-script failsafe; settled by 2.5s.
+
+DOM OVERLAY
+- Pill nav top-center (blur 16, hairline border): white rounded-square logo chip, uppercase letter-spaced links with 11px stroke icons, bordered Pre-order pill.
+- Left hero column: category badge → 2-line headline (~56px, second line gradient-clipped accent) → subhead with <b> value phrases → CTA row: shader-gradient primary pill ("Pre-order — ships in 2 weeks →", sheen sweep + cursor-following light + hover under-glow) + frosted "Sound: off" toggle → ✓ trust line directly under.
+- Right-bottom: three frosted stat chips (small-caps label over 21px bold value).
+- Sound toggle WORKS: WebAudio 3-oscillator hum (110/220/329 Hz sines, gain-ramped); while on, ring amplitude ×1.5, opacity ×1.4, inner light pulses.
+
+RESPONSIVE + MODES
+- stage.position per breakpoint: desktop x+2.3; tablet x+1.6 scale .8; phone (≤740px) y+2.1 scale .62 above a full-width column; nav collapses to logo + CTA.
+- Touch: no pointermove parallax — idle drift. prefers-reduced-motion and ?still: entrance/none, frozen phases, deterministic frame.
+
+SELF-VERIFY
+- Headless Chrome + --enable-unsafe-swiftshader screenshots: 1600x900 ?still, 820x1180 ?still, 500x1000 ?still, and a no-param 1600x900 at --virtual-time-budget=1100 (mid-intro). Read the shots; fix composition (product right of copy, nothing overlapping the subhead, rings thin not donut) and iterate until it matches this spec.

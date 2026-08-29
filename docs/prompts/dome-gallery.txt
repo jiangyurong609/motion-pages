@@ -1,0 +1,25 @@
+Using the threejs-hero skill, build a drag-orbit dome media gallery ("Archive°"-class) as ONE self-contained HTML file. Follow this spec exactly, then self-verify until it matches.
+
+ARCHITECTURE
+- Single .html + vendored ./vendor/three.module.js (local-first import, CDN fallback). No other deps.
+- Light theme: page #f4f3f0, Fog(#f4f3f0, 10, 22) so distant cards soften; edge vignette toward the page color; canvas cursor grab/grabbing.
+
+THE DOME
+- ~110 textured planes on the INSIDE of a sphere, radius 8.2, camera at the center (fov 55, position ~origin).
+- 9 latitude bands at offsets ±1.35, ±1.0, ±.66, ±.33, 0 rad from the equator; per-band counts 7/11/15/18/19/18/15/11/7; position via setFromSphericalCoords + lookAt(0,0,0); theta offset per band so columns don't align. DENSITY IS THE EFFECT — a sparse dome reads as floating litter.
+- Card art: seeded-random CanvasTexture "site screenshots", ~40% portrait. 4 art-directed templates: (a) classic marketing site — header bar, hero block (sometimes a pastel duotone gradient), text lines, occasional accent dot; (b) giant-typography poster — one huge 900-weight glyph; (c) duotone image-led — gradient field, orb highlight, white caption bar; (d) dark product spotlight — near-black, radial highlight, rounded product slab. ~15% dark cards.
+- BAKE A SOFT DROP SHADOW into every canvas (30px transparent padding, shadowBlur 22, offsetY 10) — the shadows are what pop cards off the void. sRGB colorSpace, anisotropy 4.
+
+INTERACTION
+- Drag orbit with inertia: pointer delta → rotation velocity, *=.95 decay on release; slow idle auto-rotate (+.0006/frame) when not focused; clamp vertical rotation ±.5 rad.
+- Click vs drag: >6px pointer travel swallows the click.
+- Click a card → FOCUS FLIGHT: camera lerps (.06) to cardPos*0.72 looking at the card (card should nearly fill the frame), all other cards dim to opacity .12, a frosted caption pill rises (title + kind + "← Back to dome" button). Esc or Back returns camera to center and restores opacities. Focus state must WIN over entrance CSS (state classes lose specificity battles — use !important if needed).
+- Center DOM element: black "Start" disc (196px, hover scale 1.06) that focuses a featured card; hides while focused.
+- Forcing param: ?focus=N snaps the camera to card N in still mode so the interaction is screenshot-verifiable.
+
+OVERLAY + MODES
+- Serif-ish brand mark top-center ("Archive°"), uppercase micro-hint bottom-center ("Drag to orbit · Click a card to focus").
+- Intro: dome scales .6→1 smoothstepped over 1.2s. ?still freezes rotation and intro; prefers-reduced-motion treated as still. Phone ≤740px: smaller Start disc, caption pill becomes full-width row.
+
+SELF-VERIFY
+- Headless screenshots (SwiftShader): 1600x900 ?still (dome overview — check density, shadows, varied templates), 1600x900 ?still&focus=40 (focused card centered, others dimmed, caption visible, Start disc hidden), 500x1000 ?still. Iterate until all three read correctly.

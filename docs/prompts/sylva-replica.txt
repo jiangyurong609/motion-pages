@@ -1,0 +1,26 @@
+Using the threejs-hero skill, build an immersive foggy living-world hero as ONE self-contained HTML file. This is the foundational recipe — follow this spec exactly, then self-verify until it matches.
+
+ARCHITECTURE
+- Single .html + vendored ./vendor/three.module.js (local-first import, CDN fallback). Fixed layers: atmo gradient blooms → giant translucent ghost wordmark (sized so the WHOLE word fits ~65vw, placed low so the world occludes it) → transparent WebGL canvas → vignette → DOM UI. Text is ALWAYS DOM, never 3D.
+- THE fog trick: scene.fog color == page background color (a deep muted green-dark), near ~8 far ~24 — geometry fading into fog at the horizon is what makes the world read as infinite.
+
+WORLD (lower half of frame only — keep air above for the copy)
+- Organic limbs: 3 sweeping CatmullRomCurve3 → TubeGeometry curves — one long limb across the bottom, one rising toward the content, one faint and deep (z≈-10). Slim radii (.35–.55 at camera z 10.5 fov 42); fat tubes read as ropes.
+- Moss fuzz: one InstancedMesh of ~14k tiny cones (r .026, h .09) hugging the tube surfaces (point + normal*r*(.85+rand*.3)), upward-biased, scale .5–1.5, per-instance HSL-jittered greens. A second sparse InstancedMesh of micro-details (tiny white flowers).
+- Depth plane: 4–6 bare vertical silhouettes (trunks with one lean limb) at z -10…-14, almost swallowed by fog — without them the tubes float in a void.
+- Pointer particles: ~800 soft points, slow upward drift + sine sway, additive, nudged toward the pointer's world x each frame; respawn at bottom.
+- A living creature: butterfly from two hinged plane wings (geometry.translate(w/2,0,0), second wing rotation.z=PI), flap = sin(t*18) on rotation.y; state machine fly → rest on a limb (+.75y) → flee when the pointer's projected point comes within 1.5 units → loop.
+- Mouse orbit: pointer → camera offset (±1.0, ∓0.6), lerp .045, fixed lookAt; DOM parallax wrappers translate at different rates. Idle sine drift pre-pointer/touch.
+
+INTRO — WIREFRAME SCAN
+- For each limb, a LOW-POLY wireframe clone (TubeGeometry(curve, 34, r*1.02, 7) — low segment counts give the clean triangulated scan look). All final materials start opacity 0; over ~1.4s (elapsed-time driven, smoothstepped) finals fade 0→1 while wires fade .55→0. Page must feel settled by ~2.5s. body.ready flips off the first rendered frame + ~0.9s, with a 3s plain-script failsafe.
+
+DOM OVERLAY
+- Pill nav (blur, hairline, rounded-square logo chip, uppercase spaced links, solid-white active pill). Left column: badge → 2-line ~56px headline with one gradient-clipped word → subhead directly under → shader-gradient CTA with sheen sweep + cursor light + trust ✓ line. 2–3 tilted glass cards right (inline-SVG art, scan-line reveal ::after sweep, staggered).
+- Transform discipline: parallax on dedicated wrapper divs via `translate`; entrance on inner elements; card tilt via standalone `rotate`; nav centered with inset-inline/margin-inline auto — never two transforms on one element.
+
+RESPONSIVE + MODES
+- Phone ≤740px: full-width nav (logo + CTA), single column, ONE card peeking from a bottom corner; touch = idle drift, no pointermove. Tablet 741–1180: shrink cards. prefers-reduced-motion & ?still: scan complete, entrance done, creature perched, deterministic.
+
+SELF-VERIFY
+- Headless SwiftShader shots: 1600x900 ?still, 820x1180 ?still, 500x1000 ?still, plus no-param at --virtual-time-budget=1100 (wireframe scan clearly visible). Check: limbs lower-half with air between, ghost wordmark fully readable and partially occluded, butterfly visible, text contrast ≥4.5:1. Iterate until every check passes.

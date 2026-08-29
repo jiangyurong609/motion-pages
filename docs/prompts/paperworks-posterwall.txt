@@ -1,0 +1,22 @@
+Using the threejs-hero skill, build a springy draggable poster wall ("Paperworks*"-class) as ONE self-contained HTML file with NO WebGL and no libraries — the paper physics is pure DOM/CSS transforms. Follow this spec exactly, then self-verify until it matches.
+
+THE WALL
+- Warm paper page (#efe9df), perspective 1400px on a fixed stage, custom grab/grabbing cursor, film-grain (multiply ~.06) + soft warm vignette.
+- One 4x3 block of 260x360 posters (46px gutters), tiled 3x3 → 36 absolutely-positioned cells total. INFINITE WRAP: each cell's screen position = mod(base + offset + Block/2, Block*3) - Block*1.5 per axis, so dragging never hits an edge and no cells are ever created or destroyed.
+
+POSTER ART (seeded canvas, zero image requests)
+- 12 unique posters painted at 2x on canvas; bold 2-color palettes (red/cream, orange/near-black, pink/ivory, teal/sand, yellow/ink, black/paper, blue/ivory, violet/ivory); 3px inner frame.
+- 4 rotating templates: (a) one display word stacked 3x with fading alpha; (b) giant single glyph (star/flower/asterisk-class shapes) inside a stroked circle; (c) thick zigzag polyline + solid dot; (d) big circled numeral. Every poster gets an uppercase catalog footer: title left, "PW-01"-style code right.
+- Rounded corners, baked drop shadow via CSS box-shadow (deepens on hover), hairline outline.
+
+PHYSICS (the whole feel)
+- Drag (pointer) and wheel BOTH pan: input writes a target offset; render offset chases it (o += (t-o)*.14); on release, momentum decays (v *= .94).
+- BEND FROM LAG, NOT VELOCITY: the spring energy is (offset - target). Map lag to target tilts — rotateX from vertical lag *.55, rotateY from horizontal lag *.6, clamped ±22/26° — then integrate each poster toward its target with its own spring (v += (target-r)*.16; v *= .82) and a per-poster stiffness factor (.7–1.3) so the wall ripples like loose sheets, never a rigid grid.
+- Click vs drag: >6px total travel swallows the click. Click a poster → dim blurred backdrop modal with the poster enlarged (min(420px, 80vw), slight -2° tilt), title + "click anywhere / Esc to close".
+
+OVERLAY
+- Brand chip top-left ("Paperworks*" + one-line sub) and centered bottom hint pill ("Drag anywhere · scroll to pan · click a poster") — both on translucent paper chips with backdrop blur (floating text dies on busy art). Hint fades after ~60px of travel. A dark pill link top-right.
+- ?still: deterministic mid-drag pose — wall offset (-140, -60), each poster frozen at its stiffness-derived tilt; prefers-reduced-motion = still. Touch works via the same pointer events.
+
+SELF-VERIFY
+- Headless 1600x900 ?still: full-bleed wall, varied templates visible, several posters mid-tilt, chips legible; 500x1000 ?still phone. Then interactively: drag hard and release — the wall must overshoot and settle like paper, and the modal must open only on clean clicks. Iterate until the still and the feel both pass.

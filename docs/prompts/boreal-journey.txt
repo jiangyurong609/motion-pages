@@ -1,0 +1,26 @@
+Using the threejs-hero skill, build a scroll-driven camera-journey page ("BOREAL"-class) as ONE self-contained HTML file. Follow this spec exactly, then self-verify until it matches.
+
+ARCHITECTURE
+- Single .html + vendored ./vendor/three.module.js (local-first, CDN fallback). Fixed canvas under a 500vh scroll track div.
+- Pale arctic theme: page gradient atmo (bright top glow, #c9ced3 mid), Fog(#c9ced3, 6, 30), film-grain overlay (opacity .07, multiply/overlay), vignette.
+- Scroll → progress p = scrollY/max, smoothed p += (target-p)*.07. FORCING PARAM ?p=0..1 pins progress so every keyframe is a plain headless screenshot (no CDP needed).
+
+WORLD
+- Terrain: 120x120 plane, 110 segments, 4-octave value-noise displacement, amplitude 5.6, with a FLAT CLEARING around the origin (amplitude *= clamp((d-6)/11, 0, 1)) so the camera rail never dips under ground; flatShading, roughness 1, color #b0b6bc.
+- Snowfall: 1400 soft-sprite points drifting down with sine sway, respawn at top.
+- Camera rail: CatmullRomCurve3 through (0,7.5,22) → (-4.2,4.6,15) → (-5.4,3.2,9.6) → (-2.4,2.5,6.8) → (3,2.7,6.4) → (5.8,3,5), with a parallel look-at rail rising from y .2 to ~1.9. Gentle pointer sway on top; idle sway with no pointer.
+
+PARTICLE MORPHS (the heart of the page)
+- ONE 6,000-point cloud, positions lerped between three precomputed Float32 target sets, with per-particle stagger (s = clamp((blend - stagger*.5)/.5), smoothstepped) and sin(ss*PI)-weighted scatter so particles loosen mid-flight.
+- Target A — IGLOO: brick-quantized hemisphere r≈3.05: 7 phi rows, bricks per row ∝ cos(phi) (min 5), alternate rows offset half a brick (running bond), sample points INSIDE brick extents shrunk ~20% so the gaps read as mortar seams; skip a wedge on the bottom 4 rows (door arch, half-widths .42/.40/.34/.22); last 8% of points form a 5-segment half-cylinder entrance tunnel along +X.
+- Target B — RING PORTAL: torus R 2.4, tube .32–.46, standing in XY at y 2.6. While this act is active (window w = clamp(1-|p-.5|*5)), back it with a baked halo-ring plane (8.6 units, white-blue radial gradient, additive, opacity .55*w) + a soft central burst plane (.26*w) — particles alone are a shape; the halo makes it a PORTAL.
+- Target C — CREATURE: union of ~9 offset spheres (body 1.35, head .78, two ears .24, four paws .4, snout .16) sampled volumetrically, standing on the clearing.
+- Segments: p<1/3 igloo (morph in last ninth), <2/3 ring, else creature. Add a 500-point sparkle sub-cloud (size .2, pulsing opacity) whose positions copy random indices of the main cloud each frame. All points use radial-gradient sprite maps, additive, never bare squares. Glow disc under the cloud.
+
+OVERLAY
+- Mono/terminal typography: brand top-left ("BOREAL // field survey © 2026"), manifesto block top-right, scroll hint bottom-left (fades once p>.04), thin progress bar bottom-right.
+- Three caption cards (one per act) centered low: title + one poetic line, on a BLURRED DARK SCRIM pill (rgba(30,38,46,.38) + blur 10) — bare text drowns in white particles. Fade/slide per segment.
+
+MODES + SELF-VERIFY
+- ?still freezes shimmer/rotation; prefers-reduced-motion = still. Phone ≤740px hides the manifesto.
+- Headless screenshots at ?still&p=0 (igloo with seams + arch readable), p=0.5 (blazing portal + caption legible), p=0.95 (creature framed head-to-toe, ears visible), plus 500px-wide phone at p=0.5. Iterate: camera must never clip terrain, captions must stay readable, the igloo must read as BRICKS not a smooth dome.
