@@ -3,8 +3,25 @@
 Immersive Three.js worlds, liquid-glass shader typography, springy poster walls —
 single-file pages, screenshot-verified.
 
-**🌐 Showcase & live demos: <https://jiangyurong609.github.io/threejs-hero-skill/>** —
-pick a world, open its live demo, copy its prompt.
+**🌐 Showcase: <https://threejs-hero.pages.dev>** (mirror:
+<https://jiangyurong609.github.io/threejs-hero-skill/>)
+
+On the showcase you can:
+
+- **▶ Run every demo inline** — each gallery card plays its world right in the grid;
+- **🎛 Use the Playground** — type a brand name + tagline, pick a palette hue and an
+  archetype (glass product / particle morph / liquid glass), and watch a live world
+  rebuild as you type — then copy a prompt that carries your exact brand, palette,
+  and archetype into Claude Code;
+- **⧉ Copy full build-spec prompts** — not one-liners: each example's prompt pins the
+  layer stack, palette values, geometry parameters, shader math, timings, responsive
+  rules, and the self-verify recipe (they live in [`docs/prompts/`](docs/prompts/));
+- **🔎 Clone the feel of any site** — a prompt template that has the agent browse a
+  reference URL, storyboard it at several scroll depths, map its motion patterns to
+  the skill's recipes, and rebuild that motion language as original code for *your*
+  brand;
+- **🤖 Hand it to any agent** — [`llms.txt`](docs/llms.txt) links the full skill and
+  every live example for AI agents outside Claude Code.
 
 ![threejs-hero demo — scroll journey flythrough and example pages](assets/demo.gif)
 
@@ -30,6 +47,10 @@ webapp on day 1.
 |---|---|---|
 | ![SONA product hero](assets/sona-still.png) | ![Dome gallery](assets/dome-still.png) | ![BOREAL journey](assets/boreal-still.png) |
 
+| Liquid-glass typography (raw WebGL) | Springy poster wall (pure DOM) |
+|---|---|
+| ![PURA liquid hero](assets/pura-still.png) | ![Paperworks poster wall](assets/paper-still.png) |
+
 ## Install
 
 ```bash
@@ -40,9 +61,15 @@ cp -r threejs-hero-skill/threejs-hero ~/.claude/skills/
 Then in Claude Code, prompts like these will route through the skill:
 
 - "Build me a 3D landing page for my brand, orbit using the mouse, add particles to pointer"
-- "Recreate this in Three.js in a single HTML file. Self-verify until perfect."
+- "Build a liquid-glass hero — the headline ripples under the cursor"
+- "Make a draggable poster wall where the posters flex like paper"
+- "Clone the feel of `<URL>` for my brand — rebuild its motion language as original code"
 - "Give the hero a wireframe intro like the field-scanning effect in Death Stranding"
 - "Add a butterfly that lands on the branch and flies away on mouse-over"
+
+Or skip prompt-writing entirely: grab a **full build-spec prompt** from the
+[showcase gallery](https://threejs-hero.pages.dev/#examples) or generate a
+personalized one in the [Playground](https://threejs-hero.pages.dev/#playground).
 
 ## What the skill encodes
 
@@ -82,6 +109,17 @@ Then in Claude Code, prompts like these will route through the skill:
   disambiguation, raycast fly-to-focus), scroll-driven camera rails (smoothed scrub,
   clearing-vs-terrain rule, caption scrims), multi-target particle morphs (stagger +
   mid-flight scatter), cursor mask reveals, paper poster walls, gesture control.
+- **The fake-bloom kit**: baked canvas glow sprites (never bare square `Points`), a
+  halo-ring gradient texture that IS the bloom, fresnel-edge glass shaders instead of
+  `transmission`, sparkle sub-clouds, film grain — award-site light with no
+  post-processing, rendering even under headless SwiftShader.
+- **Motion beyond Three.js**: raw-WebGL liquid-glass ripple typography (analytic
+  ripples, no FBO sim — survives old GPUs) and pure-DOM springy poster walls (bend
+  from drag *lag*, per-poster spring stiffness) — same architecture, no 3D library.
+- **Study-a-reference workflow**: given a URL — storyboard it at several scroll
+  depths, grep its script bundles for tech signals, map what you see to the recipe
+  catalog, rebuild the motion language as original code for the user's brand (never
+  copying the reference's code, assets, or content).
 - **Forcing params for verification**: any state only user input can reach gets a
   query param that pins it (`?still`, `?p=0.5`, `?focus=40`) so every keyframe and
   interaction is a plain headless screenshot.

@@ -4,273 +4,253 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>threejs-hero — award-site motion pages, one prompt away</title>
-<meta name="description" content="An open-source Claude Code skill that builds award-site-style motion pages as single HTML files — Three.js worlds, liquid-glass shaders, springy poster walls. Live demos + copy-paste prompts."/>
+<meta name="description" content="An open-source Claude Code skill that builds award-site-style motion pages as single HTML files — Three.js worlds, liquid-glass shaders, springy poster walls. Live demos + full build-spec prompts."/>
 <meta property="og:title" content="threejs-hero — award-site motion pages, one prompt away"/>
-<meta property="og:description" content="Open-source Claude Code skill: 3D hero worlds, glass product stages, dome galleries, scroll journeys, liquid-glass ripple typography, draggable poster walls. Live demos + copy-paste prompts."/>
-<meta property="og:image" content="https://jiangyurong609.github.io/threejs-hero-skill/assets/sona-still.png"/>
+<meta property="og:description" content="Open-source skill: 3D hero worlds, glass product stages, dome galleries, scroll journeys, liquid-glass typography, poster walls. Live demos + full build-spec prompts."/>
+<meta property="og:image" content="https://jiangyurong609.github.io/threejs-hero-skill/assets/pura-still.png"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%236da3ff' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23dfe9ff'/%3E%3C/svg%3E"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23f4efe8'/%3E%3Ccircle cx='32' cy='32' r='18' fill='%23c92f1e'/%3E%3C/svg%3E"/>
 <style>
-:root{--e:cubic-bezier(.22,1,.36,1);--ink:#eaf0ff;--mut:#8ea0c4;--acc:#4d7dff;--acc2:#7fb2ff;--card:#0d1428}
+:root{
+ --paper:#f4efe8;--paper2:#efe8dd;--ink:#1a1714;--mut:#877e74;--red:#c92f1e;
+ --hair:rgba(26,23,20,.16);--hair2:rgba(26,23,20,.08);
+ --serif:"Didot","Playfair Display","Bodoni MT",Georgia,serif;
+ --mono:"SF Mono",ui-monospace,"IBM Plex Mono",Menlo,monospace;
+ --e:cubic-bezier(.22,1,.36,1);
+}
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{background:#070b16;color:var(--ink);font:400 16px/1.55 "Quicksand",system-ui,-apple-system,sans-serif;overflow-x:hidden}
-.atmo{position:fixed;inset:0;z-index:0;pointer-events:none;background:
- radial-gradient(46% 40% at 68% 36%,rgba(56,102,220,.32),transparent 70%),
- radial-gradient(30% 26% at 16% 18%,rgba(66,120,255,.14),transparent 70%),
- radial-gradient(70% 40% at 50% 108%,rgba(24,50,130,.3),transparent 72%),
- linear-gradient(180deg,#05070f 0%,#0a1122 55%,#070b16 100%)}
-canvas#gl{position:fixed;inset:0;z-index:0;display:block}
-.vignette{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(2,4,10,.6) 100%)}
-.grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.055;mix-blend-mode:overlay;
+body{background:var(--paper);color:var(--ink);font:400 16px/1.55 var(--serif)}
+::selection{background:var(--red);color:var(--paper)}
+.grain{position:fixed;inset:0;z-index:30;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
-main{position:relative;z-index:1}
-/* nav */
-nav{position:fixed;top:18px;inset-inline:0;margin-inline:auto;width:fit-content;display:flex;gap:4px;align-items:center;z-index:10;
- padding:7px 9px;border-radius:999px;background:rgba(10,16,32,.6);border:1px solid rgba(140,170,255,.14);
- backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
-nav .logo{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:11px;background:#fff;color:#0a1226;
- font-weight:700;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.4);transition:.35s var(--e)}
-nav .logo:hover{rotate:-6deg;scale:1.05}
-nav a{display:flex;gap:7px;align-items:center;padding:9px 14px;border-radius:999px;color:var(--mut);text-decoration:none;
- font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;transition:.35s var(--e)}
-nav a:hover{color:var(--ink);background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
- box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 16px rgba(0,0,0,.35);translate:0 -1px}
-nav a.gh{border:1px solid rgba(150,180,255,.3);color:var(--ink)}
-/* hero */
-.hero{min-height:100svh;display:flex;align-items:center;padding:120px 6vw 80px;position:relative}
-.hcol{max-width:640px}
-.badge{display:inline-flex;gap:8px;align-items:center;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--acc2);
- padding:7px 13px;border:1px solid rgba(90,140,255,.3);border-radius:999px;background:rgba(30,60,140,.16)}
-h1{font-size:clamp(38px,4.6vw,64px);line-height:1.06;font-weight:500;margin:22px 0 16px}
-h1 b{font-weight:600;background:linear-gradient(92deg,#9db9ff,#4d7dff);-webkit-background-clip:text;background-clip:text;color:transparent}
-.sub{font-size:16.5px;color:var(--mut);max-width:520px}
-.sub b{color:var(--ink);font-weight:600}
-.ctarow{display:flex;gap:14px;align-items:center;margin-top:28px;flex-wrap:wrap}
-.cta{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:9px;padding:15px 26px;border-radius:999px;border:0;cursor:pointer;
- color:#fff;font:600 15px/1 inherit;letter-spacing:.02em;text-decoration:none;
- background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 40%,rgba(0,0,0,.25)),linear-gradient(92deg,#3b66e0,#5d8bff);
- box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 10px 30px -8px rgba(70,120,255,.55);transition:.4s var(--e)}
-.cta::before{content:"";position:absolute;top:-40%;bottom:-40%;left:-45%;width:42%;rotate:14deg;filter:blur(5px);
- background:linear-gradient(90deg,transparent,rgba(210,225,255,.5),transparent);animation:sheen 5.5s infinite}
-@keyframes sheen{0%,55%{left:-45%}85%,100%{left:115%}}
-.cta::after{content:"";position:absolute;inset:0;opacity:0;transition:opacity .4s var(--e);
- background:radial-gradient(120px 90px at var(--mx,50%) var(--my,50%),rgba(255,255,255,.28),transparent 60%),
- radial-gradient(115% 95% at 50% 132%,rgba(120,170,255,.55),transparent 58%)}
-.cta:hover{translate:0 -2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 16px 42px -8px rgba(90,140,255,.7)}
-.cta:hover::after{opacity:1}
-.cta:active{scale:.97}
-.cta>*{position:relative;z-index:2}
-.ghost-btn{display:inline-flex;align-items:center;gap:9px;padding:14px 22px;border-radius:999px;cursor:pointer;text-decoration:none;
- background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.10));border:1px solid rgba(150,180,255,.22);
- backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);color:var(--ink);font:600 14px/1 inherit;transition:.4s var(--e);
- box-shadow:inset 0 -9px 18px -6px rgba(255,255,255,.12)}
-.ghost-btn:hover{scale:1.04;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.16))}
-.trust{display:flex;gap:18px;margin-top:18px;font-size:13.5px;color:var(--mut);flex-wrap:wrap}
-.trust span::before{content:"✓ ";color:var(--acc2)}
-.works{display:flex;gap:8px;align-items:center;margin-top:22px;flex-wrap:wrap}
-.works .wlab{font-size:12px;color:var(--mut)}
-.works i{font-style:normal;font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--ink);
- padding:6px 12px;border-radius:999px;border:1px solid rgba(140,170,255,.2);background:rgba(20,32,64,.5)}
-/* filter chips */
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
-.chip{padding:8px 16px;border-radius:999px;border:1px solid rgba(140,170,255,.2);background:transparent;cursor:pointer;
- color:var(--mut);font:600 12px/1 inherit;letter-spacing:.08em;text-transform:uppercase;transition:.3s var(--e)}
-.chip:hover{color:var(--ink);border-color:rgba(140,170,255,.4)}
-.chip.on{background:#fff;color:#0a1226;border-color:#fff}
-/* sections */
-section{padding:90px 6vw;max-width:1280px;margin:0 auto}
-.sec-head{margin-bottom:40px}
-.kick{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--acc2);font-weight:700}
-h2{font-size:clamp(26px,3vw,40px);font-weight:500;margin-top:10px}
-h2 b{font-weight:600;color:var(--acc2)}
-.sec-sub{color:var(--mut);margin-top:8px;max-width:640px}
-/* gallery */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:22px}
-.gcard{background:linear-gradient(180deg,rgba(140,170,255,.09),rgba(140,170,255,.02)),var(--card);
- border:1px solid rgba(140,170,255,.14);border-radius:20px;overflow:hidden;transition:.45s var(--e);display:flex;flex-direction:column}
-.gcard:hover{translate:0 -6px;box-shadow:0 30px 60px -20px rgba(0,0,0,.6),0 0 0 1px rgba(140,170,255,.2)}
-.shot{aspect-ratio:16/9;overflow:hidden;position:relative;background:#0a0f1e}
-.shot img{width:100%;height:100%;object-fit:cover;display:block;transition:scale .8s var(--e)}
-.gcard:hover .shot img{scale:1.05}
-.shot .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:.35s var(--e);
- background:rgba(5,8,16,.35);border:0;cursor:pointer}
-.gcard:hover .shot .play{opacity:1}
-.shot .play span{padding:11px 20px;border-radius:999px;background:rgba(255,255,255,.92);color:#0a1226;font:700 13px/1 inherit}
-.shot .stop{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;border:0;cursor:pointer;
- background:rgba(10,16,32,.75);color:#fff;font:700 14px/1 inherit;backdrop-filter:blur(6px)}
-.shot .stop:hover{background:rgba(220,60,60,.85)}
-.gbody{padding:18px 18px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
-.gtags{display:flex;gap:6px;flex-wrap:wrap}
-.gtags i{font-style:normal;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);
- padding:4px 9px;border:1px solid rgba(140,170,255,.18);border-radius:999px}
-.gtitle{font-size:19px;font-weight:600}
-.gdesc{font-size:13.5px;color:var(--mut);flex:1}
-.grow{display:flex;gap:10px;margin-top:6px}
-.gbtn{flex:1;display:inline-flex;justify-content:center;align-items:center;gap:7px;padding:11px 0;border-radius:12px;cursor:pointer;
- font:600 13px/1 inherit;text-decoration:none;transition:.3s var(--e);border:1px solid rgba(150,180,255,.25);color:var(--ink);
- background:rgba(255,255,255,.04)}
-.gbtn:hover{background:rgba(255,255,255,.1);translate:0 -1px}
-.gbtn.primary{background:linear-gradient(92deg,#3b66e0,#5d8bff);border:0;color:#fff;
- box-shadow:0 8px 20px -8px rgba(70,120,255,.5)}
-.gbtn.primary:hover{box-shadow:0 12px 26px -8px rgba(90,140,255,.65)}
-/* recipes */
-.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.rcard{padding:20px;border-radius:16px;background:rgba(14,22,44,.55);border:1px solid rgba(140,170,255,.13);transition:.35s var(--e)}
-.rcard:hover{border-color:rgba(140,170,255,.3);translate:0 -3px}
-.rcard .ic{font-size:20px}
-.rcard h3{font-size:15.5px;font-weight:600;margin:10px 0 6px}
-.rcard p{font-size:13px;color:var(--mut)}
-/* install */
-.install{background:linear-gradient(180deg,rgba(140,170,255,.08),rgba(140,170,255,.02)),var(--card);
- border:1px solid rgba(140,170,255,.16);border-radius:24px;padding:36px;display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center}
-.code{position:relative;background:#05080f;border:1px solid rgba(140,170,255,.16);border-radius:14px;padding:18px 18px;
- font:13px/1.8 "SF Mono",ui-monospace,Menlo,monospace;color:#c7d6ff;overflow-x:auto;white-space:pre}
-.code .cmt{color:#5b6c94}
-.copychip{position:absolute;top:10px;right:10px;padding:7px 12px;border-radius:9px;border:1px solid rgba(150,180,255,.25);
- background:rgba(255,255,255,.06);color:var(--ink);font:600 11.5px/1 inherit;cursor:pointer;transition:.3s var(--e)}
-.copychip:hover{background:rgba(255,255,255,.14)}
-.steps{display:flex;flex-direction:column;gap:14px}
-.step{display:flex;gap:14px;align-items:flex-start}
-.step b{flex:0 0 26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:9px;
- background:rgba(90,140,255,.18);color:var(--acc2);font-size:13px}
-.step p{font-size:14px;color:var(--mut)}
-.step p strong{color:var(--ink)}
-/* playground */
-.pg{display:grid;grid-template-columns:320px 1fr;gap:22px;align-items:stretch}
-.pgc{background:linear-gradient(180deg,rgba(140,170,255,.08),rgba(140,170,255,.02)),var(--card);
- border:1px solid rgba(140,170,255,.16);border-radius:20px;padding:22px;display:flex;flex-direction:column}
-.plab{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mut);margin:14px 0 7px;font-weight:700}
-.plab:first-child{margin-top:0}
-.pin{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(140,170,255,.22);
- background:rgba(5,8,16,.6);color:var(--ink);font:600 15px/1 inherit;outline:none;transition:.3s var(--e)}
-.pin:focus{border-color:rgba(140,170,255,.55);box-shadow:0 0 0 3px rgba(90,140,255,.15)}
-.hues{display:flex;gap:8px}
-.hue{width:34px;height:34px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:.25s var(--e)}
-.hue.on{border-color:#fff;scale:1.12}
-.modes{display:flex;gap:8px;flex-wrap:wrap}
-.pnote{margin-top:14px;font-size:12px;color:var(--mut)}
-.pgv{border-radius:20px;overflow:hidden;border:1px solid rgba(140,170,255,.16);min-height:420px}
-.pgv iframe{width:100%;height:100%;border:0;display:block}
-@media (max-width:900px){.pg{grid-template-columns:1fr}.pgv{min-height:340px;aspect-ratio:16/10}}
-/* footer */
-footer{padding:60px 6vw 40px;text-align:center;color:var(--mut);font-size:13px}
-footer a{color:var(--acc2);text-decoration:none}
-/* toast */
-#toast{position:fixed;left:50%;bottom:34px;translate:-50% 20px;z-index:50;padding:12px 22px;border-radius:999px;
- background:rgba(255,255,255,.95);color:#0a1226;font:600 13.5px/1 inherit;opacity:0;pointer-events:none;
- transition:.35s var(--e);box-shadow:0 16px 40px -10px rgba(0,0,0,.5)}
+/* ---------- masthead ---------- */
+header.mast{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;
+ padding:0 4vw;height:58px;border-bottom:1px solid var(--hair);
+ background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.wm{font:700 15px/1 var(--mono);letter-spacing:.02em}
+.wm i{font-style:normal;color:var(--red)}
+nav.top{display:flex;gap:28px;align-items:baseline}
+nav.top a{font:600 11px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ink);
+ text-decoration:none;padding:4px 0;border-bottom:1px solid transparent;transition:border-color .25s var(--e),color .25s var(--e)}
+nav.top a:hover{border-bottom-color:var(--ink)}
+nav.top a.gh{color:var(--red)}
+nav.top a.gh:hover{border-bottom-color:var(--red)}
+/* ---------- liquid hero ---------- */
+.hero{position:relative;height:100svh;min-height:560px;overflow:hidden}
+canvas#gl{position:absolute;inset:0;display:block;cursor:crosshair}
+.hero .fold{position:absolute;left:4vw;bottom:5vh;z-index:2}
+.hero .fold .kick{font:600 10.5px/1.6 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--mut);max-width:340px;margin-bottom:14px}
+.btnrow{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:15px 24px;font:700 12px/1 var(--mono);
+ letter-spacing:.14em;text-transform:uppercase;text-decoration:none;cursor:pointer;border:1px solid var(--ink);
+ background:transparent;color:var(--ink);transition:.3s var(--e)}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn.red:hover{background:#a82115;border-color:#a82115;translate:0 -2px;box-shadow:0 12px 28px -12px rgba(201,47,30,.6)}
+.hero .hint{position:absolute;right:4vw;bottom:5vh;z-index:2;text-align:right;font:600 10.5px/1.7 var(--mono);
+ letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.hero .hint b{display:block;color:var(--ink)}
+.hero .no{position:absolute;right:4vw;top:calc(58px + 3vh);z-index:2;text-align:right;
+ font:400 12px/1.7 var(--mono);color:var(--mut)}
+/* ---------- shared section chrome ---------- */
+section{position:relative;background:var(--paper);border-top:1px solid var(--hair);padding:0 4vw}
+.shead{display:flex;justify-content:space-between;align-items:baseline;padding:26px 0 0;gap:20px;flex-wrap:wrap}
+.shead .no{font:400 12px/1 var(--mono);color:var(--mut)}
+h2{font:400 clamp(34px,5vw,64px)/1.02 var(--serif);letter-spacing:.01em;padding:10px 0 8px}
+h2 em{font-style:italic;color:var(--red)}
+.ssub{font:400 13px/1.7 var(--mono);color:var(--mut);max-width:640px;padding-bottom:28px}
+.ssub b{color:var(--ink);font-weight:600}
+/* ---------- index (gallery) ---------- */
+.filters{display:flex;gap:4px;flex-wrap:wrap;font:600 11px/1 var(--mono);letter-spacing:.16em;
+ text-transform:uppercase;padding-bottom:22px}
+.filters button{background:none;border:0;cursor:pointer;color:var(--mut);padding:6px 10px;
+ font:inherit;letter-spacing:inherit;text-transform:inherit;border-bottom:1px solid transparent;transition:.25s var(--e)}
+.filters button:hover{color:var(--ink)}
+.filters button.on{color:var(--red);border-bottom-color:var(--red)}
+.row{display:grid;grid-template-columns:110px 1fr 380px;gap:28px;align-items:center;
+ border-top:1px solid var(--hair);padding:30px 0;transition:background .3s var(--e)}
+.row:hover{background:var(--paper2)}
+.row:last-child{border-bottom:1px solid var(--hair)}
+.row .num{font:400 64px/1 var(--serif);color:var(--ink)}
+.row .num::after{content:"";display:block;width:34px;height:3px;background:var(--red);margin-top:10px}
+.row .meta .cat{font:600 10px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--red)}
+.row .meta h3{font:400 27px/1.15 var(--serif);margin:8px 0 6px}
+.row .meta h3 em{font-style:italic}
+.row .meta .specs{font:400 11px/1.6 var(--mono);color:var(--mut);letter-spacing:.04em}
+.row .meta p{font:400 13.5px/1.55 var(--serif);color:#4d463e;max-width:480px;margin:10px 0 14px}
+.rlinks{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.tlink{font:700 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);
+ background:none;border:0;padding:4px 0;cursor:pointer;text-decoration:none;border-bottom:1px solid var(--hair);transition:.25s var(--e)}
+.tlink:hover{border-bottom-color:var(--ink)}
+.tlink.red{color:var(--red);border-bottom-color:rgba(201,47,30,.35)}
+.tlink.red:hover{border-bottom-color:var(--red)}
+.plate{position:relative;aspect-ratio:16/9;background:#111;outline:1px solid var(--ink);outline-offset:6px;overflow:hidden}
+.plate img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.96)}
+.plate .run{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:0;cursor:pointer;
+ background:rgba(20,16,12,.24);opacity:0;transition:.3s var(--e)}
+.row:hover .plate .run{opacity:1}
+.plate .run span{font:700 11px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;
+ background:var(--paper);color:var(--ink);padding:12px 18px}
+.plate .stop{position:absolute;top:8px;right:8px;z-index:2;width:30px;height:30px;border:0;cursor:pointer;
+ background:var(--paper);color:var(--ink);font:700 13px/1 var(--mono)}
+.plate .stop:hover{background:var(--red);color:#fff}
+.plate iframe{width:100%;height:100%;border:0;display:block}
+.plate .fig{position:absolute;left:0;bottom:-26px;font:400 10.5px/1 var(--mono);color:var(--mut)}
+/* ---------- bench (playground) ---------- */
+.bench{display:grid;grid-template-columns:330px 1fr;gap:36px;padding-bottom:56px}
+.bcontrols{border:1px solid var(--hair);padding:24px;background:var(--paper2)}
+.blab{display:block;font:600 10px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--mut);margin:18px 0 8px}
+.blab:first-child{margin-top:0}
+.bin{width:100%;padding:12px 12px;border:1px solid var(--ink);background:var(--paper);color:var(--ink);
+ font:600 15px/1 var(--mono);outline:none;transition:.25s var(--e)}
+.bin:focus{box-shadow:4px 4px 0 var(--ink)}
+.hues{display:flex;gap:10px}
+.hue{width:30px;height:30px;border-radius:50%;cursor:pointer;border:1px solid var(--hair);position:relative;transition:.2s var(--e)}
+.hue.on{outline:2px solid var(--ink);outline-offset:3px}
+.modes{display:flex;flex-direction:column;gap:0;border:1px solid var(--ink)}
+.modes button{display:flex;justify-content:space-between;align-items:center;background:var(--paper);border:0;cursor:pointer;
+ padding:12px 14px;font:700 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);
+ border-bottom:1px solid var(--hair);transition:.2s var(--e)}
+.modes button:last-child{border-bottom:0}
+.modes button:hover{background:var(--paper2)}
+.modes button.on{background:var(--ink);color:var(--paper)}
+.modes button.on::after{content:"●";color:var(--red)}
+.bench .btn{width:100%;justify-content:center;margin-top:18px}
+.bnote{font:400 11px/1.7 var(--mono);color:var(--mut);margin-top:14px}
+.bview{position:relative}
+.bview .frame{aspect-ratio:16/9;outline:1px solid var(--ink);outline-offset:6px;background:#111;min-height:380px}
+.bview iframe{width:100%;height:100%;border:0;display:block}
+.bview .fig{margin-top:16px;font:400 10.5px/1 var(--mono);color:var(--mut)}
+/* ---------- clone + review ---------- */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:36px;padding-bottom:56px}
+.duo .cell{border:1px solid var(--hair);padding:28px;background:var(--paper2)}
+.duo h3{font:400 30px/1.1 var(--serif);margin-bottom:8px}
+.duo h3 em{font-style:italic;color:var(--red)}
+.duo .cell p{font:400 13px/1.7 var(--mono);color:#4d463e;margin-bottom:16px}
+.codeblk{position:relative;background:var(--ink);color:#efe6d8;padding:18px;font:400 12px/1.8 var(--mono);
+ white-space:pre-wrap;word-break:break-word}
+.codeblk .cmt{color:#9a8f80}
+.copychip{position:absolute;top:10px;right:10px;padding:7px 12px;border:0;cursor:pointer;
+ background:var(--paper);color:var(--ink);font:700 10.5px/1 var(--mono);letter-spacing:.1em;transition:.2s var(--e)}
+.copychip:hover{background:var(--red);color:#fff}
+.checklist{font:400 12.5px/2 var(--mono);color:#4d463e;columns:2;column-gap:32px}
+.checklist li{list-style:none;break-inside:avoid}
+.checklist li::before{content:"✓ ";color:var(--red);font-weight:700}
+/* ---------- install ---------- */
+.install{display:grid;grid-template-columns:1fr 1fr;gap:36px;padding-bottom:64px;align-items:start}
+.steps{counter-reset:st}
+.step{display:flex;gap:18px;border-top:1px solid var(--hair);padding:18px 0}
+.step::before{counter-increment:st;content:"0" counter(st);font:400 26px/1 var(--serif);color:var(--red)}
+.step p{font:400 13.5px/1.6 var(--serif);color:#4d463e}
+.step p b{color:var(--ink)}
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--hair);padding:34px 4vw 44px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+ font:400 11.5px/1.8 var(--mono);color:var(--mut)}
+footer a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--hair)}
+footer a:hover{border-bottom-color:var(--ink)}
+/* ---------- toast ---------- */
+#toast{position:fixed;left:50%;bottom:30px;translate:-50% 16px;z-index:50;padding:14px 22px;
+ background:var(--ink);color:var(--paper);font:700 12px/1 var(--mono);letter-spacing:.08em;
+ opacity:0;pointer-events:none;transition:.3s var(--e)}
 #toast.on{opacity:1;translate:-50% 0}
-/* entrance */
-.enter{opacity:0;translate:0 18px;transition:opacity .9s var(--e),translate .9s var(--e)}
-body.ready .enter{opacity:1;translate:0 0}
-.d1{transition-delay:.08s}.d2{transition-delay:.2s}.d3{transition-delay:.34s}.d4{transition-delay:.48s}
-body.settled .enter{transition-delay:0s}
-body.still .enter{transition:none;opacity:1;translate:0 0}
-body.still .cta::before{animation:none}
-@media (prefers-reduced-motion:reduce){.cta::before{animation:none}.enter{transition:none;opacity:1;translate:0 0}}
-@media (max-width:740px){
- nav{left:4%;right:4%;margin-inline:0;width:auto;justify-content:space-between}
- nav a.mid{display:none}
- .hero{padding:110px 6vw 60px}
- section{padding:60px 6vw}
- .install{grid-template-columns:1fr;padding:24px}
+#toast i{font-style:normal;color:var(--red)}
+/* ---------- responsive ---------- */
+@media (max-width:960px){
+ .row{grid-template-columns:64px 1fr;gap:18px}
+ .row .num{font-size:40px}
+ .row .plate-wrap{grid-column:1/-1}
+ .bench,.duo,.install{grid-template-columns:1fr}
+ .checklist{columns:1}
+ nav.top a.mid{display:none}
 }
+@media (max-width:740px){
+ .hero .hint{display:none}
+ .hero .fold{right:4vw}
+ .hero .no{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<div class="atmo"></div>
-<canvas id="gl"></canvas>
-<div class="vignette"></div>
 <div class="grain" aria-hidden="true"></div>
 
-<nav class="enter d1">
-  <span class="logo" aria-hidden="true">◎</span>
-  <a class="mid" href="#examples">Examples</a>
-  <a class="mid" href="#playground">Playground</a>
-  <a class="mid" href="#install">Install</a>
-  <a class="gh" href="https://github.com/jiangyurong609/threejs-hero-skill">★ <span id="stars">GitHub</span></a>
-</nav>
-
-<main>
-<header class="hero">
-  <div class="hcol">
-    <span class="badge enter d1">Open-source Claude Code skill · MIT</span>
-    <h1 class="enter d2">Award-site motion pages,<br/><b>one prompt away</b></h1>
-    <p class="sub enter d3">A skill that teaches your AI agent to build <b>immersive motion pages</b> —
-      3D worlds, glass product stages, dome galleries, scroll journeys, <b>liquid-glass shader
-      typography, springy poster walls</b> — as <b>single HTML files</b>, screenshot-verified until
-      they're right. Three.js when it helps; raw WebGL or pure DOM when it doesn't.</p>
-    <div class="ctarow enter d4">
-      <a class="cta" href="https://github.com/jiangyurong609/threejs-hero-skill"><span>★ Star on GitHub</span></a>
-      <button class="ghost-btn" data-copy="install"><span>⧉ Copy install command</span></button>
-    </div>
-    <div class="trust enter d4"><span>MIT — free forever</span><span>No build step</span><span>60 fps, phone-ready</span><span>Every demo self-verified</span></div>
-    <div class="works enter d4">
-      <span class="wlab">Paste prompts into</span>
-      <i>Claude Code</i><i>Cursor</i><i>Lovable</i><i>Bolt</i>
-      <span class="wlab">— or install the skill for the full self-verifying loop</span>
-    </div>
-  </div>
+<header class="mast">
+  <span class="wm">threejs-hero<i>*</i></span>
+  <nav class="top">
+    <a class="mid" href="#index">Index</a>
+    <a class="mid" href="#bench">Bench</a>
+    <a class="mid" href="#install">Install</a>
+    <a class="gh" href="https://github.com/jiangyurong609/threejs-hero-skill">★ <span id="stars">GitHub</span></a>
+  </nav>
 </header>
 
-<section id="examples">
-  <div class="sec-head">
-    <div class="kick">Live examples</div>
-    <h2>Pick a world. <b>Copy its prompt.</b></h2>
-    <p class="sec-sub">Every card is a real page built by the skill — press <b>▶</b> to run it right
-      here in the grid, then copy its prompt. These aren't vibe one-liners: each prompt is a
-      <b>full build spec</b> — layout, palette, geometry, shader behavior, timings, and the
-      self-verify loop — round-trip tested to reproduce a comparable page on a different brand.</p>
-    <div class="chips" id="chips"></div>
+<div class="hero" id="top">
+  <canvas id="gl"></canvas>
+  <div class="no">an open-source skill for Claude Code<br/>catalogue Nº 001–007 · MIT</div>
+  <div class="fold">
+    <p class="kick">Every plate in this catalogue was built — and screenshot-verified — by the agent this skill teaches. The page you are reading is plate Nº 000.</p>
+    <div class="btnrow">
+      <button class="btn red" data-copy="install">⧉ Copy install</button>
+      <a class="btn" href="#index">Browse the index ↓</a>
+    </div>
   </div>
-  <div class="grid" id="grid"></div>
+  <div class="hint"><b>Move the cursor</b>the page is liquid — click for a splash</div>
+</div>
+
+<main>
+<section id="index">
+  <div class="shead"><span class="no">§ 1 — the index</span><span class="no" id="count"></span></div>
+  <h2>Seven worlds. <em>Run them here.</em></h2>
+  <p class="ssub">Each entry is a finished single-file page. <b>RUN</b> plays it inside its plate.
+    <b>COPY THE PROMPT</b> hands you the full build spec — layer stack, palette, geometry, shader
+    math, timings, and the self-verify loop — round-trip tested against the skill.</p>
+  <div class="filters" id="filters"></div>
+  <div id="rows"></div>
+  <div style="height:56px"></div>
 </section>
 
-<section id="playground">
-  <div class="sec-head">
-    <div class="kick">Playground — this is the input box</div>
-    <h2>Type a brand. <b>Get a world.</b></h2>
-    <p class="sec-sub">Everything below is live — the preview rebuilds as you type. When it feels like
-      yours, copy the prompt: it carries your brand, palette, and archetype into Claude Code.</p>
-  </div>
-  <div class="pg">
-    <div class="pgc">
-      <label class="plab" for="pgBrand">Brand name</label>
-      <input class="pin" id="pgBrand" maxlength="18" value="AURORA" autocomplete="off"/>
-      <label class="plab" for="pgTag">Tagline</label>
-      <input class="pin" id="pgTag" maxlength="64" value="Crafted for pure clarity" autocomplete="off"/>
-      <label class="plab">Palette</label>
+<section id="bench">
+  <div class="shead"><span class="no">§ 2 — the composing bench</span><span class="no">fig. 08</span></div>
+  <h2>Type a brand. <em>Get a world.</em></h2>
+  <p class="ssub">This is the input box. The plate on the right is live — it rebuilds as you type.
+    When it feels like yours, copy the prompt: it carries your <b>name, palette, and archetype</b> into Claude Code.</p>
+  <div class="bench">
+    <div class="bcontrols">
+      <label class="blab" for="pgBrand">Brand name</label>
+      <input class="bin" id="pgBrand" maxlength="18" value="AURORA" autocomplete="off"/>
+      <label class="blab" for="pgTag">Tagline</label>
+      <input class="bin" id="pgTag" maxlength="64" value="Crafted for pure clarity" autocomplete="off"/>
+      <label class="blab">Ink</label>
       <div class="hues" id="pgHues"></div>
-      <label class="plab">Archetype</label>
+      <label class="blab">Archetype</label>
       <div class="modes" id="pgModes">
-        <button class="chip on" data-mode="halo">Glass product</button>
-        <button class="chip" data-mode="morph">Particle morph</button>
-        <button class="chip" data-mode="liquid">Liquid glass</button>
+        <button class="on" data-mode="halo">Glass product</button>
+        <button data-mode="morph">Particle morph</button>
+        <button data-mode="liquid">Liquid glass</button>
       </div>
-      <button class="gbtn primary" id="pgCopy" style="margin-top:18px;padding:14px 0">⧉ Copy the prompt for this world</button>
-      <a class="gbtn" id="pgOpen" href="playground.html" target="_blank" rel="noopener" style="margin-top:10px;padding:13px 0">Open fullscreen ↗</a>
-      <p class="pnote">Interact with the preview — it's the real page: cursor parallax, ripples, swirl.</p>
+      <button class="btn red" id="pgCopy">⧉ Copy this world's prompt</button>
+      <a class="btn" id="pgOpen" href="playground.html" target="_blank" rel="noopener" style="margin-top:10px">Open fullscreen ↗</a>
+      <p class="bnote">The preview is the real page — cursor parallax, ripples, swirl all work.</p>
     </div>
-    <div class="pgv"><iframe id="pgFrame" title="Your world, live" allow="autoplay"></iframe></div>
+    <div class="bview">
+      <div class="frame"><iframe id="pgFrame" title="Your world, live" allow="autoplay"></iframe></div>
+      <div class="fig">fig. 08 — parametrized world; every configuration is a shareable URL</div>
+    </div>
   </div>
 </section>
 
 <section id="clone">
-  <div class="install">
-    <div>
-      <div class="kick">New — study any reference</div>
-      <h2 style="margin-bottom:14px">Love a site? <b>Clone its feel.</b></h2>
-      <p class="sec-sub" style="margin-bottom:12px">Paste a URL into the prompt. The agent browses the
-        reference, screenshots it at several scroll depths, greps its bundles for tech signals
-        (three.js? GSAP? shaders?), maps what it sees to the skill's recipes — then rebuilds the same
-        motion language as <b>original code themed to your brand</b>. It studies patterns; it never
-        copies the reference's code, assets, or content.</p>
-      <p class="sec-sub" style="margin-bottom:0">Works today in Claude Code with the skill installed —
-        the browser, the inspection, and the verification loop all run on your machine.</p>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div class="code" style="white-space:pre-wrap">Using the threejs-hero skill: clone the feel of
+  <div class="shead"><span class="no">§ 3 — field methods</span></div>
+  <h2>Study anything. <em>Copy nothing.</em></h2>
+  <div class="duo">
+    <div class="cell">
+      <h3>Clone the <em>feel</em> of a site</h3>
+      <p>Paste a URL into the prompt. The agent browses the reference, storyboards it at five scroll
+        depths, greps its bundles for tech signals, maps what it sees to this skill's recipes — then
+        rebuilds that motion language as original code for your brand. It studies patterns; it never
+        copies code, assets, or content.</p>
+      <div class="codeblk">Using the threejs-hero skill: clone the feel of
 &lt;URL&gt; for my brand &lt;NAME + one-line pitch&gt; —
 browse it, storyboard it at several scroll depths,
 identify its motion patterns, then rebuild that
@@ -278,179 +258,175 @@ motion language as an original single-file page
 with my brand's palette and copy.
 Self-verify until perfect.<button class="copychip" data-copy="study">⧉ Copy</button></div>
     </div>
-  </div>
-</section>
-
-<section id="recipes">
-  <div class="sec-head">
-    <div class="kick">What the skill encodes</div>
-    <h2>Studied from <b>award-winning sites</b></h2>
-    <p class="sec-sub">Each recipe was distilled from a reference (AETHER:1, OpenPurpose®, Igloo Inc, Lando
-      Norris, MISC, ITOM…), rebuilt from scratch, and verified through a headless-Chrome screenshot loop.</p>
-  </div>
-  <div class="rgrid">
-    <div class="rcard"><div class="ic">🌫</div><h3>Foggy hero world</h3><p>Organic tube limbs + 14k instanced moss, fog == background color for infinite depth, wireframe scan intro.</p></div>
-    <div class="rcard"><div class="ic">💍</div><h3>Glass product stage</h3><p>Fresnel-edge glass shader, breathing baked halo, thin sonar rings, orbital arcs — no post-processing needed.</p></div>
-    <div class="rcard"><div class="ic">🌐</div><h3>Dome media gallery</h3><p>~100 canvas-generated thumbnails on an inner sphere, inertial drag orbit, click-to-focus camera flight.</p></div>
-    <div class="rcard"><div class="ic">🏔</div><h3>Scroll camera journey</h3><p>Scroll scrubs a spline rail over noise terrain; forcing params (?p=) make every keyframe screenshot-testable.</p></div>
-    <div class="rcard"><div class="ic">✨</div><h3>Particle shape morphs</h3><p>One 6k cloud, quantized structural targets (igloo bricks → ring portal → creature), staggered scatter mid-flight.</p></div>
-    <div class="rcard"><div class="ic">💡</div><h3>The fake-bloom kit</h3><p>Baked glow sprites + halo textures + film grain: award-site light that renders even in headless SwiftShader.</p></div>
-    <div class="rcard"><div class="ic">🖱</div><h3>Fluid UI layer</h3><p>Shader buttons with cursor-following light, idle specular sweeps, glass navs — pure CSS + 10 lines of JS.</p></div>
-    <div class="rcard"><div class="ic">📸</div><h3>Self-verify loop</h3><p>Multi-viewport headless screenshots, still-mode determinism, and a design-review pass before anything ships.</p></div>
+    <div class="cell">
+      <h3>The review every page <em>must pass</em></h3>
+      <p>Rendering correctly is not being designed well. Before anything ships, the skill makes the
+        agent re-read its own screenshots against this checklist — it is why the plates above look
+        the way they do:</p>
+      <ul class="checklist">
+        <li>5-second value scan — what, for whom, what do I get</li>
+        <li>Squint test — the CTA pops first, headline second</li>
+        <li>Risk-reversal ✓s touch the CTA, never orphaned</li>
+        <li>No dead micro-text — big type or cut it</li>
+        <li>Ghost wordmark readable, occluded, never cropped</li>
+        <li>Visible light — blooms and vignette, no flat fills</li>
+        <li>One winner per region of the frame</li>
+        <li>Settled in ≤ 2.5 s, never blank under UI</li>
+        <li>Every control works — honest labels, real routes</li>
+        <li>Hover everything: surfaces respond like lit objects</li>
+      </ul>
+      <p style="margin-top:14px"><a class="tlink" href="https://github.com/jiangyurong609/threejs-hero-skill/blob/main/SKILL.md">Read the full skill — SKILL.md ↗</a></p>
+    </div>
   </div>
 </section>
 
 <section id="install">
+  <div class="shead"><span class="no">§ 4 — colophon &amp; install</span></div>
+  <h2>Two commands, <em>then just ask.</em></h2>
   <div class="install">
-    <div>
-      <div class="kick">Install</div>
-      <h2 style="margin-bottom:18px">Two commands, <b>then just ask</b></h2>
-      <div class="steps">
-        <div class="step"><b>1</b><p><strong>Install the skill</strong> into Claude Code with the commands on the right.</p></div>
-        <div class="step"><b>2</b><p><strong>Copy any prompt</strong> from the examples above — or describe your own brand's world.</p></div>
-        <div class="step"><b>3</b><p><strong>Watch it self-verify:</strong> the agent screenshots desktop/tablet/phone and iterates until the page is right.</p></div>
-      </div>
+    <div class="steps">
+      <div class="step"><p><b>Install the skill</b> into Claude Code with the commands on the right — one clone, one copy.</p></div>
+      <div class="step"><p><b>Copy any prompt</b> from the index, compose one at the bench, or hand a reference URL to the field method.</p></div>
+      <div class="step"><p><b>Watch it verify itself</b> — the agent screenshots desktop, tablet, and phone, and iterates until the page passes the review.</p></div>
     </div>
-    <div class="code" id="installcode"><span class="cmt"># install</span>
+    <div class="codeblk"><span class="cmt"># install</span>
 git clone https://github.com/jiangyurong609/threejs-hero-skill.git
 cp -r threejs-hero-skill/threejs-hero ~/.claude/skills/
 
 <span class="cmt"># then, in Claude Code:</span>
-<span class="cmt">"Build me a 3D landing page for my brand,</span>
-<span class="cmt"> orbit using mouse, self-verify until perfect."</span><button class="copychip" data-copy="install">⧉ Copy</button></div>
-  </div>
-</section>
-<section id="contribute">
-  <div class="install">
-    <div>
-      <div class="kick">Community</div>
-      <h2 style="margin-bottom:14px">Built a world? <b>Add it.</b></h2>
-      <p class="sec-sub" style="margin-bottom:0">The gallery grows by pull request — build a page with the skill,
-        drop the HTML in <code style="color:var(--acc2)">threejs-hero/examples/</code> with a verified still, and
-        open a PR. New effect recipes (cursor mask reveals, poster walls, gesture control…) are wide open too.</p>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <a class="ghost-btn" style="justify-content:center" href="https://github.com/jiangyurong609/threejs-hero-skill/pulls">Open a pull request →</a>
-      <a class="ghost-btn" style="justify-content:center" href="https://github.com/jiangyurong609/threejs-hero-skill/blob/main/SKILL.md">Read the full skill (SKILL.md) →</a>
-      <button class="ghost-btn" style="justify-content:center" id="copyllm">⧉ Copy AI context link (llms.txt)</button>
-    </div>
+<span class="cmt">"Build me a 3D landing page for my brand.</span>
+<span class="cmt"> Self-verify until perfect."</span><button class="copychip" data-copy="install">⧉ Copy</button></div>
   </div>
 </section>
 </main>
 
 <footer>
-  MIT licensed · replica studies of public award-site designs, all code original ·
-  <a href="https://github.com/jiangyurong609/threejs-hero-skill">github.com/jiangyurong609/threejs-hero-skill</a>
+  <span>threejs-hero<i style="color:var(--red)">*</i> — MIT, free forever · plates are original-code
+    studies of public award-site motion patterns · fictional brands throughout</span>
+  <span><a href="https://github.com/jiangyurong609/threejs-hero-skill">github</a> ·
+    <a href="llms.txt">llms.txt for AI agents</a> ·
+    <a href="https://threejs-hero.pages.dev">threejs-hero.pages.dev</a></span>
 </footer>
 
-<div id="toast" role="status">Prompt copied — paste it into Claude Code ✓</div>
+<div id="toast" role="status"></div>
 
 <script>
-setTimeout(()=>document.body.classList.add("ready","settled"),3000);
-
-// ---- gallery data
+// ---------- catalogue data
 const EXAMPLES=[
- {id:"sona-product-hero",title:"SONA · 1 — glass product stage",img:"assets/sona-still.png",
-  tags:["fresnel glass","sonar rings","web audio"],
-  desc:"AETHER-style product hero: glass case with glowing buds, breathing halo, orbital arcs, and a sound toggle the rings react to.",
-  prompt:`Using the threejs-hero skill: build a 3D product hero like AETHER — a fresnel-glass case with glowing earbuds inside, a breathing baked halo, thin expanding sonar rings, tilted orbital arcs with traveling dots, a soft starfield, and a working sound toggle that makes the rings react. Dark navy world, single HTML file, responsive to phone. Self-verify until perfect.`},
- {id:"dome-gallery",title:"Archive° — dome media gallery",img:"assets/dome-still.png",
-  tags:["drag orbit","fly-to-focus","canvas art"],
-  desc:"OpenPurpose-style dome: ~100 generated site thumbnails on an inner sphere; drag to orbit, click a card and the camera dives to it.",
-  prompt:`Using the threejs-hero skill: build a dome media gallery like OpenPurpose — around 100 canvas-generated site thumbnails with baked soft shadows arranged on the inside of a sphere, inertial drag to orbit, slow idle rotation, and click-to-focus that flies the camera to the card while the rest dim. Light minimal theme, single HTML file. Self-verify until perfect.`},
- {id:"boreal-journey",title:"BOREAL — scroll journey + morphs",img:"assets/boreal-still.png",
-  tags:["camera rail","particle morph","snowfall"],
-  desc:"Igloo-Inc-style journey: scrolling flies the camera over foggy terrain while 6k particles morph igloo → glowing portal → creature.",
-  prompt:`Using the threejs-hero skill: build a scroll-driven 3D journey like Igloo Inc — the camera scrubs along a spline over foggy noise terrain while a 6,000-point cloud morphs from a brick-quantized igloo into a glowing ring portal into a particle creature, with per-scene caption cards, snowfall, and film grain. Add ?p= forcing params for verification. Self-verify until perfect.`},
- {id:"sylva-replica",title:"Sylva — the foggy living world",img:"assets/sylva-still.png",
-  tags:["scan intro","moss instancing","creature"],
-  desc:"The original recipe: organic limbs sweep a monochrome fog world, a butterfly rests and flees the cursor, wireframe scan intro.",
-  prompt:`Using the threejs-hero skill: build an immersive Three.js landing page — a foggy living 3D world with organic tube limbs covered in instanced moss, deep scenery silhouettes, orbit using mouse, particles to pointer, a wireframe scan intro like Death Stranding, scan-line card reveals, and a butterfly that lands and flees the cursor. Single HTML file. Self-verify until perfect.`},
- {id:"frontdesk-hero",title:"FrontDesk — applied to a real brand",img:"assets/frontdesk-still.png",
-  tags:["conversion hero","demo modal","stat chips"],
-  desc:"The same world re-themed for a real SaaS: call-wire limbs, message-spark creature, working demo modal, trust line, stat chips.",
-  prompt:`Using the threejs-hero skill: apply the Sylva-style immersive 3D hero to my brand — [YOUR BRAND + one-line pitch]. Re-theme the fog world to the brand palette, make the creature and pulses match the product metaphor, add a conversion-first hero column (badge, headline, subhead, high-contrast CTA, trust line), working demo modal, and glass stat chips. Self-verify until perfect.`},
- {id:"pura-liquid-hero",title:"PURA — liquid-glass typography",img:"assets/pura-still.png",
-  tags:["raw webgl","ripple shader","no three.js"],
-  desc:"OYLA-style editorial hero: a fragment shader turns the whole page liquid — cursor ripples and a glass lens warp giant serif type.",
-  prompt:`Using the threejs-hero skill: build a liquid-glass editorial hero — paint giant serif fashion typography and a glossy product orb on an offscreen canvas, then distort it with a raw-WebGL fragment shader: analytic cursor ripples (no FBO sim), a liquid-glass lens following the pointer, chromatic aberration, wet crest highlights. Crisp DOM nav and CTA above. Single HTML file, no libraries. Self-verify until perfect.`},
- {id:"paperworks-posterwall",title:"Paperworks* — springy poster wall",img:"assets/paper-still.png",
-  tags:["pure dom","spring physics","infinite drag"],
-  desc:"MISC-style wall: drag an infinite grid of canvas-painted posters that flex like paper — spring tilts from drag lag, click to enlarge.",
-  prompt:`Using the threejs-hero skill: build a MISC-style draggable poster wall — an infinite wrapped grid of bold canvas-painted posters (seeded palettes, stacked display words, glyphs, catalog footers), momentum drag + wheel pan, springy paper-bend tilts driven by the drag lag with per-poster stiffness, click-vs-drag gating, and a backdrop-blur modal enlarge. Pure DOM/CSS physics, no WebGL, single HTML file. Self-verify until perfect.`},
+ {id:"sona-product-hero",n:"01",title:"SONA·1 — <em>glass product stage</em>",img:"assets/sona-still.png",cat:"Product",
+  specs:"fresnel glass · sonar rings · web-audio reactive · three.js",
+  desc:"A sealed glass case with glowing buds, breathing halo and orbital arcs. The sound toggle is real — the rings answer it."},
+ {id:"dome-gallery",n:"02",title:"Archive° — <em>dome media gallery</em>",img:"assets/dome-still.png",cat:"Gallery",
+  specs:"drag orbit · fly-to-focus · 110 canvas plates · three.js",
+  desc:"A hundred generated screenshots on the inside of a sphere. Drag to orbit; click and the camera dives to the card."},
+ {id:"boreal-journey",n:"03",title:"BOREAL — <em>scroll journey</em>",img:"assets/boreal-still.png",cat:"Journey",
+  specs:"camera rail · particle morphs · igloo → portal → creature",
+  desc:"Scroll flies the camera over foggy terrain while six thousand points rebuild themselves three times."},
+ {id:"pura-liquid-hero",n:"04",title:"PURA — <em>liquid-glass type</em>",img:"assets/pura-still.png",cat:"Shader",
+  specs:"raw webgl · analytic ripples · chromatic lens · no three.js",
+  desc:"The whole editorial page is liquid — cursor ripples and a glass lens warp giant serif letterforms."},
+ {id:"paperworks-posterwall",n:"05",title:"Paperworks* — <em>poster wall</em>",img:"assets/paper-still.png",cat:"Interaction",
+  specs:"pure dom · spring physics · infinite drag · no webgl",
+  desc:"An endless wall of printed posters that flex like paper — the bend comes from drag lag, not velocity."},
+ {id:"sylva-replica",n:"06",title:"Sylva — <em>the foggy world</em>",img:"assets/sylva-still.png",cat:"Hero",
+  specs:"scan intro · 14k instanced moss · living creature · three.js",
+  desc:"The foundational recipe: organic limbs in fog, a wireframe scan intro, and a butterfly that flees the cursor."},
+ {id:"frontdesk-hero",n:"07",title:"FrontDesk — <em>applied to a brand</em>",img:"assets/frontdesk-still.png",cat:"Brand",
+  specs:"conversion hero · demo modal · stat chips · three.js",
+  desc:"The same world re-themed for a real product — proof the recipes survive contact with actual copy and routes."},
 ];
-EXAMPLES[0].cat="Product";EXAMPLES[1].cat="Gallery";EXAMPLES[2].cat="Journey";
-EXAMPLES[3].cat="Hero";EXAMPLES[4].cat="Brand";EXAMPLES[5].cat="Shader";EXAMPLES[6].cat="Interaction";
-const CATS=["All","Hero","Product","Gallery","Journey","Brand","Shader","Interaction"];
-const chipbar=document.getElementById("chips");
-let activeCat="All";
-for(const c of CATS){
-  const b=document.createElement("button");b.className="chip"+(c==="All"?" on":"");b.textContent=c;
+const CATS=["All","Hero","Product","Gallery","Journey","Shader","Interaction","Brand"];
+let activeCat="All",activePlate=null;
+const rows=document.getElementById("rows"),filters=document.getElementById("filters");
+CATS.forEach(c=>{
+  const b=document.createElement("button");
+  b.textContent=c;b.classList.toggle("on",c==="All");
   b.addEventListener("click",()=>{activeCat=c;
-    document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x===b));
-    render();});
-  chipbar.appendChild(b);
-}
-const grid=document.getElementById("grid");
+    filters.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));render();});
+  filters.appendChild(b);
+});
 function render(){
-  grid.innerHTML="";
-  for(const ex of EXAMPLES.filter(x=>activeCat==="All"||x.cat===activeCat))addCard(ex);
-}
-let activeShot=null;
-function addCard(ex){
-  const el=document.createElement("article");el.className="gcard";
-  el.innerHTML=`
-    <div class="shot" data-live="examples/${ex.id}.html">
-      <img loading="lazy" src="${ex.img}" alt="${ex.title} screenshot"/>
-      <button class="play" aria-label="Run ${ex.title} inline"><span>▶ Play it right here</span></button>
-    </div>
-    <div class="gbody">
-      <div class="gtags"><i style="color:var(--acc2);border-color:rgba(120,170,255,.4)">${ex.cat}</i>${ex.tags.map(t=>`<i>${t}</i>`).join("")}</div>
-      <div class="gtitle">${ex.title}</div>
-      <p class="gdesc">${ex.desc}</p>
-      <div class="grow">
-        <a class="gbtn" href="examples/${ex.id}.html" target="_blank" rel="noopener">Open ↗</a>
-        <button class="gbtn primary" data-prompt="${ex.id}">⧉ Copy full prompt</button>
+  const list=EXAMPLES.filter(x=>activeCat==="All"||x.cat===activeCat);
+  document.getElementById("count").textContent=String(list.length).padStart(2,"0")+" plates";
+  rows.innerHTML="";
+  for(const ex of list){
+    const r=document.createElement("article");r.className="row";
+    r.innerHTML=`
+      <div class="num">${ex.n}</div>
+      <div class="meta">
+        <div class="cat">${ex.cat}</div>
+        <h3>${ex.title}</h3>
+        <div class="specs">${ex.specs}</div>
+        <p>${ex.desc}</p>
+        <div class="rlinks">
+          <button class="tlink red" data-prompt="${ex.id}">⧉ Copy the prompt</button>
+          <a class="tlink" href="examples/${ex.id}.html" target="_blank" rel="noopener">Open ↗</a>
+          <a class="tlink" href="https://github.com/jiangyurong609/threejs-hero-skill/blob/main/threejs-hero/examples/${ex.id}.html" target="_blank" rel="noopener">View source</a>
+        </div>
       </div>
-    </div>`;
-  grid.appendChild(el);
+      <div class="plate-wrap"><div class="plate" data-live="examples/${ex.id}.html">
+        <img loading="lazy" src="${ex.img}" alt=""/>
+        <button class="run"><span>▶ Run plate ${ex.n}</span></button>
+        <div class="fig">plate ${ex.n} — single html file, ~60 fps</div>
+      </div></div>`;
+    rows.appendChild(r);
+  }
 }
-// delegated play/stop — listeners survive innerHTML swaps; one live world at a time
-grid.addEventListener("click",e=>{
+rows.addEventListener("click",e=>{
   const stop=e.target.closest(".stop");
-  if(stop){const shot=stop.closest(".shot");shot.innerHTML=shot.dataset.restore;activeShot=null;return;}
-  const play=e.target.closest(".play");
-  if(!play)return;
-  const shot=play.closest(".shot");
-  if(activeShot&&activeShot!==shot){activeShot.innerHTML=activeShot.dataset.restore;}
-  shot.dataset.restore=shot.innerHTML;
-  shot.innerHTML=`<iframe src="${shot.dataset.live}" title="live demo" style="width:100%;height:100%;border:0;display:block" allow="autoplay"></iframe>
-    <button class="stop" aria-label="Stop demo">✕</button>`;
-  activeShot=shot;
+  if(stop){const p=stop.closest(".plate");p.innerHTML=p.dataset.restore;activePlate=null;return;}
+  const run=e.target.closest(".run");
+  if(!run)return;
+  const p=run.closest(".plate");
+  if(activePlate&&activePlate!==p)activePlate.innerHTML=activePlate.dataset.restore;
+  p.dataset.restore=p.innerHTML;
+  p.innerHTML=`<iframe src="${p.dataset.live}" title="live plate" allow="autoplay"></iframe><button class="stop" aria-label="Stop">✕</button>`;
+  activePlate=p;
 });
 render();
 
-// live GitHub stars (graceful fallback to "GitHub")
+// ---------- copy plumbing
+const INSTALL=`git clone https://github.com/jiangyurong609/threejs-hero-skill.git
+cp -r threejs-hero-skill/threejs-hero ~/.claude/skills/`;
+const STUDY=`Using the threejs-hero skill: clone the feel of <URL> for my brand <NAME + one-line pitch> — browse it, storyboard it at several scroll depths, identify its motion patterns, then rebuild that motion language as an original single-file page with my brand's palette and copy. Self-verify until perfect.`;
+let toastTimer;
+function toast(msg){const t=document.getElementById("toast");
+ t.innerHTML=msg+' <i>✓</i>';t.classList.add("on");
+ clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("on"),2200);}
+function copyText(txt,msg){
+ const done=()=>toast(msg);
+ if(navigator.clipboard&&navigator.clipboard.writeText)
+   navigator.clipboard.writeText(txt).then(done,()=>{fallback(txt);done();});
+ else{fallback(txt);done();}}
+function fallback(txt){const ta=document.createElement("textarea");ta.value=txt;
+ ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();
+ try{document.execCommand("copy");}catch(e){}document.body.removeChild(ta);}
+document.addEventListener("click",e=>{
+  const p=e.target.closest("[data-prompt]");
+  if(p){const id=p.dataset.prompt;
+    fetch(`prompts/${id}.txt`).then(r=>r.ok?r.text():Promise.reject())
+      .then(t=>copyText(t,"Full build-spec prompt copied"))
+      .catch(()=>copyText(STUDY,"Prompt copied"));return;}
+  if(e.target.closest("[data-copy=install]"))copyText(INSTALL,"Install commands copied");
+  if(e.target.closest("[data-copy=study]"))copyText(STUDY,"Study prompt copied — add your URL");
+});
+
+// ---------- live stars
 fetch("https://api.github.com/repos/jiangyurong609/threejs-hero-skill")
-  .then(r=>r.ok?r.json():null)
-  .then(d=>{if(d&&typeof d.stargazers_count==="number")
-    document.getElementById("stars").textContent=d.stargazers_count>=1000
-      ?(d.stargazers_count/1000).toFixed(1)+"k":String(d.stargazers_count);})
-  .catch(()=>{});
+ .then(r=>r.ok?r.json():null)
+ .then(d=>{if(d&&typeof d.stargazers_count==="number")
+   document.getElementById("stars").textContent=d.stargazers_count>=1000
+     ?(d.stargazers_count/1000).toFixed(1)+"k":String(d.stargazers_count);})
+ .catch(()=>{});
 
-// llms.txt copy — hand an AI agent everything it needs
-document.getElementById("copyllm").addEventListener("click",()=>copyText(
-  "https://jiangyurong609.github.io/threejs-hero-skill/llms.txt",
-  "llms.txt link copied — give it to any AI agent ✓"));
-
-// ---------- playground: inputs → live parametrized world → personalized prompt
+// ---------- bench (playground)
 const HUES=[222,268,158,12,42,330];
 const pg={brand:"AURORA",tag:"Crafted for pure clarity",hue:222,mode:"halo"};
 const huesEl=document.getElementById("pgHues");
 for(const h of HUES){
   const b=document.createElement("button");
   b.className="hue"+(h===pg.hue?" on":"");
-  b.style.background=`hsl(${h},80%,58%)`;b.dataset.hue=h;b.setAttribute("aria-label","hue "+h);
+  b.style.background=`hsl(${h},75%,52%)`;b.setAttribute("aria-label","hue "+h);
   b.addEventListener("click",()=>{pg.hue=h;
     huesEl.querySelectorAll(".hue").forEach(x=>x.classList.toggle("on",x===b));pgUpdate();});
   huesEl.appendChild(b);
@@ -458,202 +434,158 @@ for(const h of HUES){
 document.getElementById("pgModes").addEventListener("click",e=>{
   const b=e.target.closest("[data-mode]");if(!b)return;
   pg.mode=b.dataset.mode;
-  document.querySelectorAll("#pgModes .chip").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll("#pgModes button").forEach(x=>x.classList.toggle("on",x===b));
   pgUpdate();
 });
 let pgTimer;
-for(const [id,key] of [["pgBrand","brand"],["pgTag","tag"]])
+for(const [id,key,def] of [["pgBrand","brand","AURORA"],["pgTag","tag","Crafted for pure clarity"]])
   document.getElementById(id).addEventListener("input",e=>{
-    pg[key]=e.target.value||("brand"===key?"AURORA":"Crafted for pure clarity");
+    pg[key]=e.target.value||def;
     clearTimeout(pgTimer);pgTimer=setTimeout(pgUpdate,450);
   });
 function pgSrc(){return `playground.html?brand=${encodeURIComponent(pg.brand)}&tag=${encodeURIComponent(pg.tag)}&hue=${pg.hue}&mode=${pg.mode}`;}
-function pgUpdate(){
-  document.getElementById("pgFrame").src=pgSrc();
-  document.getElementById("pgOpen").href=pgSrc();
-}
+function pgUpdate(){document.getElementById("pgFrame").src=pgSrc();document.getElementById("pgOpen").href=pgSrc();}
 pgUpdate();
 const PGRECIPE={
- halo:`a glass product stage: a fresnel-edge glass capsule (custom ShaderMaterial, additive, never transmission) with glowing emissive buds and a point light inside, a breathing baked halo-ring plane and soft nebula glow behind it, three thin expanding sonar rings (RingGeometry 1.94–2.0, opacity (1-ph)^2*0.4, staggered phases), tilted elliptical orbit lines with traveling glow dots, a two-layer soft-sprite starfield, and mouse-orbit camera parallax with idle drift`,
+ halo:`a glass product stage: a fresnel-edge glass capsule (custom ShaderMaterial, additive, never transmission) with glowing emissive buds and a point light inside, a breathing baked halo-ring plane and soft nebula glow behind it, three thin expanding sonar rings (RingGeometry 1.94-2.0, opacity (1-ph)^2*0.4, staggered phases), tilted elliptical orbit lines with traveling glow dots, a two-layer soft-sprite starfield, and mouse-orbit camera parallax with idle drift`,
  morph:`a particle morph hero: one 3,600-point cloud (soft radial-gradient sprite, additive) morphing on a 7s cycle between a torus, a dome, and a sphere shell with per-particle stagger and sin(ss*PI) mid-flight scatter, a baked halo-ring plane behind it, cursor swirl (tangential push falling off with distance), starfield, and mouse-orbit parallax`,
  liquid:`a liquid-glass editorial hero: paint the page (giant serif brand wordmark, italic serif tagline, glossy accent orb, faint topographic arcs on ivory #f4efe8) on an offscreen 1920x1080 canvas, then distort it with a raw-WebGL fragment shader — a pool of 24 analytic ripples (sin(band*44)*exp(-band^2*260)*exp(-age*1.6), spawned throttled ~70ms on pointermove, 3-burst on click), a liquid-glass lens pulling uvs toward the cursor, chromatic aberration (R/G/B displacement x1.06/1.0/0.94), wet crest highlights (~0.24), cover-fit in-shader`,
 };
 document.getElementById("pgCopy").addEventListener("click",()=>{
-  const hueName=`hsl(${pg.hue}, 85%, 60%)`;
   copyText(
 `Using the threejs-hero skill: build ${PGRECIPE[pg.mode]}.
 
 Brand: "${pg.brand}". Tagline: "${pg.tag}".
-Palette: derive everything from base hue ${pg.hue} — accent ${hueName}, page background hsl(${pg.hue}, 45%, 5%)${pg.mode==="liquid"?" (liquid mode: keep the ivory paper background, tint only the orb and accents)":""}, fog color == background color.
+Palette: derive everything from base hue ${pg.hue} — accent hsl(${pg.hue}, 85%, 60%), page background hsl(${pg.hue}, 45%, 5%)${pg.mode==="liquid"?" (liquid mode: keep the ivory paper background, tint only the orb and accents)":""}, fog color == background color.
 Overlay: crisp DOM only — brand mark top-left, headline from the tagline bottom-left with the last two words in the accent, a corner credit chip. Ghost wordmark of the brand behind the scene, sized to fit the viewport.
-Ship it as ONE self-contained HTML file (vendored three.module.js local-first with CDN fallback where three.js is used), responsive to phone (stack and scale the stage), touch = idle drift instead of pointer events, prefers-reduced-motion and ?still mode included.
+Ship it as ONE self-contained HTML file (vendored three.module.js local-first with CDN fallback where three.js is used), responsive to phone, touch = idle drift, prefers-reduced-motion and ?still mode included.
 Then self-verify: headless screenshots at 1600x900, 820x1180, and a 500px-wide phone pass, plus ?still determinism — iterate until the composition matches the spec.`,
-  "Your world's prompt copied — paste into Claude Code ✓");
-});
-
-// ---- copy handling (clipboard API + execCommand fallback for file://)
-const INSTALL=`git clone https://github.com/jiangyurong609/threejs-hero-skill.git
-cp -r threejs-hero-skill/threejs-hero ~/.claude/skills/`;
-function copyText(txt,msg){
-  const done=()=>toast(msg);
-  if(navigator.clipboard&&navigator.clipboard.writeText)
-    navigator.clipboard.writeText(txt).then(done,()=>fallback(txt,done));
-  else fallback(txt,done);
-}
-function fallback(txt,done){
-  const ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";
-  document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(e){}
-  document.body.removeChild(ta);done();
-}
-let toastTimer;
-function toast(msg){
-  const t=document.getElementById("toast");t.textContent=msg;t.classList.add("on");
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("on"),2200);
-}
-document.addEventListener("click",e=>{
-  const p=e.target.closest("[data-prompt]");
-  if(p){const ex=EXAMPLES.find(x=>x.id===p.dataset.prompt);
-    // full build-spec prompt lives in prompts/<id>.txt; short prompt is the fallback
-    fetch(`prompts/${ex.id}.txt`).then(r=>r.ok?r.text():Promise.reject())
-      .then(t=>copyText(t,"Full build-spec prompt copied ✓"))
-      .catch(()=>copyText(ex.prompt,"Prompt copied — paste it into Claude Code ✓"));}
-  const c=e.target.closest("[data-copy=install]");
-  if(c)copyText(INSTALL,"Install commands copied ✓");
-  const s=e.target.closest("[data-copy=study]");
-  if(s)copyText(`Using the threejs-hero skill: clone the feel of <URL> for my brand <NAME + one-line pitch> — browse it, storyboard it at several scroll depths, identify its motion patterns, then rebuild that motion language as an original single-file page with my brand's palette and copy. Self-verify until perfect.`,
-    "Study prompt copied — add your URL + brand ✓");
-});
-
-// ---- cursor light on shader surfaces
-addEventListener("pointermove",e=>{
-  for(const el of document.querySelectorAll(".cta")){
-    const r=el.getBoundingClientRect();
-    el.style.setProperty("--mx",((e.clientX-r.left)/r.width*100)+"%");
-    el.style.setProperty("--my",((e.clientY-r.top)/r.height*100)+"%");
-  }
+  "Your world's prompt copied");
 });
 </script>
+
 <script type="module">
-const qs=new URLSearchParams(location.search);
-const STILL=qs.has("still")||matchMedia("(prefers-reduced-motion: reduce)").matches;
-if(STILL)document.body.classList.add("still","ready","settled");
-
-let THREE;
-try{THREE=await import("./examples/vendor/three.module.js");}
-catch{THREE=await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js");}
-
+/* liquid-glass hero: this page runs its own recipe — plate Nº 000 */
+const STILL=new URLSearchParams(location.search).has("still")
+  ||matchMedia("(prefers-reduced-motion: reduce)").matches;
 const canvas=document.getElementById("gl");
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.toneMapping=THREE.ACESFilmicToneMapping;
-const scene=new THREE.Scene();
-scene.fog=new THREE.Fog(0x070b16,9,30);
-const camera=new THREE.PerspectiveCamera(46,1,.1,100);
-camera.position.set(0,0,11);
-
-function softTex(){
-  const c=document.createElement("canvas");c.width=c.height=64;
-  const x=c.getContext("2d"),g=x.createRadialGradient(32,32,0,32,32,32);
-  g.addColorStop(0,"rgba(255,255,255,1)");g.addColorStop(.35,"rgba(255,255,255,.55)");g.addColorStop(1,"rgba(255,255,255,0)");
-  x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);
-}
-function haloTex(){
-  const s=512,c=document.createElement("canvas");c.width=c.height=s;
-  const x=c.getContext("2d"),g=x.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
-  g.addColorStop(.4,"rgba(60,110,255,0)");g.addColorStop(.62,"rgba(80,140,255,.12)");
-  g.addColorStop(.7,"rgba(150,190,255,.7)");g.addColorStop(.74,"rgba(220,235,255,.9)");
-  g.addColorStop(.8,"rgba(80,140,255,.2)");g.addColorStop(1,"rgba(60,110,255,0)");
-  x.fillStyle=g;x.fillRect(0,0,s,s);return new THREE.CanvasTexture(c);
-}
-const SOFT=softTex();
-
-// morphing hero cloud (right side of the hero viewport): torus → dome → sphere shell
-let seed=5;const rand=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
-const N=3600,targets=[[],[],[]];
-for(let i=0;i<N;i++){ // torus
-  const a=rand()*Math.PI*2,b=rand()*Math.PI*2,R=2.5,rr=.4+rand()*.16;
-  targets[0].push((R+rr*Math.cos(b))*Math.cos(a),(R+rr*Math.cos(b))*Math.sin(a),rr*Math.sin(b)*1.4);
-}
-for(let i=0;i<N;i++){ // dome
-  const u=rand(),v=rand(),phi=Math.acos(1-u),th=v*Math.PI*2,r=2.8+rand()*.25;
-  targets[1].push(Math.sin(phi)*Math.cos(th)*r,Math.cos(phi)*r*.85-1,Math.sin(phi)*Math.sin(th)*r);
-}
-for(let i=0;i<N;i++){ // sphere shell
-  const th=rand()*Math.PI*2,ph=Math.acos(2*rand()-1),r=2.7+rand()*.2;
-  targets[2].push(r*Math.sin(ph)*Math.cos(th),r*Math.cos(ph),r*Math.sin(ph)*Math.sin(th));
-}
-const stagger=new Float32Array(N);for(let i=0;i<N;i++)stagger[i]=rand();
-const cur=new Float32Array(targets[0]);
-const pg=new THREE.BufferGeometry();pg.setAttribute("position",new THREE.BufferAttribute(cur,3));
-const cGroup=new THREE.Group();scene.add(cGroup);
-cGroup.add(new THREE.Points(pg,new THREE.PointsMaterial({color:0x9dbfff,size:.06,map:SOFT,transparent:true,opacity:.9,
-  blending:THREE.AdditiveBlending,depthWrite:false})));
-const halo=new THREE.Mesh(new THREE.PlaneGeometry(7.6,7.6),
-  new THREE.MeshBasicMaterial({map:haloTex(),transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));
-halo.position.z=-1;cGroup.add(halo);
-
-// starfield
-for(const [n,size,op] of [[800,.05,.5],[120,.13,.7]]){
-  const a=new Float32Array(n*3);
-  for(let i=0;i<n;i++){a[i*3]=(Math.random()-.5)*36;a[i*3+1]=(Math.random()-.5)*22;a[i*3+2]=-4-Math.random()*16;}
-  const g2=new THREE.BufferGeometry();g2.setAttribute("position",new THREE.BufferAttribute(a,3));
-  scene.add(new THREE.Points(g2,new THREE.PointsMaterial({color:0xa9c4ff,size,map:SOFT,transparent:true,
-    opacity:op,blending:THREE.AdditiveBlending,depthWrite:false})));
-}
-
-const pointer={x:0,y:0};let hasPointer=false;
-addEventListener("pointermove",e=>{if(innerWidth<=740)return;hasPointer=true;
-  pointer.x=(e.clientX/innerWidth)*2-1;pointer.y=(e.clientY/innerHeight)*2-1;});
-
-function place(){
-  // desktop: cloud right of the copy; phone: behind/above it
-  if(innerWidth<=740){cGroup.position.set(0,2.6,0);cGroup.scale.setScalar(.62);}
-  else{cGroup.position.set(3.4,-.2,0);cGroup.scale.setScalar(1);}
-}
-function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();place();}
-addEventListener("resize",resize);resize();
-
-const clock=new THREE.Clock();
-function frame(){
-  requestAnimationFrame(frame);
-  const t=clock.getElapsedTime();
-  const k=STILL?1:Math.min(1,t/1.4),kk=k*k*(3-2*k);
-  // morph cycle: hold each shape ~5s, morph over ~2s
-  const CYC=7,seg=STILL?0:Math.floor(t/CYC)%3,nxt=(seg+1)%3;
-  const local=STILL?0:(t%CYC)/CYC;
-  const blend=Math.max(0,(local-5/7)/(2/7));
-  const A=targets[seg],B=targets[nxt];
-  // cursor swirl: particles near the pointer get pushed tangentially — the hero is a toy
-  const swx=pointer.x*8-cGroup.position.x,swy=-pointer.y*4.5;
-  for(let i=0;i<N;i++){
-    const s=Math.max(0,Math.min(1,(blend-stagger[i]*.5)/.5)),ss=s*s*(3-2*s);
-    for(let c=0;c<3;c++){
-      let v=A[i*3+c]+(B[i*3+c]-A[i*3+c])*ss;
-      v+=Math.sin(i*12.9898+c*4.1+t*1.3)*.14*Math.sin(ss*Math.PI);
-      if(!STILL)v+=Math.sin(t*.8+i*.37+c*2)*.012;
-      cur[i*3+c]=v;
-    }
-    if(hasPointer&&!STILL){
-      const dx=cur[i*3]-swx,dy=cur[i*3+1]-swy,d2=dx*dx+dy*dy;
-      const f=Math.min(.55,1.8/(d2+1.1));
-      cur[i*3]+=-dy*f*.14;cur[i*3+1]+=dx*f*.14;
-    }
+const heroEl=document.querySelector(".hero");
+const src=document.createElement("canvas");
+let portrait=false;
+function paint(){
+  // repaint per orientation: landscape 16:9, portrait stacked type
+  portrait=heroEl.clientWidth/heroEl.clientHeight<.9;
+  const W=portrait?1080:1920,H=portrait?1800:1080;
+  src.width=W;src.height=H;
+  const x=src.getContext("2d");
+  x.fillStyle="#f4efe8";x.fillRect(0,0,W,H);
+  x.strokeStyle="rgba(26,23,20,.05)";x.lineWidth=1.5;
+  for(let i=0;i<10;i++){x.beginPath();x.arc(W*.8,H*.22,80+i*70,0,7);x.stroke();}
+  x.fillStyle="#1a1714";x.textAlign="center";
+  const fs=portrait?W*.19:H*.253;   // portrait: sized for the cover-crop safe zone
+  x.font=`400 ${fs}px Didot,"Playfair Display",Georgia,serif`;
+  if(portrait){
+    x.fillText("MOTION",W/2,H*.35);
+    x.fillText("PAGES",W/2,H*.47);
+    x.font=`italic 400 ${W*.082}px Didot,Georgia,serif`;
+    x.fillText("one prompt away",W/2,H*.56);
+  }else{
+    x.fillText("MOTION",W/2,H*.36);
+    x.fillText("PAGES",W/2,H*.60);
+    x.font=`italic 400 ${H*.088}px Didot,Georgia,serif`;
+    x.fillText("one prompt away",W/2,H*.75);
   }
-  pg.attributes.position.needsUpdate=true;
-  cGroup.rotation.y=STILL?.3:t*.1;
-  halo.material.opacity=.55*kk;halo.rotation.z=0;halo.scale.setScalar(1+(STILL?0:Math.sin(t*.7)*.04));
-  if(!hasPointer&&!STILL){pointer.x=Math.sin(t*.2)*.3;pointer.y=Math.cos(t*.16)*.2;}
-  camera.position.x+=(pointer.x*.7-camera.position.x)*.04;
-  camera.position.y+=(-pointer.y*.4-camera.position.y)*.04;
-  camera.lookAt(1.4,0,0);
-  // scroll dim: world fades as content scrolls over it
-  const dim=Math.min(1,scrollY/innerHeight);
-  renderer.domElement.style.opacity=String(1-dim*.75);
-  renderer.render(scene,camera);
-  document.body.classList.add("ready");
-  if(!STILL)setTimeout(()=>document.body.classList.add("settled"),2500);
+  // red orb accent dotting the composition
+  const gx=portrait?W*.72:W*.715,gy=portrait?H*.445:H*.545,gr=(portrait?W*.045:H*.05);
+  let g=x.createRadialGradient(gx-gr*.3,gy-gr*.35,gr*.1,gx,gy,gr);
+  g.addColorStop(0,"#ff8d75");g.addColorStop(.45,"#c92f1e");g.addColorStop(1,"#7e150b");
+  x.fillStyle=g;x.beginPath();x.arc(gx,gy,gr,0,7);x.fill();
+  g=x.createRadialGradient(gx-gr*.38,gy-gr*.42,0,gx-gr*.38,gy-gr*.42,gr*.4);
+  g.addColorStop(0,"rgba(255,255,255,.95)");g.addColorStop(1,"rgba(255,255,255,0)");
+  x.fillStyle=g;x.beginPath();x.arc(gx-gr*.38,gy-gr*.42,gr*.4,0,7);x.fill();
+  x.fillStyle="#877e74";x.font=`600 ${(portrait?W*.02:H*.015)}px "SF Mono",ui-monospace,Menlo,monospace`;
+  if(portrait){x.textAlign="center";x.fillText("A W A R D - S I T E   M O T I O N",W/2,H*.16);}
+  else{x.textAlign="left";x.fillText("A W A R D - S I T E   M O T I O N",W*.045,H*.13);}
 }
-frame();
+const gl=canvas.getContext("webgl",{antialias:false});
+if(!gl){canvas.replaceWith(src);src.style.cssText="position:absolute;inset:0;width:100%;height:100%;object-fit:cover";}
+else{
+const MAXR=24;
+const vs=`attribute vec2 p;varying vec2 vUv;void main(){vUv=p*.5+.5;vUv.y=1.-vUv.y;gl_Position=vec4(p,0.,1.);}`;
+const fs=`precision highp float;varying vec2 vUv;uniform sampler2D tex;uniform vec2 res,mouse;uniform float time;uniform vec3 ripples[${MAXR}];
+uniform float ta;
+vec2 coverUv(vec2 uv){float ca=res.x/res.y;vec2 s=vec2(1.),o=vec2(0.);
+ if(ca>ta){s.y=ta/ca;o.y=(1.-s.y)*.5;}else{s.x=ca/ta;o.x=(1.-s.x)*.5;}return uv*s+o;}
+void main(){vec2 uv=vUv;float aspect=res.x/res.y;vec2 auv=vec2(uv.x*aspect,uv.y);
+ vec2 disp=vec2(0.);float crest=0.;
+ for(int i=0;i<${MAXR};i++){vec3 r=ripples[i];if(r.z<0.)continue;
+  vec2 c=vec2(r.x*aspect,r.y);vec2 d=auv-c;float len=length(d)+1e-4;
+  float band=len-r.z*.34;float w=sin(band*44.)*exp(-band*band*260.)*exp(-r.z*1.6);
+  disp+=normalize(d)*w*.014;crest+=w;}
+ vec2 mc=vec2(mouse.x*aspect,mouse.y);vec2 md=auv-mc;float mlen=length(md);
+ float inl=smoothstep(.15,0.,mlen)*smoothstep(0.,.03,mlen);  // taper at the exact center — kills the curl singularity
+ disp+=normalize(md+1e-4)*(-inl*inl)*.05;
+ disp+=vec2(sin(uv.y*9.+time*.6),cos(uv.x*8.-time*.5))*.0015;
+ vec2 suv=coverUv(uv);vec3 col;
+ col.r=texture2D(tex,suv+disp*1.06).r;col.g=texture2D(tex,suv+disp).g;col.b=texture2D(tex,suv+disp*.94).b;
+ col+=vec3(1.,.98,.92)*clamp(crest,0.,1.)*.22;
+ col+=vec3(1.)*smoothstep(.018,.0,abs(mlen-.15))*.3;
+ float vg=smoothstep(1.2,.5,distance(uv,vec2(.5)));col*=mix(.95,1.,vg);
+ gl_FragColor=vec4(col,1.);}`;
+const sh=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o;};
+const prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,vs));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,fs));
+gl.linkProgram(prog);gl.useProgram(prog);
+const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+const lp=gl.getAttribLocation(prog,"p");gl.enableVertexAttribArray(lp);gl.vertexAttribPointer(lp,2,gl.FLOAT,false,0,0);
+paint();
+const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);
+gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+const U=n=>gl.getUniformLocation(prog,n);
+gl.uniform1f(U("ta"),src.width/src.height);
+const rip=new Float32Array(MAXR*3).fill(-1);let head=0,last=0;
+const spawn=(x,y)=>{rip[head*3]=x;rip[head*3+1]=y;rip[head*3+2]=0;head=(head+1)%MAXR;};
+const mouse={x:.5,y:.45};let hasPointer=false;
+heroEl.addEventListener("pointermove",e=>{
+  const r=heroEl.getBoundingClientRect();
+  hasPointer=true;mouse.x=(e.clientX-r.left)/r.width;mouse.y=(e.clientY-r.top)/r.height;
+  const n=performance.now();
+  if(n-last>70){spawn(mouse.x,mouse.y);last=n;}
+},{passive:true});
+heroEl.addEventListener("pointerdown",e=>{
+  if(e.target.closest(".btn,a"))return;
+  const r=heroEl.getBoundingClientRect();
+  for(let k=0;k<3;k++)spawn((e.clientX-r.left)/r.width+(Math.random()-.5)*.02,(e.clientY-r.top)/r.height+(Math.random()-.5)*.02);
+});
+if(STILL){mouse.x=.74;mouse.y=.3;
+ [[.34,.4,.6],[.5,.55,.85],[.68,.46,.6],[.42,.68,1.15]].forEach((p,i)=>{rip[i*3]=p[0];rip[i*3+1]=p[1];rip[i*3+2]=p[2];});}
+function resize(){
+  const w=heroEl.clientWidth,h=heroEl.clientHeight;
+  canvas.width=Math.min(w*devicePixelRatio,2200);canvas.height=Math.min(h*devicePixelRatio,1300);
+  gl.viewport(0,0,canvas.width,canvas.height);
+  const wasPortrait=portrait;paint();
+  if(portrait!==wasPortrait||true){                    // re-upload after any repaint
+    gl.bindTexture(gl.TEXTURE_2D,tex);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);
+    gl.uniform1f(U("ta"),src.width/src.height);
+  }
+}
+addEventListener("resize",resize);resize();
+let t0=performance.now();
+(function frame(){requestAnimationFrame(frame);
+ if(scrollY>heroEl.clientHeight)return;                 // sleep when the hero is off-screen
+ const t=(performance.now()-t0)/1000;
+ if(!STILL){for(let i=0;i<MAXR;i++)if(rip[i*3+2]>=0){rip[i*3+2]+=1/60;if(rip[i*3+2]>3)rip[i*3+2]=-1;}
+  if(!hasPointer){mouse.x=.5+Math.sin(t*.4)*.2;mouse.y=.45+Math.cos(t*.31)*.14;
+   if(t*1000-last>1100){spawn(mouse.x,mouse.y);last=t*1000;}}}
+ gl.uniform2f(U("res"),canvas.width,canvas.height);
+ gl.uniform2f(U("mouse"),mouse.x,mouse.y);
+ gl.uniform1f(U("time"),STILL?1.7:t);
+ gl.uniform3fv(U("ripples"),rip);
+ gl.drawArrays(gl.TRIANGLES,0,3);})();
+}
 </script>
 </body>
 </html>
