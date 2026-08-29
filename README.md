@@ -3,6 +3,8 @@
 **🌐 Showcase & live demos: <https://jiangyurong609.github.io/threejs-hero-skill/>** —
 pick a world, open its live demo, copy its prompt.
 
+![threejs-hero demo — scroll journey flythrough and example pages](assets/demo.gif)
+
 A [Claude Code](https://claude.com/claude-code) skill that teaches the agent to build
 **award-site-style immersive Three.js pages** as a single HTML file (+ a vendored
 three.js): the Sylva-style foggy hero (organic geometry, crisp DOM overlay UI,
