@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Archive° — a dome of work</title>
+<meta name="description" content="Drag-orbit dome gallery with click-to-focus camera fly — Three.js skill example."/>
+<style>
+:root{--e:cubic-bezier(.22,1,.36,1);--ink:#111;--mut:#7a7a76}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:#f4f3f0;color:var(--ink);font:400 16px/1.5 "Quicksand",system-ui,-apple-system,sans-serif;overflow:hidden}
+canvas#gl{position:fixed;inset:0;z-index:1;display:block;cursor:grab}
+canvas#gl.grabbing{cursor:grabbing}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(115% 95% at 50% 50%,transparent 52%,rgba(244,243,240,.9) 96%)}
+#ui{position:fixed;inset:0;z-index:2;pointer-events:none}
+#ui a,#ui button{pointer-events:auto}
+.brand{position:absolute;top:26px;inset-inline:0;text-align:center;font-weight:700;font-size:17px;letter-spacing:.01em}
+.brand sup{font-size:10px}
+.hint{position:absolute;bottom:26px;inset-inline:0;text-align:center;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+/* center disc CTA */
+.disc{position:absolute;left:50%;top:50%;translate:-50% -50%;width:196px;height:196px;border-radius:50%;
+ background:#0d0d0d;color:#fff;border:0;cursor:pointer;font:500 26px/1.2 inherit;
+ display:flex;align-items:center;justify-content:center;transition:.45s var(--e);
+ box-shadow:0 24px 60px -18px rgba(0,0,0,.45)}
+.disc:hover{scale:1.06;box-shadow:0 30px 70px -18px rgba(0,0,0,.55)}
+.disc:active{scale:.98}
+/* focus card caption */
+.caption{position:absolute;left:50%;bottom:9vh;translate:-50% 0;display:flex;gap:14px;align-items:center;
+ padding:12px 12px 12px 22px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.08);
+ backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 16px 40px -14px rgba(0,0,0,.25);
+ opacity:0;pointer-events:none;transition:.45s var(--e)}
+body.focused .caption{opacity:1}
+body.focused .caption button{pointer-events:auto}
+.caption .t{font-weight:700;font-size:15px}
+.caption .s{font-size:12.5px;color:var(--mut)}
+.caption button{border:0;border-radius:999px;background:#0d0d0d;color:#fff;padding:11px 18px;font:600 12.5px/1 inherit;cursor:pointer;transition:.3s var(--e)}
+.caption button:hover{scale:1.05}
+body.focused .disc,body.focused .hint{opacity:0 !important;pointer-events:none !important}
+.disc,.hint{transition:opacity .4s var(--e)}
+.enter{opacity:0;translate:-50% calc(-50% + 14px);transition:opacity .9s var(--e),translate .9s var(--e)}
+body.ready .disc.enter{opacity:1;translate:-50% -50%}
+body.still .enter{transition:none;opacity:1;translate:-50% -50%}
+@media (max-width:740px){.disc{width:150px;height:150px;font-size:21px}.caption{left:4%;right:4%;translate:0 0;justify-content:space-between}}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div class="vignette"></div>
+<div id="ui">
+  <div class="brand">Archive<sup>°</sup></div>
+  <button class="disc enter" id="start">Start</button>
+  <div class="hint" id="hint">Drag to orbit · Click a card to focus</div>
+  <div class="caption" id="cap">
+    <div><div class="t" id="capT">Project</div><div class="s" id="capS">Case study</div></div>
+    <button id="back">← Back to dome</button>
+  </div>
+</div>
+
+<script>setTimeout(()=>document.body.classList.add("ready"),3000);</script>
+<script type="module">
+const qs=new URLSearchParams(location.search);
+const STILL=qs.has("still")||matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(STILL)document.body.classList.add("still","ready");
+
+let THREE;
+try{THREE=await import("./vendor/three.module.js");}
+catch{THREE=await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js");}
+
+const WORLD=0xf4f3f0;
+const canvas=document.getElementById("gl");
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene();
+scene.fog=new THREE.Fog(WORLD,10,22);
+const camera=new THREE.PerspectiveCamera(55,1,.1,100);
+camera.position.set(0,0,.01);
+
+// deterministic seeded rand so screenshots are reproducible
+let seed=7;const rand=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
+
+// ---- art-directed fake "site screenshot" textures (seeded, with BAKED soft shadows —
+// cheap depth cue that makes cards pop off the white void)
+const DUOS=[["#f3d5c0","#e58f6e"],["#c8d8f0","#8fb0e0"],["#d9e6d3","#9dc18f"],["#e8d8ee","#b78fd0"],["#f0e3c0","#d8b96a"],["#cfd6da","#9aa6ad"]];
+const ACCENTS=["#e2442e","#e9b400","#2e6fe2","#1db954"];
+function rr(x,px,py,w,h,r){x.beginPath();x.roundRect(px,py,w,h,r);}
+function cardTexture(i){
+  const portrait=rand()<.4;
+  const w=portrait?190:300,h=portrait?330:200,PAD=30;
+  const c=document.createElement("canvas");c.width=w+PAD*2;c.height=h+PAD*2;
+  const x=c.getContext("2d");
+  const dark=rand()<.15;
+  x.save();
+  x.shadowColor="rgba(30,30,28,.4)";x.shadowBlur=22;x.shadowOffsetY=10;
+  x.fillStyle=dark?"#161616":"#ffffff";rr(x,PAD,PAD,w,h,7);x.fill();
+  x.restore();
+  x.save();rr(x,PAD,PAD,w,h,7);x.clip();x.translate(PAD,PAD);
+  const ink=dark?"rgba(255,255,255,":"rgba(17,17,17,";
+  const tpl=rand();
+  if(tpl<.16){                                   // giant typography poster
+    x.fillStyle=ink+".92)";
+    x.font=`900 ${Math.round(h*.55)}px Helvetica,Arial,sans-serif`;
+    x.textAlign="center";x.textBaseline="middle";
+    x.fillText("ARSKMØ※◎3&9¶"[Math.floor(rand()*12)],w/2,h*.54);
+    x.fillStyle=ink+".7)";x.fillRect(w*.08,h*.07,w*.26,5);
+  }else if(tpl<.34){                             // image-led duotone
+    const d=DUOS[Math.floor(rand()*DUOS.length)];
+    const g=x.createLinearGradient(0,0,w*.3,h);g.addColorStop(0,d[0]);g.addColorStop(1,d[1]);
+    x.fillStyle=g;x.fillRect(0,0,w,h);
+    x.fillStyle="rgba(255,255,255,.55)";x.beginPath();x.arc(w*(.3+rand()*.4),h*(.22+rand()*.2),h*.09,0,7);x.fill();
+    x.fillStyle="rgba(255,255,255,.9)";x.fillRect(0,h-32,w,32);
+    x.fillStyle="rgba(17,17,17,.8)";x.fillRect(12,h-21,w*.38,7);
+  }else if(tpl<.48){                             // dark product spotlight
+    x.fillStyle="#141414";x.fillRect(0,0,w,h);
+    const g=x.createRadialGradient(w/2,h*.42,0,w/2,h*.42,h*.4);
+    g.addColorStop(0,"rgba(255,255,255,.4)");g.addColorStop(1,"rgba(255,255,255,0)");
+    x.fillStyle=g;x.fillRect(0,0,w,h);
+    x.fillStyle="#d8d8d4";rr(x,w/2-h*.11,h*.3,h*.22,h*.24,h*.06);x.fill();
+    x.fillStyle="rgba(255,255,255,.85)";x.fillRect(w*.3,h*.68,w*.4,8);
+    x.fillStyle="rgba(255,255,255,.3)";x.fillRect(w*.36,h*.68+16,w*.28,5);
+  }else{                                         // classic marketing site
+    x.fillStyle=ink+".85)";x.fillRect(16,16,w*.26,8);
+    x.fillStyle=ink+".25)";x.fillRect(w-62,16,46,8);
+    if(rand()<.4){const d=DUOS[Math.floor(rand()*DUOS.length)];
+      const g=x.createLinearGradient(0,0,w,h*.3);g.addColorStop(0,d[0]);g.addColorStop(1,d[1]);
+      x.fillStyle=g;}
+    else x.fillStyle=ink+(rand()<.5?".1)":".9)");
+    rr(x,16,38,w-32,h*.34,5);x.fill();
+    let y=38+h*.34+14;
+    for(let r2=0;r2<5&&y<h-20;r2++){
+      x.fillStyle=ink+(r2===0?".8)":".22)");
+      x.fillRect(16,y,(w-32)*(.4+rand()*.55),r2===0?9:5);
+      y+=r2===0?18:12;
+    }
+    if(rand()<.45){x.fillStyle=ACCENTS[i%4];x.beginPath();x.arc(w-30,h-26,9,0,7);x.fill();}
+  }
+  x.restore();
+  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=4;
+  return {tex,aspect:c.width/c.height};
+}
+
+// ---- dome of cards (inner sphere bands)
+const dome=new THREE.Group();scene.add(dome);
+const cards=[];
+const NAMES=["Nothing (R)","Ear (s)","Everything, personal","Type 25","Studio Aria","Field Notes","Mono Store","Waveform","Kiosk 04","Paper Plane","Analog Lab","Soft Grid"];
+const R=8.2;
+let ci=0;
+const BANDS=[[-1.35,7],[-1.0,11],[-.66,15],[-.33,18],[0,19],[.33,18],[.66,15],[1.0,11],[1.35,7]];
+for(const [off,count] of BANDS){
+  const phi=Math.PI/2+off;
+  for(let i=0;i<count;i++){
+    const theta=(i/count)*Math.PI*2+off*2.1;
+    const {tex,aspect}=cardTexture(ci);
+    const hgt=aspect>1?1.9:2.35,wid=hgt*aspect;
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(wid,hgt),
+      new THREE.MeshBasicMaterial({map:tex,transparent:true,fog:true}));
+    m.position.setFromSphericalCoords(R,phi,theta);
+    m.lookAt(0,0,0);
+    m.userData={name:NAMES[ci%NAMES.length],kind:ci%2?"Interactive case study":"Product site",base:m.position.clone()};
+    dome.add(m);cards.push(m);ci++;
+  }
+}
+
+scene.add(new THREE.AmbientLight(0xffffff,1));
+
+// ---- drag orbit with inertia
+let dragging=false,px=0,py=0,vx=0,vy=0,rotY=0,rotX=0;
+canvas.addEventListener("pointerdown",e=>{dragging=true;px=e.clientX;py=e.clientY;canvas.classList.add("grabbing");canvas.setPointerCapture(e.pointerId);});
+addEventListener("pointermove",e=>{
+  if(!dragging)return;
+  vx=(e.clientX-px)*.0035;vy=(e.clientY-py)*.0022;
+  rotY+=vx;rotX+=vy;px=e.clientX;py=e.clientY;
+});
+addEventListener("pointerup",()=>{dragging=false;canvas.classList.remove("grabbing");});
+
+// ---- click to focus: camera flies toward the card
+const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();
+let focus=null,camT=new THREE.Vector3(0,0,.01),lookT=new THREE.Vector3(0,0,-1);
+let downAt=[0,0];
+canvas.addEventListener("pointerdown",e=>{downAt=[e.clientX,e.clientY];});
+canvas.addEventListener("click",e=>{
+  if(Math.hypot(e.clientX-downAt[0],e.clientY-downAt[1])>6)return;   // was a drag
+  ndc.set((e.clientX/innerWidth)*2-1,-(e.clientY/innerHeight)*2+1);
+  ray.setFromCamera(ndc,camera);
+  const hit=ray.intersectObjects(cards)[0];
+  if(hit)setFocus(hit.object);
+});
+function setFocus(card){
+  focus=card;
+  const p=card.getWorldPosition(new THREE.Vector3());
+  camT.copy(p).multiplyScalar(.72);          // dive close — the card should nearly fill the frame
+  lookT.copy(p);
+  document.getElementById("capT").textContent=card.userData.name;
+  document.getElementById("capS").textContent=card.userData.kind;
+  document.body.classList.add("focused");
+  for(const c of cards)c.material.opacity=c===card?1:.12;
+}
+function clearFocus(){
+  focus=null;camT.set(0,0,.01);lookT.set(0,0,-1);
+  document.body.classList.remove("focused");
+  for(const c of cards)c.material.opacity=1;
+}
+document.getElementById("back").addEventListener("click",clearFocus);
+addEventListener("keydown",e=>{if(e.key==="Escape")clearFocus();});
+document.getElementById("start").addEventListener("click",()=>{
+  // "Start" = auto-focus the first card, like entering the archive
+  setFocus(cards[2]);
+});
+
+function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
+addEventListener("resize",resize);resize();
+
+// deterministic verification of the focus interaction: ?focus=N flies to card N
+if(qs.has("focus")){
+  setFocus(cards[Math.min(cards.length-1,Math.max(0,+qs.get("focus")||0))]);
+  if(STILL){camera.position.copy(camT);}   // snap, don't lerp, for screenshots
+}
+
+const clock=new THREE.Clock();
+let firstFrame=false;
+function frame(){
+  requestAnimationFrame(frame);
+  const t=clock.getElapsedTime();
+  // intro: dome scales in
+  const k=STILL?1:Math.min(1,t/1.2),kk=k*k*(3-2*k);
+  dome.scale.setScalar(.6+.4*kk);
+
+  if(!dragging){vx*=.95;vy*=.95;rotY+=vx;rotX+=vy;}
+  if(!STILL&&!focus)rotY+=.0006;                       // idle drift
+  rotX=Math.max(-.5,Math.min(.5,rotX));
+  dome.rotation.y=rotY;dome.rotation.x=rotX;
+
+  camera.position.lerp(camT,.06);
+  const cur=new THREE.Vector3().copy(lookT);
+  camera.lookAt(cur);
+
+  renderer.render(scene,camera);
+  if(!firstFrame){firstFrame=true;setTimeout(()=>document.body.classList.add("ready"),STILL?0:700);}
+}
+frame();
+</script>
+</body>
+</html>

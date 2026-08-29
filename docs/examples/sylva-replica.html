@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sylva — Into the living world (replica study)</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#4e5449; --ink:#f2f4ee; --muted:#c9cfc0; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:var(--bg)}
+  body{font-family:"Quicksand",-apple-system,sans-serif;color:var(--ink)}
+
+  /* layering: ghost text UNDER the (transparent) canvas, UI on top */
+  .ghost{position:fixed;left:50%;top:60%;transform:translate(-50%,-50%);z-index:0;
+    font-size:36vw;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.03);user-select:none}
+  canvas#world{position:fixed;inset:0;z-index:1;display:block}
+  #ui{position:fixed;inset:0;z-index:2;pointer-events:none}
+  #ui a,#ui button{pointer-events:auto}
+
+  /* parallax lives on .px wrappers; entrance animation on .enter inners —
+     they must be separate elements or transforms fight each other */
+  .px{position:absolute;inset:0;pointer-events:none}
+  .enter{opacity:0;translate:0 16px;transition:opacity .9s ease,translate .9s ease}
+  body.ready .enter{opacity:1;translate:0 0}
+  body.ready .d1{transition-delay:.05s} .d2{transition-delay:.22s}
+  body.ready .d3{transition-delay:.4s}  .d4{transition-delay:.58s} .d5{transition-delay:.75s}
+
+  /* ?still — deterministic settled frame for headless screenshot verification
+     (CSS transitions/animations run on the real clock, not virtual time) */
+  body.still .enter{transition:none;opacity:1;translate:0 0}
+  body.still .art.reveal::after{display:none}
+  /* after the intro, kill stagger delays so hover micro-interactions respond instantly */
+  body.settled .enter{transition-delay:0s}
+  body.still .cta::before,body.still .play::before,body.still .play::after{animation:none}
+  :root{--e:cubic-bezier(.22,1,.36,1)}
+
+  .discover{position:absolute;right:2.2%;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;
+    font-size:10px;letter-spacing:.55em;color:rgba(255,255,255,.3);text-transform:uppercase}
+
+  nav{position:absolute;top:26px;left:50%;margin-left:-231px;display:flex;align-items:center;gap:4px;
+      background:rgba(32,36,29,.5);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:6px;pointer-events:auto}
+  nav .logo{width:36px;height:36px;border-radius:13px;background:#f2f4ee;color:#20241d;display:grid;place-items:center;
+      box-shadow:0 4px 12px rgba(10,12,8,.35);transition:transform .3s var(--e)}
+  nav .logo:hover{transform:rotate(-6deg) scale(1.05)}
+  nav a{display:inline-flex;align-items:center;gap:7px;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+      color:var(--muted);text-decoration:none;padding:10px 15px;border-radius:999px;font-weight:600;
+      border:1px solid transparent;
+      transition:color .3s var(--e),background .3s var(--e),border-color .3s var(--e),
+                 transform .3s var(--e),box-shadow .3s var(--e)}
+  /* hover: raised dark pill — gradient, hairline border, lift + inner top light */
+  nav a:hover{color:var(--ink);transform:translateY(-1px);
+      background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
+      border-color:rgba(255,255,255,.14);
+      box-shadow:0 6px 16px rgba(10,12,8,.35),inset 0 1px 0 rgba(255,255,255,.12)}
+  /* per-pill cursor light — the hovered pill's fill is lit by the pointer, not static */
+  nav a{position:relative;overflow:hidden}
+  nav a::after{content:"";position:absolute;inset:0;border-radius:999px;opacity:0;pointer-events:none;
+      transition:opacity .3s var(--e);
+      background:radial-gradient(64px 36px at var(--mx,50%) var(--my,30%),rgba(255,255,255,.2),transparent 72%)}
+  nav a:hover::after{opacity:1}
+  nav a.active::after{display:none}
+  /* active: solid white pill, dark text, raised */
+  nav a.active{background:#f2f4ee;color:#20241d;box-shadow:0 4px 14px rgba(10,12,8,.4)}
+  nav a.active:hover{background:#fff;color:#20241d;transform:none;border-color:transparent;
+      box-shadow:0 6px 18px rgba(10,12,8,.45)}
+  /* the door/ENTER link reads as a distinct bordered button even at rest */
+  nav a.door{border-color:rgba(255,255,255,.13);background:rgba(255,255,255,.04);color:#d7dccb;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+  nav a svg{opacity:.75}
+  /* cursor-following light across the nav glass */
+  nav::after{content:"";position:absolute;inset:0;border-radius:999px;opacity:0;pointer-events:none;
+      transition:opacity .35s var(--e);
+      background:radial-gradient(90px 46px at var(--mx,50%) var(--my,0%),rgba(255,255,255,.13),transparent 70%)}
+  nav:hover::after{opacity:1}
+
+  .hero{position:absolute;left:5.5%;top:30%;max-width:560px}
+  h1{font-weight:500;font-size:clamp(38px,4.3vw,58px);line-height:1.16;letter-spacing:.015em}
+  .sub{position:absolute;left:calc(5.5% + 350px);top:31.5%;max-width:200px;font-size:12.5px;line-height:1.7;color:var(--muted)}
+  /* shader button: glass gradient base + idle specular sweep + cursor light + hover bloom */
+  .cta{position:absolute;left:calc(5.5% + 350px);top:calc(31.5% + 120px);display:inline-flex;align-items:center;gap:10px;
+      overflow:hidden;
+      background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 40%,rgba(0,0,0,.28)),rgba(30,34,27,.82);
+      border:1px solid rgba(255,255,255,.12);color:var(--ink);
+      font:600 13.5px/1 "Quicksand";padding:14px 24px;border-radius:999px;cursor:pointer;
+      box-shadow:0 14px 34px rgba(10,12,8,.4),inset 0 1px 0 rgba(255,255,255,.18);
+      transition:opacity .9s ease,translate .9s ease,transform .45s var(--e),box-shadow .45s var(--e);
+      pointer-events:auto}
+  .cta>*{position:relative;z-index:2}
+  .cta::before{content:"";position:absolute;top:-60%;bottom:-60%;left:-45%;width:42%;z-index:1;rotate:14deg;
+      background:linear-gradient(105deg,transparent 18%,rgba(255,246,224,.55) 50%,transparent 82%);
+      filter:blur(5px);animation:sheen 5.5s var(--e) infinite}
+  @keyframes sheen{0%,55%{left:-45%}85%,100%{left:115%}}
+  /* hover light: cursor-following spot + warm dawn under-glow seeping from the bottom edge */
+  .cta::after{content:"";position:absolute;inset:0;z-index:1;opacity:0;transition:opacity .35s var(--e);
+      background:
+        radial-gradient(130px 70px at var(--mx,50%) var(--my,20%),rgba(255,255,255,.26),transparent 65%),
+        radial-gradient(115% 95% at 50% 132%,rgba(255,199,112,.55),rgba(255,199,112,0) 58%)}
+  .cta:hover{transform:translateY(-2px);
+      box-shadow:0 20px 48px rgba(10,12,8,.55),0 14px 38px -8px rgba(255,190,110,.4),
+                 inset 0 1px 0 rgba(255,255,255,.28),inset 0 -12px 26px -14px rgba(255,214,150,.55)}
+  .cta:hover::after{opacity:1}
+  .cta:active{transform:translateY(0) scale(.97)}
+  /* frosted glass disc: milky toward the bottom, world blurred through it, bright bottom rim */
+  .play{position:absolute;left:13.5%;top:56%;width:58px;height:58px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.28);display:grid;place-items:center;
+      background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.16) 62%,rgba(255,255,255,.32));
+      backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+      box-shadow:0 10px 26px rgba(10,12,8,.35),inset 0 1px 0 rgba(255,255,255,.18),
+                 inset 0 -9px 18px -6px rgba(255,255,255,.38);
+      cursor:pointer;pointer-events:auto;
+      transition:opacity .9s ease,translate .9s ease,transform .35s var(--e),
+                 background .35s var(--e),box-shadow .35s var(--e)}
+  .play:hover{transform:scale(1.07);
+      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.24) 62%,rgba(255,255,255,.42));
+      box-shadow:0 14px 32px rgba(10,12,8,.4),inset 0 1px 0 rgba(255,255,255,.25),
+                 inset 0 -9px 20px -6px rgba(255,255,255,.5)}
+  .play::before,.play::after{content:"";position:absolute;inset:-16px;border-radius:999px;border:1px solid rgba(255,255,255,.10);
+      animation:ripple 3.4s ease-out infinite}
+  .play::after{inset:-34px;border-color:rgba(255,255,255,.05);animation-delay:1.7s}
+  @keyframes ripple{0%{transform:scale(.92);opacity:1}70%,100%{transform:scale(1.16);opacity:0}}
+  .play svg{margin-left:3px}
+  @media (prefers-reduced-motion:reduce){.cta::before,.play::before,.play::after{animation:none}}
+
+  .cardpos{position:absolute;transition:translate .5s var(--e)}
+  .cardpos:hover{translate:0 -6px}
+  #cardpos1{right:26.5%;top:31%}
+  #cardpos2{right:6.5%;top:52%}
+  .card{position:relative;background:#f7f8f4;color:#20241d;border-radius:22px;padding:9px;width:238px;
+      box-shadow:0 26px 60px rgba(15,18,12,.45);pointer-events:auto;
+      transition:opacity .9s ease,translate .9s ease,rotate .5s var(--e),box-shadow .5s var(--e)}
+  .cardpos:hover .card{rotate:0deg;box-shadow:0 34px 78px rgba(15,18,12,.55)}
+  #cardpos1 .card{rotate:-1.4deg}
+  #cardpos2 .card{rotate:1.2deg}
+  .card .art{border-radius:15px;height:120px;position:relative;overflow:hidden}
+  .card .art svg{position:absolute;inset:0;width:100%;height:100%;transition:transform .8s var(--e)}
+  .cardpos:hover .art svg{transform:scale(1.05)}
+  .card .art.reveal::after{content:"";position:absolute;inset:0;
+      background:linear-gradient(180deg,rgba(40,46,36,.94) 0%,rgba(40,46,36,.94) 49.6%,#e8ffd6 50%,transparent 50.4%,transparent 100%);
+      background-size:100% 220%;background-position:0 0;animation:scan 1.15s 2.5s cubic-bezier(.6,.05,.3,1) forwards}
+  #cardpos2 .art.reveal::after{animation-delay:2.85s}
+  @keyframes scan{to{background-position:0 -120%}}
+  .card .body{padding:11px 9px 7px}
+  .card .kicker{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8a9180;font-weight:600}
+  .card .claim{font-size:18.5px;font-weight:600;line-height:1.25;margin-top:3px;letter-spacing:-.01em}
+  .card .go{position:absolute;right:14px;bottom:14px;width:32px;height:32px;border-radius:999px;background:#eceee7;
+      border:none;display:grid;place-items:center;cursor:pointer;font-size:13px;color:#20241d;
+      transition:transform .4s var(--e),background .3s var(--e),color .3s var(--e)}
+  .card .go:hover{background:#20241d;color:#f7f8f4;transform:scale(1.12) rotate(8deg)}
+
+  .chip{position:absolute;font-size:10.5px;color:#d7dccb;line-height:1.5;text-shadow:0 1px 8px rgba(20,24,17,.6)}
+  .chip b{display:block;color:#fff;font-size:12.5px;font-weight:600}
+  .chip::before{content:"❋";position:absolute;left:-22px;top:2px;opacity:.6;font-size:13px}
+  #chip1{right:8%;top:33%}
+  #chip2{right:4.8%;top:44%}
+</style>
+</head>
+<body>
+<div class="ghost">SYLVA</div>
+<canvas id="world"></canvas>
+
+<div id="ui">
+  <div class="px" data-px="6">
+    <nav class="enter d1">
+      <div class="logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 6 10h3l-4 6h6v4h2v-4h6l-4-6h3z"/></svg></div>
+      <a href="#" class="active"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V9M12 9C12 6 9 4 6 4c0 3 3 5 6 5zm0 0c0-3 3-5 6-5 0 3-3 5-6 5z"/></svg>Grove</a>
+      <a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 19l6-9 4 5 3-4 5 8z"/></svg>Habitats</a>
+      <a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Journal</a>
+      <a href="#" class="door"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3h5v18h-5M3 12h11M10 8l4 4-4 4"/></svg>Enter</a>
+    </nav>
+  </div>
+
+  <div class="px" data-px="10">
+    <div class="hero"><h1 class="enter d2">Step into<br/>the living world</h1></div>
+    <div class="discover enter d5">Discover</div>
+  </div>
+
+  <div class="px" data-px="13">
+    <p class="sub enter d2">We restore wild places through patient design, native planting, and a deeper kind of stewardship.</p>
+    <button class="cta enter d3">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h13"/></svg>
+      Explore the work
+    </button>
+  </div>
+
+  <div class="px" data-px="8">
+    <button class="play enter d4" aria-label="Play">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="#f2f4ee"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <div class="chip enter d4" id="chip1"><span>Canopy restored</span><b>282 ha</b></div>
+    <div class="chip enter d5" id="chip2"><span>Native species</span><b>43 mapped</b></div>
+  </div>
+
+  <div class="px" data-px="18">
+    <div class="cardpos" id="cardpos1"><div class="card enter d3">
+      <div class="art reveal">
+        <svg viewBox="0 0 240 120" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <radialGradient id="g1" cx="30%" cy="22%" r="95%">
+              <stop offset="0%" stop-color="#8d9a6e"/><stop offset="55%" stop-color="#4b5a38"/><stop offset="100%" stop-color="#26301b"/>
+            </radialGradient>
+          </defs>
+          <rect width="240" height="120" fill="url(#g1)"/>
+          <ellipse cx="70" cy="90" rx="54" ry="32" fill="#5d6b4a"/>
+          <ellipse cx="66" cy="83" rx="46" ry="25" fill="#71805a"/>
+          <ellipse cx="152" cy="100" rx="62" ry="32" fill="#4c5c3e"/>
+          <ellipse cx="148" cy="93" rx="52" ry="25" fill="#617251"/>
+          <ellipse cx="206" cy="82" rx="36" ry="24" fill="#415033"/>
+          <ellipse cx="58" cy="70" rx="22" ry="9" fill="#8a996b" opacity=".85"/>
+          <ellipse cx="140" cy="81" rx="26" ry="10" fill="#7f8f63" opacity=".75"/>
+          <circle cx="98" cy="58" r="1.8" fill="#eef3e2"/><circle cx="106" cy="64" r="1.3" fill="#eef3e2"/>
+          <circle cx="182" cy="70" r="1.6" fill="#eef3e2"/><circle cx="176" cy="63" r="1.1" fill="#eef3e2"/>
+        </svg>
+      </div>
+      <div class="body">
+        <div class="kicker">Our Ethos</div>
+        <div class="claim">Let the wild<br/>lead.</div>
+      </div>
+      <button class="go">🌿</button>
+    </div></div>
+
+    <div class="cardpos" id="cardpos2"><div class="card enter d4">
+      <div class="body">
+        <div class="kicker">Field Note 07</div>
+        <div class="claim">After the Rain</div>
+      </div>
+      <div class="art reveal">
+        <svg viewBox="0 0 240 120" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#66765a"/><stop offset="50%" stop-color="#3c4c34"/><stop offset="100%" stop-color="#20281a"/>
+            </linearGradient>
+          </defs>
+          <rect width="240" height="120" fill="url(#g2)"/>
+          <path d="M0 88 Q60 58 120 82 T240 76 V120 H0 Z" fill="#33412a"/>
+          <path d="M0 100 Q70 76 140 96 T240 92 V120 H0 Z" fill="#27331f"/>
+          <ellipse cx="60" cy="86" rx="30" ry="15" fill="#4c5c3c"/>
+          <ellipse cx="172" cy="92" rx="36" ry="17" fill="#45543b"/>
+          <circle cx="118" cy="38" r="15" fill="#dfe8cd" opacity=".22"/>
+          <rect width="240" height="120" fill="#c4d1a8" opacity=".08"/>
+        </svg>
+      </div>
+      <button class="go" style="bottom:12px">🌿</button>
+    </div></div>
+  </div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.170.0/build/three.module.js"}}
+</script>
+<script type="module">
+import * as THREE from "three";
+
+/* ---------------- scene: sage fog world (transparent canvas so the ghost
+   wordmark sits BEHIND the 3D world, like the reference) ---------------- */
+const WORLD = 0x4e5449;
+const canvas = document.getElementById("world");
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(WORLD, 8, 24);
+
+const camera = new THREE.PerspectiveCamera(42, 1, .1, 100);
+const CAM_HOME = new THREE.Vector3(0, .9, 10.5);
+camera.position.copy(CAM_HOME);
+const LOOK_AT = new THREE.Vector3(0, -1.2, 0);
+
+scene.add(new THREE.HemisphereLight(0xe3e9d3, 0x232819, 1.5));
+const key = new THREE.DirectionalLight(0xfff4d8, 1.5);
+key.position.set(-5, 7, 5);
+scene.add(key);
+
+/* ---------------- branches: tubes + dense moss fuzz ---------------- */
+const finalMats = [], wireMats = [];
+const curves = [], radii = [];
+function branch(points, r){
+  const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(...p)));
+  curves.push(curve); radii.push(r);
+  const geo = new THREE.TubeGeometry(curve, 200, r, 12, false);
+  const mat = new THREE.MeshStandardMaterial({color:0x39452a, roughness:.95, metalness:0,
+      transparent:true, opacity:0});
+  finalMats.push(mat);
+  scene.add(new THREE.Mesh(geo, mat));
+  /* low-poly wire clone — clean field-scan look */
+  const wm = new THREE.MeshBasicMaterial({color:0xe4ead2, wireframe:true, transparent:true, opacity:.55});
+  wireMats.push(wm);
+  scene.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 34, r*1.02, 7, false), wm));
+  return curve;
+}
+/* one long limb across the bottom, one rising to mid-right under the cards,
+   one faint and deep behind — slim limbs with air between, LOWER half only */
+branch([[-13,-5.6,-5],[-8,-3.4,-3.5],[-3,-4.8,-3],[2,-3.8,-3],[6,-5.2,-3.5],[11,-4.4,-5]], .5);
+branch([[-5,-6.6,-1],[ 0,-4.9,-1.5],[ 3,-3.3,-2],[5.5,-2.0,-2.5],[8.6,-.4,-3.5]],          .36);
+branch([[-15,-5.0,-11],[-7,-3.8,-10],[ 0,-5.2,-10],[6,-3.9,-10],[14,-5.2,-11]],            .42);
+
+/* moss fuzz — dense cones hugging most of each tube's circumference */
+{
+  const COUNT = 14000;
+  const proto = new THREE.ConeGeometry(.026, .09, 5);
+  const mat = new THREE.MeshStandardMaterial({roughness:1, metalness:0, color:0xffffff,
+      transparent:true, opacity:0});
+  finalMats.push(mat);
+  const inst = new THREE.InstancedMesh(proto, mat, COUNT);
+  const d = new THREE.Object3D();
+  const col = new THREE.Color();
+  for (let i = 0; i < COUNT; i++){
+    const bi = i % curves.length;
+    const c = curves[bi], r = radii[bi];
+    const t = Math.random();
+    const p = c.getPointAt(t);
+    /* random direction, biased upward, hugging the surface */
+    const n = new THREE.Vector3((Math.random()-.5)*1.6, Math.random()*1.1+.1, (Math.random()-.5)*1.6).normalize();
+    d.position.copy(p).addScaledVector(n, r*(.85+Math.random()*.3));
+    d.lookAt(p); d.rotateX(Math.PI/2);
+    d.scale.setScalar(.5+Math.random()*1.0);
+    d.updateMatrix();
+    inst.setMatrixAt(i, d.matrix);
+    col.setHSL(.25+Math.random()*.06, .3+Math.random()*.18, .2+Math.random()*.2);
+    inst.setColorAt(i, col);
+  }
+  inst.instanceColor.needsUpdate = true;
+  scene.add(inst);
+}
+/* deep background trees — bare trunk silhouettes almost swallowed by fog (3rd depth plane) */
+{
+  const mat = new THREE.MeshStandardMaterial({color:0x3d4633, roughness:.95, transparent:true, opacity:0});
+  finalMats.push(mat);
+  for (const [x, z, h, r, lean] of [[-6.5,-11,9,.42,-.05],[-2.5,-13.5,11,.55,.03],[2.8,-10.5,8,.36,.06],
+                                     [7.5,-14,12,.6,-.04],[11.5,-12,9,.44,.05]]){
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(r*.5, r, h, 8), mat);
+    trunk.position.set(x, h/2 - 7, z);
+    trunk.rotation.z = lean;
+    scene.add(trunk);
+    const limb = new THREE.Mesh(new THREE.CylinderGeometry(r*.2, r*.32, h*.42, 6), mat);
+    limb.position.set(x + r*2.2, h*.62 - 7, z);
+    limb.rotation.z = -.85 + lean;
+    scene.add(limb);
+  }
+}
+/* tiny white flowers on the two front branches */
+{
+  const COUNT = 260;
+  const proto = new THREE.SphereGeometry(.02, 6, 6);
+  const mat = new THREE.MeshBasicMaterial({color:0xf5f8ec, transparent:true, opacity:0});
+  finalMats.push(mat);
+  const inst = new THREE.InstancedMesh(proto, mat, COUNT);
+  const d = new THREE.Object3D();
+  for (let i = 0; i < COUNT; i++){
+    const bi = i % 2, c = curves[bi], r = radii[bi];
+    const p = c.getPointAt(Math.random());
+    const n = new THREE.Vector3((Math.random()-.5)*1.2, Math.random()*1.2+.3, (Math.random()-.5)*1.2).normalize();
+    d.position.copy(p).addScaledVector(n, r*1.12);
+    d.scale.setScalar(.5+Math.random()*.9);
+    d.updateMatrix();
+    inst.setMatrixAt(i, d.matrix);
+  }
+  scene.add(inst);
+}
+
+/* ---------------- spores ---------------- */
+const P = 800;
+const pGeo = new THREE.BufferGeometry();
+const pPos = new Float32Array(P*3), pSeed = new Float32Array(P);
+for (let i = 0; i < P; i++){
+  pPos[i*3] = (Math.random()-.5)*22; pPos[i*3+1] = (Math.random()-.5)*11; pPos[i*3+2] = -Math.random()*12+2;
+  pSeed[i] = Math.random()*100;
+}
+pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({color:0xe9eedb, size:.04, transparent:true,
+  opacity:.65, blending:THREE.AdditiveBlending, depthWrite:false, sizeAttenuation:true})));
+
+/* ---------------- butterfly: fly in → land → flee pointer ---------------- */
+const butterfly = new THREE.Group();
+const wingGeo = new THREE.PlaneGeometry(.42, .3);
+wingGeo.translate(.21, 0, 0);
+const wingMat = new THREE.MeshBasicMaterial({color:0xd9e84c, transparent:true, opacity:0, side:THREE.DoubleSide});
+const wL = new THREE.Mesh(wingGeo, wingMat);
+const wR = new THREE.Mesh(wingGeo, wingMat); wR.rotation.z = Math.PI;
+const bodyM = new THREE.Mesh(new THREE.CapsuleGeometry(.022,.18,3,6),
+  new THREE.MeshBasicMaterial({color:0x39411f, transparent:true, opacity:0}));
+bodyM.rotation.x = Math.PI/2;
+butterfly.add(wL, wR, bodyM);
+scene.add(butterfly);
+const restPoint = curves[1].getPointAt(.72).clone().add(new THREE.Vector3(0, .75, .8));
+let bState = "fly", bT = 0;
+const bFrom = new THREE.Vector3(-8, 3.5, -1);
+butterfly.position.copy(bFrom);
+if (new URLSearchParams(location.search).has("still")
+    || matchMedia("(prefers-reduced-motion: reduce)").matches){ bState = "rest"; butterfly.position.copy(restPoint); }
+
+/* ---------------- pointer: orbit + DOM parallax ---------------- */
+const pointer = {x:0, y:0};
+addEventListener("pointermove", e => {
+  pointer.x = (e.clientX/innerWidth)*2 - 1;
+  pointer.y = (e.clientY/innerHeight)*2 - 1;
+  for (const el of document.querySelectorAll(".px")){
+    const a = +el.dataset.px;
+    el.style.translate = `${-pointer.x*a}px ${-pointer.y*a}px`;
+  }
+});
+
+/* ---------------- wireframe field-scan intro ----------------
+   Driven by ELAPSED time so it completes even under headless virtual time.
+   Wireframe-only for the first beat, then materials sweep in. */
+const STILL = new URLSearchParams(location.search).has("still")
+  || matchMedia("(prefers-reduced-motion: reduce)").matches;
+const SCAN_START = .5, SCAN_SECS = 2.2;
+if (STILL) document.body.classList.add("ready", "still", "settled");
+else setTimeout(() => {
+  document.body.classList.add("ready");
+  setTimeout(() => document.body.classList.add("settled"), 1800);
+}, 2300);
+
+/* fluid UI: cursor-following light on shader surfaces (drives --mx/--my) */
+for (const el of document.querySelectorAll(".cta, nav, nav a")){
+  el.addEventListener("pointermove", e => {
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--mx", ((e.clientX - r.left)/r.width*100).toFixed(1) + "%");
+    el.style.setProperty("--my", ((e.clientY - r.top)/r.height*100).toFixed(1) + "%");
+  });
+}
+
+function resize(){
+  renderer.setSize(innerWidth, innerHeight, false);
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+}
+addEventListener("resize", resize); resize();
+
+const clock = new THREE.Clock();
+function tick(){
+  const dt = Math.min(clock.getDelta(), .05);
+  const t = clock.elapsedTime;
+
+  const k = STILL ? 1 : THREE.MathUtils.smoothstep(Math.min(Math.max(t-SCAN_START,0)/SCAN_SECS, 1), 0, 1);
+  for (const m of finalMats) m.opacity = k;
+  wingMat.opacity = k; bodyM.material.opacity = k;
+  for (const m of wireMats) m.opacity = .55*(1-k);
+
+  camera.position.lerp(new THREE.Vector3(
+    CAM_HOME.x + pointer.x*1.0, CAM_HOME.y - pointer.y*.6, CAM_HOME.z), .045);
+  camera.lookAt(LOOK_AT);
+
+  const pos = pGeo.attributes.position;
+  for (let i = 0; i < P; i++){
+    let y = pos.getY(i) + dt*(.1 + (pSeed[i]%1)*.15);
+    let x = pos.getX(i) + Math.sin(t*.5 + pSeed[i])*dt*.1;
+    x += (pointer.x*7 - x)*dt*.01;
+    if (y > 5.5){ y = -5.5; x = (Math.random()-.5)*22; }
+    pos.setY(i, y); pos.setX(i, x);
+  }
+  pos.needsUpdate = true;
+
+  const flap = Math.sin(t*18)*1.05;
+  wL.rotation.y =  flap*.5 + .25;
+  wR.rotation.y = Math.PI - flap*.5 - .25;
+  const pointerWorld = new THREE.Vector3(pointer.x*7, -pointer.y*4, restPoint.z);
+  if (bState === "fly"){
+    bT = Math.min(bT + dt*.32, 1);
+    butterfly.position.lerpVectors(bFrom, restPoint, THREE.MathUtils.smoothstep(bT,0,1));
+    butterfly.position.y += Math.sin(bT*Math.PI*3)*.5*(1-bT);
+    if (bT >= 1) bState = "rest";
+  } else if (bState === "rest"){
+    butterfly.position.y = restPoint.y + Math.sin(t*2.4)*.02;
+    if (butterfly.position.distanceTo(pointerWorld) < 1.5){ bState = "flee"; bT = 0; }
+  } else {
+    bT += dt*.22;
+    butterfly.position.x += (Math.sign(butterfly.position.x - pointerWorld.x)||1)*dt*3.4;
+    butterfly.position.y += dt*2.8;
+    if (bT >= 1){ bState = "fly"; bT = 0; bFrom.copy(butterfly.position); }
+  }
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FrontDesk — never miss a call again (3D hero prototype)</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#252a3d; --ink:#eef1f8; --muted:#a6aec4; --accent:#818cf8; --ok:#34d399; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:var(--bg)}
+  body{font-family:"Quicksand",-apple-system,sans-serif;color:var(--ink)}
+
+  /* layers: ghost wordmark UNDER transparent canvas, UI on top */
+  .atmo{position:fixed;inset:0;z-index:0;pointer-events:none;background:
+      radial-gradient(1100px 700px at 12% 28%, rgba(99,102,241,.16), transparent 62%),
+      radial-gradient(900px 620px at 76% 70%, rgba(52,211,153,.09), transparent 60%),
+      radial-gradient(1500px 900px at 50% 118%, rgba(129,140,248,.17), transparent 58%)}
+  .ghost{position:fixed;left:50%;top:71%;transform:translate(-50%,-50%);z-index:0;
+    font-size:10.5vw;font-weight:500;letter-spacing:.04em;color:rgba(255,255,255,.05);user-select:none;white-space:nowrap}
+  canvas#world{position:fixed;inset:0;z-index:1;display:block}
+  .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:
+      radial-gradient(135% 105% at 50% 42%, transparent 58%, rgba(8,10,20,.5) 100%)}
+  #ui{position:fixed;inset:0;z-index:2;pointer-events:none}
+  #ui a,#ui button{pointer-events:auto}
+
+  /* parallax on .px wrappers; entrance on .enter inners — never share transform */
+  .px{position:absolute;inset:0;pointer-events:none}
+  .enter{opacity:0;translate:0 16px;transition:opacity .7s ease,translate .7s ease}
+  body.ready .enter{opacity:1;translate:0 0}
+  body.ready .d1{transition-delay:.04s} .d2{transition-delay:.14s}
+  body.ready .d3{transition-delay:.26s} .d4{transition-delay:.38s} .d5{transition-delay:.5s}
+  body.still .enter{transition:none;opacity:1;translate:0 0}
+  body.still .art.reveal::after{display:none}
+  /* after the intro, kill stagger delays so hover micro-interactions respond instantly */
+  body.settled .enter{transition-delay:0s}
+  body.still .cta::before,body.still .demo .ring{animation:none}
+  :root{--e:cubic-bezier(.22,1,.36,1)}
+
+  nav{position:absolute;top:26px;left:50%;margin-left:-243px;display:flex;align-items:center;gap:3px;
+      background:rgba(17,20,32,.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:5px;pointer-events:auto}
+  nav .logo{width:36px;height:36px;border-radius:13px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      display:grid;place-items:center;font-size:14px;box-shadow:0 4px 12px rgba(5,8,20,.4);
+      transition:transform .3s var(--e)}
+  nav .logo:hover{transform:rotate(-6deg) scale(1.05)}
+  nav a{display:inline-flex;align-items:center;gap:7px;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+      color:var(--muted);text-decoration:none;padding:10px 15px;border-radius:999px;font-weight:600;
+      border:1px solid transparent;
+      transition:color .3s var(--e),background .3s var(--e),border-color .3s var(--e),
+                 transform .3s var(--e),box-shadow .3s var(--e)}
+  nav a:hover{color:var(--ink);transform:translateY(-1px);
+      background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
+      border-color:rgba(255,255,255,.14);
+      box-shadow:0 6px 16px rgba(5,8,20,.4),inset 0 1px 0 rgba(255,255,255,.12)}
+  nav::after{content:"";position:absolute;inset:0;border-radius:999px;opacity:0;pointer-events:none;
+      transition:opacity .35s var(--e);
+      background:radial-gradient(90px 46px at var(--mx,50%) var(--my,0%),rgba(255,255,255,.12),transparent 70%)}
+  nav:hover::after{opacity:1}
+  /* per-pill cursor light — the hovered pill's fill is lit by the pointer, not static */
+  nav a{position:relative;overflow:hidden}
+  nav a::after{content:"";position:absolute;inset:0;border-radius:999px;opacity:0;pointer-events:none;
+      transition:opacity .3s var(--e);
+      background:radial-gradient(64px 36px at var(--mx,50%) var(--my,30%),rgba(255,255,255,.2),transparent 72%)}
+  nav a:hover::after{opacity:1}
+  nav a.active::after{display:none}
+  nav a.active{background:#eef1f8;color:#1d2233;box-shadow:0 4px 14px rgba(5,8,20,.45)}
+  nav a.active:hover{background:#fff;color:#1d2233;transform:none;border-color:transparent;
+      box-shadow:0 6px 18px rgba(5,8,20,.5)}
+  nav a.go{background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,0) 45%),linear-gradient(135deg,#6366f1,#8b5cf6);
+      color:#fff;box-shadow:0 4px 16px rgba(99,102,241,.45),inset 0 1px 0 rgba(255,255,255,.25)}
+  nav a.go:hover{color:#fff;transform:translateY(-1px);border-color:transparent;
+      box-shadow:0 7px 22px rgba(99,102,241,.6),inset 0 1px 0 rgba(255,255,255,.3)}
+
+  .hero{position:absolute;left:5.5%;top:24%;max-width:620px}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+      color:#c3cadd;font-weight:600}
+  .badge i{width:7px;height:7px;border-radius:99px;background:var(--ok);box-shadow:0 0 12px var(--ok)}
+  h1{font-weight:500;font-size:clamp(38px,4.4vw,60px);line-height:1.14;letter-spacing:.01em;margin-top:14px}
+  h1 .hl{background:linear-gradient(100deg,#a5b4fc,#c4b5fd);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{position:absolute;left:5.5%;top:46%;max-width:480px;font-size:15px;line-height:1.75;color:#c3cadd;
+      text-shadow:0 1px 10px rgba(8,10,22,.8)}
+  .sub b{color:var(--ink);font-weight:600}
+  .ctarow{position:absolute;left:5.5%;top:59%;display:flex;align-items:center;gap:20px}
+  .cta{display:inline-flex;align-items:center;gap:10px;position:relative;overflow:hidden;
+      background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,0) 42%),linear-gradient(135deg,#6366f1,#8b5cf6);
+      border:none;color:#fff;
+      font:600 15.5px/1 "Quicksand";padding:18px 30px;border-radius:999px;cursor:pointer;
+      box-shadow:0 14px 44px rgba(99,102,241,.5),0 2px 10px rgba(5,8,20,.4),inset 0 1px 0 rgba(255,255,255,.25);
+      transition:opacity .7s ease,translate .7s ease,transform .45s var(--e),box-shadow .45s var(--e);pointer-events:auto}
+  .cta>*{position:relative;z-index:2}
+  .cta::before{content:"";position:absolute;top:-60%;bottom:-60%;left:-45%;width:42%;z-index:1;rotate:14deg;
+      background:linear-gradient(105deg,transparent 18%,rgba(255,255,255,.55) 50%,transparent 82%);
+      filter:blur(5px);animation:sheen 5.5s var(--e) infinite}
+  @keyframes sheen{0%,55%{left:-45%}85%,100%{left:115%}}
+  .cta::after{content:"";position:absolute;inset:0;z-index:1;opacity:0;transition:opacity .35s var(--e);
+      background:
+        radial-gradient(140px 74px at var(--mx,50%) var(--my,20%),rgba(255,255,255,.3),transparent 65%),
+        radial-gradient(115% 95% at 50% 132%,rgba(196,181,253,.55),rgba(196,181,253,0) 58%)}
+  .cta:hover{transform:translateY(-2px);
+      box-shadow:0 20px 58px rgba(99,102,241,.7),0 14px 38px -8px rgba(139,92,246,.55),0 2px 10px rgba(5,8,20,.4),
+                 inset 0 1px 0 rgba(255,255,255,.35),inset 0 -12px 26px -14px rgba(196,181,253,.5)}
+  .cta:hover::after{opacity:1}
+  .cta:active{transform:translateY(0) scale(.97)}
+  .cta .arrow{color:#e0e7ff}
+  @media (prefers-reduced-motion:reduce){.cta::before,.demo .ring{animation:none}}
+  .demo{display:inline-flex;align-items:center;gap:12px;background:none;border:none;cursor:pointer;pointer-events:auto;
+      color:var(--ink);font:600 13px/1.3 "Quicksand";text-align:left}
+  .demo .ring{position:relative;width:52px;height:52px;border-radius:999px;flex:none;
+      border:1px solid rgba(165,180,252,.55);display:grid;place-items:center;
+      background:linear-gradient(180deg,rgba(99,102,241,.08),rgba(129,140,248,.22) 62%,rgba(165,180,252,.38));
+      backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+      box-shadow:0 0 22px rgba(129,140,248,.4),inset 0 1px 0 rgba(255,255,255,.15),
+                 inset 0 -9px 18px -6px rgba(199,210,254,.45);
+      animation:ringpulse 2.4s ease-in-out infinite;transition:transform .2s}
+  .demo:hover .ring{transform:scale(1.06)}
+  @keyframes ringpulse{50%{box-shadow:0 0 40px rgba(129,140,248,.8)}}
+  .demo .ring::before{content:"";position:absolute;inset:-12px;border-radius:999px;border:1px solid rgba(165,180,252,.22)}
+  .demo .ring svg{margin-left:3px}
+  .demo small{display:block;font-weight:500;color:var(--muted);font-size:11px;margin-top:2px}
+
+  .cardpos{position:absolute;transition:translate .5s var(--e)}
+  .cardpos:hover{translate:0 -6px}
+  #cardpos1{right:24%;top:26%}
+  #cardpos2{right:5.5%;top:47%}
+  .card{position:relative;background:#fbfcfe;color:#0f172a;border-radius:22px;padding:9px;width:248px;
+      box-shadow:0 26px 60px rgba(5,8,18,.5);pointer-events:auto;
+      transition:opacity .7s ease,translate .7s ease,rotate .5s var(--e),box-shadow .5s var(--e)}
+  .cardpos:hover .card{rotate:0deg;box-shadow:0 34px 78px rgba(5,8,18,.6)}
+  #cardpos1 .card{rotate:-1.4deg}
+  #cardpos2 .card{rotate:1.2deg}
+  .card .art{border-radius:15px;height:122px;position:relative;overflow:hidden}
+  .card .art.reveal::after{content:"";position:absolute;inset:0;
+      background:linear-gradient(180deg,rgba(21,25,40,.94) 0%,rgba(21,25,40,.94) 49.6%,#a5f3fc 50%,transparent 50.4%,transparent 100%);
+      background-size:100% 220%;background-position:0 0;animation:scan 1s 1.55s cubic-bezier(.6,.05,.3,1) forwards}
+  #cardpos2 .art.reveal::after{animation-delay:1.8s}
+  @keyframes scan{to{background-position:0 -120%}}
+  .card .body{padding:11px 9px 8px}
+  .card .kicker{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#64748b;font-weight:700}
+  .card .claim{font-size:18.5px;font-weight:600;line-height:1.25;margin-top:3px;letter-spacing:-.01em}
+  .card .go2{position:absolute;right:14px;bottom:14px;width:32px;height:32px;border-radius:999px;background:#eef1f8;
+      border:none;display:grid;place-items:center;cursor:pointer;font-size:13px;color:#0f172a;
+      transition:transform .4s var(--e),background .3s var(--e),color .3s var(--e)}
+  .card .go2:hover{background:#0f172a;color:#eef1f8;transform:scale(1.12) rotate(8deg)}
+  .livedot{position:absolute;top:10px;left:12px;display:inline-flex;align-items:center;gap:6px;background:rgba(9,12,24,.6);
+      color:#e2e8f0;font-size:9.5px;font-weight:700;letter-spacing:.09em;padding:4px 9px;border-radius:99px}
+  .livedot i{width:6px;height:6px;border-radius:99px;background:var(--ok);animation:blink 1.6s infinite}
+  @keyframes blink{50%{opacity:.25}}
+  .bubble{position:absolute;left:12px;right:12px;bottom:10px;background:rgba(255,255,255,.93);border-radius:11px;
+      padding:8px 10px;font-size:10.5px;line-height:1.45;color:#334155}
+  .bubble b{color:#0f172a}
+  .booked{display:flex;align-items:center;gap:9px;margin-top:9px;background:#ecfdf5;border-radius:11px;padding:8px 10px;
+      font-size:11.5px;color:#065f46;font-weight:600}
+  .booked .tick{width:20px;height:20px;border-radius:99px;background:#10b981;color:#fff;display:grid;place-items:center;font-size:11px;flex:none}
+
+  .chip{position:absolute;color:#c3cadd;line-height:1.4;
+      background:rgba(17,20,32,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:12px 18px 13px 42px}
+  .chip span{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+  .chip b{display:block;color:#fff;font-size:21px;font-weight:600;margin-top:2px;letter-spacing:-.01em}
+  .chip::before{content:"❋";position:absolute;left:16px;top:14px;opacity:.7;font-size:14px;color:#a5b4fc}
+  #chip1{right:7.5%;top:25%}
+  #chip2{right:4.5%;top:36%}
+  .discover{position:absolute;right:2%;top:52%;transform:translateY(-50%);writing-mode:vertical-rl;
+    font-size:10px;letter-spacing:.55em;color:rgba(255,255,255,.3);text-transform:uppercase}
+  .foot{position:absolute;left:5.5%;top:70%;display:flex;gap:22px;font-size:13px;font-weight:500;
+      color:#aab3cc;text-shadow:0 1px 10px rgba(8,10,22,.9)}
+  .foot i{color:var(--ok);font-style:normal;margin-right:7px;font-size:12px}
+
+  /* ---- tablet: chips stack top-right, cards below — never hide a stat ---- */
+  @media (max-width:1380px) and (min-width:741px){
+    .sub{max-width:400px}
+    .card{width:214px}
+    .card .art{height:104px}
+    #chip1{right:4.5%;top:11%}
+    #chip2{right:4.5%;top:calc(11% + 78px)}
+    #cardpos1{right:4%;top:31%}
+    #cardpos2{right:5%;top:62%}
+  }
+
+  /* ---- phone: single column, one peeking card ---- */
+  @media (max-width:740px){
+    nav{left:4%;right:4%;margin-left:0;justify-content:space-between}
+    nav a:not(.go){display:none}
+    nav .logo{width:38px;height:38px}
+    .hero{left:6%;right:6%;top:12%;max-width:none}
+    .badge{font-size:10px;letter-spacing:.1em}
+    h1{font-size:clamp(36px,11vw,44px)}
+    .sub{left:6%;right:6%;top:34%;max-width:none;font-size:14px;line-height:1.7}
+    .ctarow{left:6%;right:6%;top:53%;flex-direction:column;align-items:stretch;gap:15px}
+    .cta{justify-content:center}
+    .foot{left:6%;right:auto;top:75%;flex-direction:column;gap:8px;font-size:12px}
+    .chip,.discover,#cardpos1{display:none}
+    #cardpos2{right:-24px;top:auto;bottom:-34px}
+    #cardpos2 .card{width:212px;rotate:4deg}
+    #cardpos2 .card .art{height:96px}
+    .ghost{font-size:24vw;top:64%}
+  }
+
+  #demoModal{position:fixed;inset:0;z-index:5;display:none;place-items:center;background:rgba(8,10,20,.78);
+      backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  #demoModal.open{display:grid}
+  #demoModal .frame{position:relative;width:min(880px,92vw)}
+  #demoModal video{width:100%;aspect-ratio:16/9;border-radius:18px;display:block;background:#000;
+      box-shadow:0 30px 90px rgba(0,0,0,.65)}
+  #demoModal .close{position:absolute;top:-46px;right:-6px;background:none;border:none;color:var(--ink);
+      font-size:30px;line-height:1;cursor:pointer;padding:6px}
+</style>
+</head>
+<body>
+<div class="atmo"></div>
+<div class="ghost">FRONTDESK</div>
+<canvas id="world"></canvas>
+<div class="vignette"></div>
+
+<div id="ui">
+  <div class="px" data-px="6">
+    <nav class="enter d1">
+      <div class="logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 012-2h2l2 5-2 2a13 13 0 006 6l2-2 5 2v2a2 2 0 01-2 2A17 17 0 014 5z"/></svg></div>
+      <a href="/" class="active"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 012-2h2l2 5-2 2a13 13 0 006 6l2-2 5 2v2a2 2 0 01-2 2A17 17 0 014 5z"/></svg>Receptionist</a>
+      <a href="/#how"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M10 9l5 3-5 3z"/></svg>How it works</a>
+      <a href="/#pricing"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4L11 3H4v7l9.6 10.4a2 2 0 002.8 0l4.2-4.2a2 2 0 000-2.8z"/><circle cx="7.5" cy="6.5" r="1" fill="currentColor"/></svg>Pricing</a>
+      <a href="/onboarding" class="go">Start free →</a>
+    </nav>
+  </div>
+
+  <div class="px" data-px="10">
+    <div class="hero">
+      <div class="badge enter d1"><i></i>FrontDesk · AI phone receptionist for small business</div>
+      <h1 class="enter d2">Never miss<br/>a <span class="hl">call</span> again.</h1>
+    </div>
+    <div class="discover enter d5">Always on</div>
+  </div>
+
+  <div class="px" data-px="13">
+    <p class="sub enter d2">An AI receptionist that <b>answers your phone 24/7</b>, <b>books appointments</b> straight onto your Google Calendar, and texts you what happened — in a natural voice, on the number you already have.</p>
+    <div class="ctarow">
+      <button class="cta enter d3" onclick="location.href='/onboarding'">
+        Start free — live in 5 minutes <span class="arrow">→</span>
+      </button>
+      <button class="demo enter d4" id="demoBtn" aria-label="Watch demo">
+        <span class="ring"><svg width="15" height="15" viewBox="0 0 24 24" fill="#eef1f8"><path d="M8 5v14l11-7z"/></svg></span>
+        <span>Hear it answer a call<small>1½-minute demo</small></span>
+      </button>
+    </div>
+    <p class="foot enter d5"><span><i>✓</i>14-day free trial</span><span><i>✓</i>Keep your existing number</span><span><i>✓</i>Cancel anytime</span></p>
+  </div>
+
+  <div class="px" data-px="18">
+    <div class="cardpos" id="cardpos1"><div class="card enter d3">
+      <div class="art reveal" style="background:linear-gradient(150deg,#312e81 0%,#4f46e5 55%,#7c3aed 100%)">
+        <span class="livedot"><i></i>LIVE CALL</span>
+        <div class="bubble"><b>FrontDesk:</b> “Thanks for calling Riverside Dental! How can I help you today?”</div>
+      </div>
+      <div class="body">
+        <div class="kicker">Incoming · (415) 555-0132</div>
+        <div class="claim">Every call,<br/>answered.</div>
+      </div>
+      <button class="go2">↗</button>
+    </div></div>
+
+    <div class="cardpos" id="cardpos2"><div class="card enter d4">
+      <div class="body">
+        <div class="kicker">While you were working</div>
+        <div class="claim">Appointment booked.</div>
+      </div>
+      <div class="art reveal" style="background:linear-gradient(150deg,#064e3b 0%,#059669 60%,#34d399 100%)">
+        <div class="bubble"><b>Tue · 2:30 PM</b> — New patient cleaning · Google Calendar</div>
+      </div>
+      <div class="body" style="padding-top:9px">
+        <div class="booked"><span class="tick">✓</span> Owner notified by text</div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="px" data-px="8">
+    <div class="chip enter d4" id="chip1"><span>Calls to small businesses</span><b>62% go unanswered</b></div>
+    <div class="chip enter d5" id="chip2"><span>Missed callers</span><b>85% never call back</b></div>
+  </div>
+</div>
+
+<div id="demoModal" aria-hidden="true">
+  <div class="frame">
+    <button class="close" aria-label="Close demo">×</button>
+    <video controls playsinline preload="metadata">
+      <source src="video/demo-36s-16x9.mp4" type="video/mp4"/>
+      <source src="/demo.mp4" type="video/mp4"/>
+    </video>
+  </div>
+</div>
+
+<script>
+(() => {
+  const modal = document.getElementById("demoModal");
+  const vid = modal.querySelector("video");
+  const close = () => { modal.classList.remove("open"); modal.setAttribute("aria-hidden","true"); vid.pause(); };
+  document.getElementById("demoBtn").addEventListener("click", () => {
+    modal.classList.add("open"); modal.setAttribute("aria-hidden","false"); vid.play();
+  });
+  modal.querySelector(".close").addEventListener("click", close);
+  modal.addEventListener("click", e => { if (e.target === modal) close(); });
+  addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+  setTimeout(() => document.body.classList.add("ready"), 3000);    // fallback if WebGL never starts
+  setTimeout(() => document.body.classList.add("settled"), 4200);  // delays gone even on the fallback path
+
+  /* fluid UI: cursor-following light on shader surfaces (drives --mx/--my) */
+  for (const el of document.querySelectorAll(".cta, nav, nav a")){
+    el.addEventListener("pointermove", e => {
+      const r = el.getBoundingClientRect();
+      el.style.setProperty("--mx", ((e.clientX - r.left)/r.width*100).toFixed(1) + "%");
+      el.style.setProperty("--my", ((e.clientY - r.top)/r.height*100).toFixed(1) + "%");
+    });
+  }
+})();
+</script>
+
+<script type="module">
+/* local copy is instant when served over http; file:// blocks it (CORS) so fall back to CDN */
+let THREE;
+try { THREE = await import("./vendor/three.module.js"); }
+catch { THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"); }
+
+/* ---------- world: muted slate-indigo fog, transparent canvas ---------- */
+const WORLD = 0x252a3d;
+const STILL = new URLSearchParams(location.search).has("still")
+  || matchMedia("(prefers-reduced-motion: reduce)").matches;
+const canvas = document.getElementById("world");
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(WORLD, 8, 26);
+
+const camera = new THREE.PerspectiveCamera(42, 1, .1, 100);
+const CAM_HOME = new THREE.Vector3(0, .9, 10.5);
+camera.position.copy(CAM_HOME);
+const LOOK_AT = new THREE.Vector3(0, -1.2, 0);
+
+scene.add(new THREE.HemisphereLight(0xb9c2ec, 0x14172a, 1.5));
+const key = new THREE.DirectionalLight(0xdfe4ff, 1.5);
+key.position.set(-5, 7, 5);
+scene.add(key);
+
+/* ---------- hero limbs: slim "call wire" waves, lower half ---------- */
+const finalMats = [], wireMats = [];
+const curves = [], radii = [];
+function wire(points, r, color, emissive){
+  const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(...p)));
+  curves.push(curve); radii.push(r);
+  const mat = new THREE.MeshStandardMaterial({color, roughness:.5, metalness:.3,
+      emissive, emissiveIntensity:.3, transparent:true, opacity:0});
+  finalMats.push(mat);
+  scene.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 200, r, 12, false), mat));
+  const wm = new THREE.MeshBasicMaterial({color:0xc7cdf2, wireframe:true, transparent:true, opacity:.55});
+  wireMats.push(wm);
+  scene.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 34, r*1.05, 7, false), wm));
+  return curve;
+}
+wire([[-13,-5.6,-5],[-8,-3.4,-3.5],[-3,-4.8,-3],[2,-3.8,-3],[6,-5.0,-3.5],[11,-3.9,-5]], .42, 0x3a4160, 0x3b3f96);
+wire([[-5,-6.6,-1],[ 0,-4.9,-1.5],[ 3,-3.3,-2],[5.6,-2.2,-2.6],[8.4,-1.0,-3.4]],          .3,  0x424a70, 0x4d53b8);
+wire([[-15,-5.0,-11],[-7,-3.8,-10],[ 0,-5.2,-10],[6,-3.9,-10],[14,-5.2,-11]],             .36, 0x333a58, 0x333884);
+
+/* signal nodes: tiny glowing studs along the wires (the "fuzz") */
+{
+  const COUNT = 5200;
+  const proto = new THREE.SphereGeometry(.022, 6, 6);
+  const mat = new THREE.MeshStandardMaterial({color:0xffffff, roughness:.8,
+      emissive:0x6a71d8, emissiveIntensity:.7, transparent:true, opacity:0});
+  finalMats.push(mat);
+  const inst = new THREE.InstancedMesh(proto, mat, COUNT);
+  const d = new THREE.Object3D();
+  const col = new THREE.Color();
+  for (let i = 0; i < COUNT; i++){
+    const bi = i % curves.length, c = curves[bi], r = radii[bi];
+    const p = c.getPointAt(Math.random());
+    const n = new THREE.Vector3((Math.random()-.5)*1.6, Math.random()*1.1+.1, (Math.random()-.5)*1.6).normalize();
+    d.position.copy(p).addScaledVector(n, r*(.9+Math.random()*.35));
+    d.scale.setScalar(.5+Math.random()*1.3);
+    d.updateMatrix();
+    inst.setMatrixAt(i, d.matrix);
+    col.setHSL(.65+Math.random()*.06, .35+Math.random()*.3, .45+Math.random()*.3);
+    inst.setColorAt(i, col);
+  }
+  inst.instanceColor.needsUpdate = true;
+  scene.add(inst);
+}
+/* sparse emerald sparks — booked moments */
+{
+  const COUNT = 130;
+  const mat = new THREE.MeshBasicMaterial({color:0x6ee7b7, transparent:true, opacity:0});
+  finalMats.push(mat);
+  const inst = new THREE.InstancedMesh(new THREE.SphereGeometry(.03, 6, 6), mat, COUNT);
+  const d = new THREE.Object3D();
+  for (let i = 0; i < COUNT; i++){
+    const bi = i % 2, c = curves[bi], r = radii[bi];
+    const p = c.getPointAt(Math.random());
+    const n = new THREE.Vector3((Math.random()-.5), Math.random()+.3, (Math.random()-.5)).normalize();
+    d.position.copy(p).addScaledVector(n, r*1.25);
+    d.scale.setScalar(.6+Math.random());
+    d.updateMatrix();
+    inst.setMatrixAt(i, d.matrix);
+  }
+  scene.add(inst);
+}
+
+/* deep background utility poles — faint silhouettes carrying the wires (3rd depth plane) */
+{
+  const mat = new THREE.MeshStandardMaterial({color:0x333a58, roughness:.95, transparent:true, opacity:0});
+  finalMats.push(mat);
+  for (const [x, z, h, lean] of [[-7.5,-11,8,.03],[-1.5,-13.5,9.5,-.02],[4.5,-10.5,7.5,.04],[10,-14,9,-.03]]){
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(.09, .14, h, 8), mat);
+    pole.position.set(x, h/2 - 7.5, z);
+    pole.rotation.z = lean;
+    scene.add(pole);
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(.055, .055, 1.7, 6), mat);
+    arm.rotation.z = Math.PI/2;
+    arm.position.set(x, h - 8.1, z);
+    scene.add(arm);
+  }
+}
+/* the receptionist core: glowing orb where the wires converge (right) */
+const core = new THREE.Mesh(new THREE.SphereGeometry(.42, 48, 48),
+  new THREE.MeshStandardMaterial({color:0xc7d2fe, emissive:0x818cf8, emissiveIntensity:2.2,
+    roughness:.2, transparent:true, opacity:0}));
+finalMats.push(core.material);
+core.position.set(2.9, -3.55, -2.6);
+scene.add(core);
+const halo = new THREE.Mesh(new THREE.SphereGeometry(.8, 32, 32),
+  new THREE.MeshBasicMaterial({color:0x818cf8, transparent:true, opacity:0, side:THREE.BackSide}));
+halo.position.copy(core.position);
+scene.add(halo);
+
+/* ---------- dust particles, pointer-biased ---------- */
+const P = 800;
+const pGeo = new THREE.BufferGeometry();
+const pPos = new Float32Array(P*3), pSeed = new Float32Array(P);
+for (let i = 0; i < P; i++){
+  pPos[i*3] = (Math.random()-.5)*22; pPos[i*3+1] = (Math.random()-.5)*11; pPos[i*3+2] = -Math.random()*12+2;
+  pSeed[i] = Math.random()*100;
+}
+pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({color:0xc4cbe8, size:.04, transparent:true,
+  opacity:.6, blending:THREE.AdditiveBlending, depthWrite:false, sizeAttenuation:true})));
+
+/* ---------- pulses: calls flowing along the wires into the core ---------- */
+const pulses = [];
+for (let i = 0; i < 10; i++){
+  const hot = i % 3 === 0;
+  const m = new THREE.Mesh(new THREE.SphereGeometry(hot ? .08 : .055, 12, 12),
+    new THREE.MeshBasicMaterial({color: hot ? 0x34d399 : 0x93c5fd, transparent:true, opacity:0}));
+  scene.add(m);
+  pulses.push({m, curve:curves[i%2], off:Math.random(), speed:.05+Math.random()*.05, hot});
+}
+
+/* ---------- creature: message spark — flies in, rests, flees pointer ------ */
+const spark = new THREE.Group();
+const wingGeo = new THREE.PlaneGeometry(.36, .24);
+wingGeo.translate(.18, 0, 0);
+const wingMat = new THREE.MeshBasicMaterial({color:0x86efac, transparent:true, opacity:0, side:THREE.DoubleSide});
+const wL = new THREE.Mesh(wingGeo, wingMat);
+const wR = new THREE.Mesh(wingGeo, wingMat); wR.rotation.z = Math.PI;
+const sBody = new THREE.Mesh(new THREE.SphereGeometry(.05, 10, 10),
+  new THREE.MeshBasicMaterial({color:0x34d399, transparent:true, opacity:0}));
+spark.add(wL, wR, sBody);
+scene.add(spark);
+const restPoint = curves[0].getPointAt(.56).clone().add(new THREE.Vector3(0, .6, 1.0));
+let sState = "fly", sT = 0;
+const sFrom = new THREE.Vector3(-8, 3.5, -1);
+spark.position.copy(sFrom);
+if (STILL){ sState = "rest"; spark.position.copy(restPoint); }
+
+/* ---------- pointer: orbit + DOM parallax ---------- */
+const pointer = {x:0, y:0};
+let hasPointer = false;
+addEventListener("pointermove", e => {
+  hasPointer = true;
+  pointer.x = (e.clientX/innerWidth)*2 - 1;
+  pointer.y = (e.clientY/innerHeight)*2 - 1;
+  for (const el of document.querySelectorAll(".px")){
+    const a = +el.dataset.px;
+    el.style.translate = `${-pointer.x*a}px ${-pointer.y*a}px`;
+  }
+});
+
+/* ---------- wireframe scan intro, elapsed-time driven ---------- */
+const SCAN_START = .3, SCAN_SECS = 1.4;
+if (STILL) document.body.classList.add("ready", "still", "settled");
+let announced = STILL;
+
+function resize(){
+  renderer.setSize(innerWidth, innerHeight, false);
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+}
+addEventListener("resize", resize); resize();
+
+const clock = new THREE.Clock();
+function tick(){
+  const dt = Math.min(clock.getDelta(), .05);
+  const t = clock.elapsedTime;
+
+  const k = STILL ? 1 : THREE.MathUtils.smoothstep(Math.min(Math.max(t-SCAN_START,0)/SCAN_SECS, 1), 0, 1);
+  for (const m of finalMats) m.opacity = k;
+  for (const p of pulses) p.m.material.opacity = k*.9;
+  wingMat.opacity = k*.95; sBody.material.opacity = k;
+  halo.material.opacity = k*.15;
+  for (const m of wireMats) m.opacity = .55*(1-k);
+
+  if (!hasPointer && !STILL){ pointer.x = Math.sin(t*.22)*.35; pointer.y = Math.cos(t*.17)*.18; }
+  camera.position.lerp(new THREE.Vector3(
+    CAM_HOME.x + pointer.x*1.0, CAM_HOME.y - pointer.y*.6, CAM_HOME.z), .045);
+  camera.lookAt(LOOK_AT);
+
+  const pos = pGeo.attributes.position;
+  for (let i = 0; i < P; i++){
+    let y = pos.getY(i) + dt*(.1 + (pSeed[i]%1)*.15);
+    let x = pos.getX(i) + Math.sin(t*.5 + pSeed[i])*dt*.1;
+    x += (pointer.x*7 - x)*dt*.01;
+    if (y > 5.5){ y = -5.5; x = (Math.random()-.5)*22; }
+    pos.setY(i, y); pos.setX(i, x);
+  }
+  pos.needsUpdate = true;
+
+  for (const p of pulses){
+    p.off = (p.off + p.speed*dt) % 1;
+    const pt = p.curve.getPointAt(p.off);
+    if (p.hot && p.off > .82) pt.lerp(core.position, (p.off-.82)/.18);
+    p.m.position.copy(pt);
+    p.m.scale.setScalar(1 + Math.sin(t*6 + p.off*20)*.25);
+  }
+  core.material.emissiveIntensity = 2.2 + Math.sin(t*2.2)*.5;
+  core.scale.setScalar(1 + Math.sin(t*2.2)*.03);
+
+  const flap = Math.sin(t*17)*1.0;
+  wL.rotation.y =  flap*.5 + .25;
+  wR.rotation.y = Math.PI - flap*.5 - .25;
+  const pointerWorld = new THREE.Vector3(pointer.x*7, -pointer.y*4, restPoint.z);
+  if (sState === "fly"){
+    sT = Math.min(sT + dt*.45, 1);
+    spark.position.lerpVectors(sFrom, restPoint, THREE.MathUtils.smoothstep(sT,0,1));
+    spark.position.y += Math.sin(sT*Math.PI*3)*.5*(1-sT);
+    if (sT >= 1) sState = "rest";
+  } else if (sState === "rest"){
+    spark.position.y = restPoint.y + Math.sin(t*2.4)*.02;
+    if (spark.position.distanceTo(pointerWorld) < 1.5){ sState = "flee"; sT = 0; }
+  } else {
+    sT += dt*.22;
+    spark.position.x += (Math.sign(spark.position.x - pointerWorld.x)||1)*dt*3.4;
+    spark.position.y += dt*2.8;
+    if (sT >= 1){ sState = "fly"; sT = 0; sFrom.copy(spark.position); }
+  }
+
+  renderer.render(scene, camera);
+  if (!announced){
+    announced = true;
+    setTimeout(() => {
+      document.body.classList.add("ready");
+      setTimeout(() => document.body.classList.add("settled"), 1600);
+    }, 900);
+  }
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

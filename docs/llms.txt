@@ -1,0 +1,28 @@
+# threejs-hero — award-site Three.js pages, one prompt away
+
+> Open-source Claude Code skill (MIT) that teaches an AI agent to build immersive,
+> award-site-style Three.js landing pages as single self-contained HTML files —
+> foggy hero worlds, glass product stages, dome media galleries, scroll-driven
+> camera journeys with particle morphs — screenshot-verified across desktop,
+> tablet and phone before shipping.
+
+## Core
+
+- [SKILL.md (the full skill — read this to build pages)](https://raw.githubusercontent.com/jiangyurong609/threejs-hero-skill/main/SKILL.md)
+- [README](https://raw.githubusercontent.com/jiangyurong609/threejs-hero-skill/main/README.md)
+- [GitHub repository](https://github.com/jiangyurong609/threejs-hero-skill)
+
+## Live examples (view source for working reference code)
+
+- [Sylva replica — foggy living-world hero, scan intro, creature](https://jiangyurong609.github.io/threejs-hero-skill/examples/sylva-replica.html)
+- [FrontDesk — the hero applied to a real SaaS brand](https://jiangyurong609.github.io/threejs-hero-skill/examples/frontdesk-hero.html)
+- [SONA·1 — glass product stage, fresnel shader, sonar rings](https://jiangyurong609.github.io/threejs-hero-skill/examples/sona-product-hero.html)
+- [Archive° — drag-orbit dome gallery, click-to-focus camera flight](https://jiangyurong609.github.io/threejs-hero-skill/examples/dome-gallery.html)
+- [BOREAL — scroll-scrubbed camera rail, particle shape morphs](https://jiangyurong609.github.io/threejs-hero-skill/examples/boreal-journey.html)
+
+## Usage
+
+Install as a Claude Code skill (`cp -r threejs-hero ~/.claude/skills/`), or paste
+SKILL.md into any coding agent's context, then prompt e.g. "Build a 3D product
+hero like AETHER — fresnel-glass case, sonar rings, orbital arcs. Self-verify
+until perfect."
