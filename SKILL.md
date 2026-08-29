@@ -1,6 +1,6 @@
 ---
 name: threejs-hero
-description: Build production-ready immersive Three.js landing/hero pages — foggy 3D world + crisp DOM overlay, mouse-orbit parallax, pointer particles, wireframe scan intro, glass cards with scan-line reveal; plus expanded archetypes — glass product stage with sonar rings (AETHER-style), drag-orbit dome media gallery with click-to-focus (OpenPurpose-style), scroll-driven camera journeys with particle shape morphs (Igloo-style), cursor mask reveals, paper poster walls, gesture control; responsive to phone/tablet, touch-aware, with a mandatory multi-viewport screenshot loop and a design-review (aesthetic + conversion) pass. Use when asked for a "3D landing page", "Three.js hero", "living/breathing homepage", a 3D product page, a 3D gallery, a scroll-story page, or to apply an award-site 3D effect to a brand.
+description: Build production-ready immersive motion pages in the award-site mold — Three.js worlds (foggy heroes, glass product stages with sonar rings, drag-orbit dome galleries, scroll-driven camera journeys with particle morphs) AND non-Three.js motion (raw-WebGL liquid-glass ripple typography, springy draggable poster walls, cursor mask reveals, gesture control) — each a single HTML file with a crisp DOM overlay, responsive to phone/tablet, touch-aware, with a mandatory multi-viewport screenshot loop and a design-review (aesthetic + conversion) pass. Use when asked for a "3D landing page", "Three.js hero", "living/breathing homepage", a 3D product page, a 3D gallery, a scroll-story page, "liquid glass", a ripple/distortion hero, a draggable poster wall, or to apply an award-site motion effect to a brand.
 ---
 
 # Three.js Immersive Hero Pages
@@ -17,7 +17,9 @@ task before building:
 - `examples/frontdesk-hero.html` — the hero applied to a real SaaS brand;
 - `examples/sona-product-hero.html` — glass product stage + sonar rings + orbitals;
 - `examples/dome-gallery.html` — drag-orbit dome gallery + click-to-focus fly;
-- `examples/boreal-journey.html` — scroll-scrubbed camera rail + particle morphs.
+- `examples/boreal-journey.html` — scroll-scrubbed camera rail + particle morphs;
+- `examples/pura-liquid-hero.html` — raw-WebGL liquid-glass ripple typography (no three.js);
+- `examples/paperworks-posterwall.html` — springy draggable poster wall (no WebGL at all).
 
 ## Architecture (non-negotiables)
 
@@ -225,9 +227,45 @@ What actually makes the reference sites glow:
   layers (helmet/visor variants) and drive `clip-path:circle(r at x y)` (or a WebGL
   uv-discard mask) from the pointer; snap layer choice to pointer zones so elements
   change the instant the cursor crosses them.
-- **Paper poster wall** (MISC-style) — draggable infinite plane of poster planes;
-  a small vertex wobble (`z += sin(uv.y*π + t)*bendAmp`) with `bendAmp` fed by drag
-  velocity so posters flex like paper on drag/scroll/click.
+
+## Motion beyond Three.js (same architecture, no 3D library)
+
+The reference reels are NOT all Three.js — liquid-glass typography and physical
+poster walls are raw WebGL / pure DOM. Same non-negotiables apply (single file,
+DOM overlay, `?still` mode, screenshot loop).
+
+- **Liquid-glass ripple typography** (`pura-liquid-hero.html`, the OYLA/"Ripple
+  Distortion" look) — paint the editorial page ONCE on an offscreen 2D canvas (giant
+  serif display type, gradient product orb, captions — this layer is what distorts;
+  CTAs/nav stay crisp DOM above), then a raw-WebGL fragment shader over it:
+  - **Analytic ripples, not FBO water sim**: keep a pool of ~24 `vec3(x,y,age)`
+    uniforms; each fragment sums expanding ring waves
+    `sin((d-age*speed)*44) * exp(-band²*260) * exp(-age*1.6)` and displaces the sample
+    uv along the radial. Ping-pong float FBOs die on SwiftShader/older GPUs; analytic
+    rings are deterministic (still mode = a preset ripple array) and look identical.
+  - Liquid-glass lens on the cursor: pull uvs toward the pointer
+    (`-inl²*.05`, inl=smoothstep(R,0,d)) + a rim highlight at the lens edge.
+  - Chromatic aberration = sample R/G/B with displacement ×1.06/1.0/0.94; wet look =
+    add white proportional to the summed wave crest (~.24 — more goes milky).
+  - Cover-fit the source texture in-shader (compare canvas vs texture aspect) so
+    resize never letterboxes; spawn ripples throttled (~70 ms) on pointermove, a burst
+    of 3 on click; idle autopilot drifts the lens and drips ripples so the page is
+    never dead.
+- **Springy poster wall** (`paperworks-posterwall.html`, MISC-style) — no WebGL at
+  all; the paper physics is a spring in CSS transforms:
+  - **Infinite wrap**: one COLS×ROWS block of posters tiled 3×3; each cell's screen
+    position = `mod(base + offset + B/2, B*3) - B*1.5` per axis — drag forever, no
+    edges, 36 DOM nodes total.
+  - **Bend from lag, not velocity**: smooth the offset (`o += (target-o)*.14`) and use
+    the LAG `(o-target)` as bend energy → target tilt `rotateX/rotateY` (clamped
+    ±22–26°), integrated per-poster with a spring (`v += (t-r)*.16; v *= .82`) and a
+    per-poster stiffness factor so the wall ripples like sheets, not a rigid grid.
+  - Poster art = seeded canvas paintings (bold palette, stacked display words, glyphs,
+    zigzags, circled numerals + catalog footer line) — zero image requests.
+  - Drag + wheel both pan; momentum on release (`v *= .94`); click-vs-drag gate
+    (>6 px travel swallows the click); click → backdrop-blur modal enlarge.
+  - Floating UI over busy art needs its own surface: brand chip and hint pill get a
+    translucent bg + backdrop blur, never bare text.
 - **Gesture control** (webcam demos) — MediaPipe Hands (or FaceLandmarker) mapped onto
   the SAME particle-morph machinery: pinch distance → gather/scatter blend, palm x/y →
   group rotation. Keep it an optional progressive enhancement behind a permission
@@ -476,6 +514,7 @@ load" → §scan-line reveal · "butterfly that lands and flies away on mouse-ov
 "scroll tells the story like Igloo Inc" / "camera walks through the scene" →
 §scroll-driven camera journey · "particles form a shape / logo / creature" →
 §particle shape morph · "image changes as the mouse moves over it like Lando Norris"
-→ §cursor mask reveal · "draggable poster wall" → §paper poster wall · "control it
-with hand gestures" → §gesture control · "recreate this in Three.js in a single HTML
-file, self-verify until perfect" → the whole recipe.
+→ §cursor mask reveal · "liquid glass" / "ripple distortion over the headline" →
+§liquid-glass ripple typography · "draggable poster wall" / "posters that flex like
+paper" → §springy poster wall · "control it with hand gestures" → §gesture control ·
+"recreate this in a single HTML file, self-verify until perfect" → the whole recipe.

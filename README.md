@@ -1,4 +1,7 @@
-# threejs-hero — a Claude Code skill for immersive 3D landing pages
+# threejs-hero — a Claude Code skill for award-site motion pages
+
+Immersive Three.js worlds, liquid-glass shader typography, springy poster walls —
+single-file pages, screenshot-verified.
 
 **🌐 Showcase & live demos: <https://jiangyurong609.github.io/threejs-hero-skill/>** —
 pick a world, open its live demo, copy its prompt.
@@ -113,6 +116,14 @@ Then in Claude Code, prompts like these will route through the skill:
   scrolling scrubs the camera along a spline over foggy noise terrain while a 6k-point
   cloud morphs dome → ring portal → particle creature, with per-segment captions. Try
   `?p=0.5` or `?p=0.95` to pin any point of the journey.
+- [`threejs-hero/examples/pura-liquid-hero.html`](threejs-hero/examples/pura-liquid-hero.html)
+  — **liquid-glass ripple typography** (no three.js — raw WebGL): a fragment shader
+  turns the whole editorial page liquid; cursor ripples, a glass lens, and chromatic
+  aberration warp giant serif type painted on an offscreen canvas.
+- [`threejs-hero/examples/paperworks-posterwall.html`](threejs-hero/examples/paperworks-posterwall.html)
+  — **springy draggable poster wall** (no WebGL at all): an infinite wrapped grid of
+  canvas-painted posters that flex like paper — spring tilts driven by drag lag,
+  momentum, click-to-enlarge modal.
 
 Verify any file locally:
 

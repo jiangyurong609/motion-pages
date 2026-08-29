@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PURA — measured purity</title>
+<meta name="description" content="Liquid-glass ripple hero — a raw WebGL fragment shader distorts editorial typography under the cursor. No libraries."/>
+<style>
+:root{--e:cubic-bezier(.22,1,.36,1);--ink:#1a1714;--mut:#8a827a;--red:#c92f1e}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:#f4efe8;color:var(--ink);overflow:hidden;
+ font:400 16px/1.5 "Quicksand",system-ui,-apple-system,sans-serif}
+canvas#gl{position:fixed;inset:0;z-index:0;display:block;cursor:crosshair}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+#ui{position:fixed;inset:0;z-index:2;pointer-events:none}
+#ui a,#ui button{pointer-events:auto}
+nav{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:26px 4vw}
+.wm{font:700 21px/1 "Didot","Playfair Display",Georgia,serif;letter-spacing:.14em;color:var(--red)}
+.navr{display:flex;gap:26px;align-items:center;font-size:11px;letter-spacing:.22em;text-transform:uppercase}
+.navr a{color:var(--ink);text-decoration:none;transition:.3s var(--e)}
+.navr a:hover{color:var(--red)}
+.navr .bag{border:1px solid var(--ink);border-radius:999px;padding:9px 16px;transition:.3s var(--e)}
+.navr .bag:hover{background:var(--ink);color:#f4efe8}
+.info{position:absolute;left:4vw;bottom:5vh;max-width:340px}
+.info .no{font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--mut)}
+.info h2{font:400 24px/1.25 "Didot","Playfair Display",Georgia,serif;margin:10px 0 8px}
+.info p{font-size:13px;color:var(--mut)}
+.info .cta{display:inline-flex;align-items:center;gap:10px;margin-top:16px;padding:13px 24px;border-radius:999px;
+ background:var(--ink);color:#f4efe8;text-decoration:none;font:600 13px/1 inherit;letter-spacing:.04em;transition:.35s var(--e)}
+.info .cta:hover{background:var(--red);translate:0 -2px;box-shadow:0 14px 30px -12px rgba(201,47,30,.55)}
+.hint{position:absolute;right:4vw;bottom:5vh;text-align:right;font-size:10.5px;letter-spacing:.22em;
+ text-transform:uppercase;color:var(--mut)}
+.hint b{display:block;color:var(--ink);margin-bottom:4px}
+.enter{opacity:0;translate:0 14px;transition:opacity .9s var(--e),translate .9s var(--e)}
+body.ready .enter{opacity:1;translate:0 0}
+.d1{transition-delay:.1s}.d2{transition-delay:.25s}.d3{transition-delay:.4s}
+body.still .enter{transition:none;opacity:1;translate:0 0}
+@media (prefers-reduced-motion:reduce){.enter{transition:none;opacity:1;translate:0 0}}
+@media (max-width:740px){
+ .navr a.mid{display:none}
+ .info{max-width:none;right:4vw}
+ .hint{display:none}
+}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<div id="ui">
+  <nav class="enter d1">
+    <span class="wm">PURA</span>
+    <div class="navr">
+      <a class="mid" href="#collection">Collection</a>
+      <a class="mid" href="#about">About</a>
+      <a class="bag" href="#bag">[ Bag · 0 ]</a>
+    </div>
+  </nav>
+  <div class="info enter d2" id="collection">
+    <div class="no">Nº 04 — Sculpted silver</div>
+    <h2>The Meridian ring, cast from a single wave.</h2>
+    <p>Recycled 925 silver, mirror-polished. Made to order in 14 days.</p>
+    <a class="cta" href="#bag" id="bag">Add to bag — $340</a>
+  </div>
+  <div class="hint enter d3" id="about"><b>Move the cursor</b>the page is liquid</div>
+</div>
+
+<script>
+setTimeout(()=>document.body.classList.add("ready"),2500);
+const qs=new URLSearchParams(location.search);
+const STILL=qs.has("still")||matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(STILL)document.body.classList.add("still","ready");
+
+// ---------- source texture: the editorial page itself, painted once on a 2D canvas
+const src=document.createElement("canvas");
+function paintSource(){
+  const W=1920,H=1080;src.width=W;src.height=H;
+  const x=src.getContext("2d");
+  x.fillStyle="#f4efe8";x.fillRect(0,0,W,H);
+  // faint topographic arcs (background texture)
+  x.strokeStyle="rgba(26,23,20,.05)";x.lineWidth=1.5;
+  for(let i=0;i<9;i++){x.beginPath();x.arc(W*.78,H*.3,120+i*85,0,Math.PI*2);x.stroke();}
+  // giant editorial serif — THIS is what the liquid distorts
+  x.fillStyle="#1a1714";
+  x.textAlign="center";x.textBaseline="alphabetic";
+  x.font=`400 ${H*.30}px Didot,"Playfair Display",Georgia,serif`;
+  x.fillText("MEASURED",W/2,H*.42);
+  x.font=`italic 400 ${H*.30}px Didot,"Playfair Display",Georgia,serif`;
+  x.fillText("purity",W/2,H*.72);
+  // the gem: layered red radial gradients with a hot specular
+  const gx=W*.735,gy=H*.545,gr=H*.085;
+  let g=x.createRadialGradient(gx-gr*.3,gy-gr*.35,gr*.1,gx,gy,gr);
+  g.addColorStop(0,"#ff8d75");g.addColorStop(.45,"#c92f1e");g.addColorStop(1,"#7e150b");
+  x.fillStyle=g;x.beginPath();x.arc(gx,gy,gr,0,7);x.fill();
+  g=x.createRadialGradient(gx-gr*.38,gy-gr*.42,0,gx-gr*.38,gy-gr*.42,gr*.4);
+  g.addColorStop(0,"rgba(255,255,255,.95)");g.addColorStop(1,"rgba(255,255,255,0)");
+  x.fillStyle=g;x.beginPath();x.arc(gx-gr*.38,gy-gr*.42,gr*.4,0,7);x.fill();
+  x.fillStyle="rgba(126,21,11,.14)";x.beginPath();
+  x.ellipse(gx,gy+gr*1.5,gr*1.1,gr*.26,0,0,7);x.fill();
+  // caption row
+  x.fillStyle="#8a827a";x.textAlign="left";
+  x.font=`600 ${H*.016}px Quicksand,system-ui,sans-serif`;
+  x.fillText("S I L V E R W A R E   F O R   T H E   B O D Y", W*.045, H*.13);
+  x.textAlign="right";
+  x.fillText("E S T .   2 0 2 6   —   O S L O", W*.955, H*.13);
+}
+paintSource();
+
+// ---------- raw WebGL: analytic ripple + liquid-glass lens over the source texture
+const canvas=document.getElementById("gl");
+const gl=canvas.getContext("webgl",{antialias:false});
+const MAXR=24;
+if(!gl){canvas.replaceWith(src);src.style.cssText="position:fixed;inset:0;width:100%;height:100%;object-fit:cover";}
+else{
+const vs=`attribute vec2 p;varying vec2 vUv;void main(){vUv=p*.5+.5;vUv.y=1.-vUv.y;gl_Position=vec4(p,0.,1.);}`;
+const fs=`precision highp float;
+varying vec2 vUv;
+uniform sampler2D tex;
+uniform vec2 res;         // canvas resolution
+uniform vec2 mouse;       // 0..1
+uniform float time;
+uniform vec3 ripples[${MAXR}];   // x,y = center (0..1), z = age (s)
+vec2 coverUv(vec2 uv){
+  // cover-fit the 16:9 source onto the viewport
+  float ca=res.x/res.y, ta=1920./1080.;
+  vec2 s=vec2(1.), o=vec2(0.);
+  if(ca>ta){s.y=ta/ca;o.y=(1.-s.y)*.5;}else{s.x=ca/ta;o.x=(1.-s.x)*.5;}
+  return uv*s+o;
+}
+void main(){
+  vec2 uv=vUv;
+  float aspect=res.x/res.y;
+  vec2 auv=vec2(uv.x*aspect,uv.y);
+  vec2 disp=vec2(0.);
+  float crest=0.;
+  // traveling rings from recent pointer positions
+  for(int i=0;i<${MAXR};i++){
+    vec3 r=ripples[i];
+    if(r.z<0.)continue;
+    vec2 c=vec2(r.x*aspect,r.y);
+    vec2 d=auv-c;
+    float len=length(d)+1e-4;
+    float wavefront=r.z*.34;                      // ring expands with age
+    float band=len-wavefront;
+    float w=sin(band*44.)*exp(-band*band*260.)*exp(-r.z*1.6);
+    disp+=normalize(d)*w*.014;
+    crest+=w;
+  }
+  // liquid-glass lens riding the cursor
+  vec2 mc=vec2(mouse.x*aspect,mouse.y);
+  vec2 md=auv-mc;
+  float mlen=length(md);
+  float lensR=.16;
+  float inl=smoothstep(lensR,0.,mlen);
+  disp+=normalize(md+1e-4)*(-inl*inl)*.05;        // magnify (pull uv toward center)
+  // idle breathing warp so the page is never dead
+  disp+=vec2(sin(uv.y*9.+time*.6),cos(uv.x*8.-time*.5))*.0016;
+  // chromatic sampling
+  vec2 suv=coverUv(uv);
+  vec2 dr=disp*1.06, dg=disp, db=disp*.94;
+  vec3 col;
+  col.r=texture2D(tex,suv+dr).r;
+  col.g=texture2D(tex,suv+dg).g;
+  col.b=texture2D(tex,suv+db).b;
+  // wet specular on ripple crests + lens rim light
+  col+=vec3(1.,.98,.92)*clamp(crest,0.,1.)*.24;
+  float rim=smoothstep(.02,.0,abs(mlen-lensR))*.5;
+  col+=vec3(1.)*rim*.35;
+  col+=vec3(1.)*pow(inl,3.)*.06;
+  // soft vignette
+  float vg=smoothstep(1.15,.45,distance(uv,vec2(.5)));
+  col*=mix(.94,1.,vg);
+  gl_FragColor=vec4(col,1.);
+}`;
+function sh(type,srcc){const s=gl.createShader(type);gl.shaderSource(s,srcc);gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(s));return s;}
+const prog=gl.createProgram();
+gl.attachShader(prog,sh(gl.VERTEX_SHADER,vs));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,fs));
+gl.linkProgram(prog);gl.useProgram(prog);
+const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+const locP=gl.getAttribLocation(prog,"p");gl.enableVertexAttribArray(locP);gl.vertexAttribPointer(locP,2,gl.FLOAT,false,0,0);
+const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);
+gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+const U=n=>gl.getUniformLocation(prog,n);
+const uRes=U("res"),uMouse=U("mouse"),uTime=U("time"),uRip=U("ripples");
+
+// ripple pool
+const rip=new Float32Array(MAXR*3).fill(-1);
+let head=0,lastSpawn=0;
+function spawn(x,y){rip[head*3]=x;rip[head*3+1]=y;rip[head*3+2]=0;head=(head+1)%MAXR;}
+const mouse={x:.5,y:.55};let hasPointer=false;
+addEventListener("pointermove",e=>{
+  hasPointer=true;
+  mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight;
+  const now=performance.now();
+  if(now-lastSpawn>70){spawn(mouse.x,mouse.y);lastSpawn=now;}
+},{passive:true});
+addEventListener("pointerdown",e=>{ // a click drops a big stone
+  for(let k=0;k<3;k++)spawn(e.clientX/innerWidth+(Math.random()-.5)*.02,
+                            e.clientY/innerHeight+(Math.random()-.5)*.02);
+});
+
+// still mode: freeze a composed set of ripples + lens on the gem
+if(STILL){
+  mouse.x=.62;mouse.y=.5;
+  const preset=[[.35,.42,.35],[.5,.6,.7],[.66,.5,.15],[.42,.7,1.1],[.58,.35,.5]];
+  preset.forEach((p,i)=>{rip[i*3]=p[0];rip[i*3+1]=p[1];rip[i*3+2]=p[2];});
+}
+
+function resize(){
+  canvas.width=Math.min(innerWidth*devicePixelRatio,2400);
+  canvas.height=Math.min(innerHeight*devicePixelRatio,1400);
+  canvas.style.width=innerWidth+"px";canvas.style.height=innerHeight+"px";
+  gl.viewport(0,0,canvas.width,canvas.height);
+}
+addEventListener("resize",resize);resize();
+
+let t0=performance.now(),first=false;
+function frame(){
+  requestAnimationFrame(frame);
+  const t=(performance.now()-t0)/1000;
+  if(!STILL){
+    for(let i=0;i<MAXR;i++)if(rip[i*3+2]>=0){rip[i*3+2]+=1/60;if(rip[i*3+2]>3)rip[i*3+2]=-1;}
+    if(!hasPointer){ // idle: the page ripples on its own
+      mouse.x=.5+Math.sin(t*.4)*.18;mouse.y=.52+Math.cos(t*.31)*.12;
+      if(t-lastSpawn/1000>1.1){spawn(mouse.x,mouse.y);lastSpawn=performance.now();}
+    }
+  }
+  gl.uniform2f(uRes,canvas.width,canvas.height);
+  gl.uniform2f(uMouse,mouse.x,mouse.y);
+  gl.uniform1f(uTime,STILL?1.7:t);
+  gl.uniform3fv(uRip,rip);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  if(!first){first=true;setTimeout(()=>document.body.classList.add("ready"),STILL?0:500);}
+}
+frame();
+}
+</script>
+</body>
+</html>

@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>threejs-hero — award-site Three.js pages, one prompt away</title>
-<meta name="description" content="An open-source Claude Code skill that builds immersive award-site-style Three.js landing pages as single HTML files. Live demos + copy-paste prompts."/>
-<meta property="og:title" content="threejs-hero — award-site Three.js pages, one prompt away"/>
-<meta property="og:description" content="Open-source Claude Code skill: foggy hero worlds, glass product stages, dome galleries, scroll journeys with particle morphs. Live demos + copy-paste prompts."/>
+<title>threejs-hero — award-site motion pages, one prompt away</title>
+<meta name="description" content="An open-source Claude Code skill that builds award-site-style motion pages as single HTML files — Three.js worlds, liquid-glass shaders, springy poster walls. Live demos + copy-paste prompts."/>
+<meta property="og:title" content="threejs-hero — award-site motion pages, one prompt away"/>
+<meta property="og:description" content="Open-source Claude Code skill: 3D hero worlds, glass product stages, dome galleries, scroll journeys, liquid-glass ripple typography, draggable poster walls. Live demos + copy-paste prompts."/>
 <meta property="og:image" content="https://jiangyurong609.github.io/threejs-hero-skill/assets/sona-still.png"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%236da3ff' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23dfe9ff'/%3E%3C/svg%3E"/>
@@ -176,10 +176,11 @@ body.still .cta::before{animation:none}
 <header class="hero">
   <div class="hcol">
     <span class="badge enter d1">Open-source Claude Code skill · MIT</span>
-    <h1 class="enter d2">Award-site Three.js pages,<br/><b>one prompt away</b></h1>
-    <p class="sub enter d3">A skill that teaches your AI agent to build <b>immersive 3D landing pages</b> —
-      foggy living worlds, glass product stages, dome galleries, scroll-driven journeys with
-      particle morphs — as <b>single HTML files</b>, screenshot-verified until they're right.</p>
+    <h1 class="enter d2">Award-site motion pages,<br/><b>one prompt away</b></h1>
+    <p class="sub enter d3">A skill that teaches your AI agent to build <b>immersive motion pages</b> —
+      3D worlds, glass product stages, dome galleries, scroll journeys, <b>liquid-glass shader
+      typography, springy poster walls</b> — as <b>single HTML files</b>, screenshot-verified until
+      they're right. Three.js when it helps; raw WebGL or pure DOM when it doesn't.</p>
     <div class="ctarow enter d4">
       <a class="cta" href="https://github.com/jiangyurong609/threejs-hero-skill"><span>★ Star on GitHub</span></a>
       <button class="ghost-btn" data-copy="install"><span>⧉ Copy install command</span></button>
@@ -198,7 +199,9 @@ body.still .cta::before{animation:none}
     <div class="kick">Live examples</div>
     <h2>Pick a world. <b>Copy its prompt.</b></h2>
     <p class="sec-sub">Every card is a real page built by the skill — open the live demo, then paste the
-      prompt into Claude Code (with the skill installed) to build your own version for your brand.</p>
+      prompt into Claude Code (with the skill installed) to build your own version for your brand.
+      Prompts are round-trip tested: each one has been re-run from scratch against the skill and
+      produced a comparable page on a different brand.</p>
     <div class="chips" id="chips"></div>
   </div>
   <div class="grid" id="grid"></div>
@@ -293,10 +296,18 @@ const EXAMPLES=[
   tags:["conversion hero","demo modal","stat chips"],
   desc:"The same world re-themed for a real SaaS: call-wire limbs, message-spark creature, working demo modal, trust line, stat chips.",
   prompt:`Using the threejs-hero skill: apply the Sylva-style immersive 3D hero to my brand — [YOUR BRAND + one-line pitch]. Re-theme the fog world to the brand palette, make the creature and pulses match the product metaphor, add a conversion-first hero column (badge, headline, subhead, high-contrast CTA, trust line), working demo modal, and glass stat chips. Self-verify until perfect.`},
+ {id:"pura-liquid-hero",title:"PURA — liquid-glass typography",img:"assets/pura-still.png",
+  tags:["raw webgl","ripple shader","no three.js"],
+  desc:"OYLA-style editorial hero: a fragment shader turns the whole page liquid — cursor ripples and a glass lens warp giant serif type.",
+  prompt:`Using the threejs-hero skill: build a liquid-glass editorial hero — paint giant serif fashion typography and a glossy product orb on an offscreen canvas, then distort it with a raw-WebGL fragment shader: analytic cursor ripples (no FBO sim), a liquid-glass lens following the pointer, chromatic aberration, wet crest highlights. Crisp DOM nav and CTA above. Single HTML file, no libraries. Self-verify until perfect.`},
+ {id:"paperworks-posterwall",title:"Paperworks* — springy poster wall",img:"assets/paper-still.png",
+  tags:["pure dom","spring physics","infinite drag"],
+  desc:"MISC-style wall: drag an infinite grid of canvas-painted posters that flex like paper — spring tilts from drag lag, click to enlarge.",
+  prompt:`Using the threejs-hero skill: build a MISC-style draggable poster wall — an infinite wrapped grid of bold canvas-painted posters (seeded palettes, stacked display words, glyphs, catalog footers), momentum drag + wheel pan, springy paper-bend tilts driven by the drag lag with per-poster stiffness, click-vs-drag gating, and a backdrop-blur modal enlarge. Pure DOM/CSS physics, no WebGL, single HTML file. Self-verify until perfect.`},
 ];
 EXAMPLES[0].cat="Product";EXAMPLES[1].cat="Gallery";EXAMPLES[2].cat="Journey";
-EXAMPLES[3].cat="Hero";EXAMPLES[4].cat="Brand";
-const CATS=["All","Hero","Product","Gallery","Journey","Brand"];
+EXAMPLES[3].cat="Hero";EXAMPLES[4].cat="Brand";EXAMPLES[5].cat="Shader";EXAMPLES[6].cat="Interaction";
+const CATS=["All","Hero","Product","Gallery","Journey","Brand","Shader","Interaction"];
 const chipbar=document.getElementById("chips");
 let activeCat="All";
 for(const c of CATS){
