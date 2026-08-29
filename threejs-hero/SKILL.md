@@ -385,6 +385,43 @@ breakpoints minimum:
 - **`prefers-reduced-motion: reduce`** ⇒ treat as still mode (skip scan/entrance, no
   camera drift; ambient particles may remain).
 
+## Study-a-reference workflow ("make my site feel like this URL")
+
+When the user hands you a URL they love, don't guess — browse it, measure it, then
+rebuild its MOTION LANGUAGE as original code themed to the user's brand. Never copy
+the reference's code, assets, images, fonts-by-file, copy text, or branding: the
+deliverable is a study of its patterns applied to the user's content. Say so in the
+result.
+
+1. **Capture what it looks like.** Headless screenshots at desktop + phone width; for
+   scroll-driven sites use CDP (see §Self-verify) to shoot 0/25/50/75/100% scroll —
+   the storyboard IS the spec. If you have browser control, also record: what happens
+   on pointer move? on hover? on click? on wheel?
+2. **Read the tech signals.** The HTML is usually a thin shell — fetch it, extract
+   `<script src>` URLs, fetch those, and grep the BUNDLES:
+   ```bash
+   curl -sL -A "Mozilla/5.0" "$URL" -o page.html
+   grep -oiE '<script[^>]*src="[^"]*"' page.html          # then fetch each src
+   grep -oiE 'three|gsap|scrolltrigger|lenis|locomotive|curtains|pixi|\bogl\b|gl_FragColor|fragmentShader|createProgram|IntersectionObserver' \
+     bundle.js | tr 'A-Z' 'a-z' | sort | uniq -c | sort -rn
+   ```
+   Vite/webpack loaders may be tiny stubs that `import()` more chunks — if the grep
+   is thin on a clearly-3D site, trust the visual/runtime evidence over the grep.
+3. **Map observations → recipes.** Fullscreen canvas + fog + product center →
+   §glass product stage; page scrolls but camera moves → §scroll camera journey;
+   images wrapped on a sphere/drag → §dome gallery; typography warps under cursor →
+   §liquid-glass ripple; cards tilt with drag momentum → §springy poster wall;
+   layers swap under the pointer → §cursor mask reveal. Anything unmapped: describe
+   the motion precisely (what moves, on what input, with what easing) and synthesize
+   from the kit primitives.
+4. **Rebuild + verify.** Compose the mapped recipes, theme to the user's brand
+   palette/copy, then run the full screenshot loop AGAINST the reference storyboard —
+   compare frame by frame at the same scroll depths and fix the biggest visual gap
+   each pass.
+
+Prompt vocabulary: "clone the feel of <URL>" / "make my landing page feel like
+<URL>" → this workflow.
+
 ## Build order (follow strictly)
 
 1. Static DOM overlay + palette (verify with a screenshot before any 3D).

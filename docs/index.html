@@ -207,6 +207,31 @@ body.still .cta::before{animation:none}
   <div class="grid" id="grid"></div>
 </section>
 
+<section id="clone">
+  <div class="install">
+    <div>
+      <div class="kick">New — study any reference</div>
+      <h2 style="margin-bottom:14px">Love a site? <b>Clone its feel.</b></h2>
+      <p class="sec-sub" style="margin-bottom:12px">Paste a URL into the prompt. The agent browses the
+        reference, screenshots it at several scroll depths, greps its bundles for tech signals
+        (three.js? GSAP? shaders?), maps what it sees to the skill's recipes — then rebuilds the same
+        motion language as <b>original code themed to your brand</b>. It studies patterns; it never
+        copies the reference's code, assets, or content.</p>
+      <p class="sec-sub" style="margin-bottom:0">Works today in Claude Code with the skill installed —
+        the browser, the inspection, and the verification loop all run on your machine.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="code" style="white-space:pre-wrap">Using the threejs-hero skill: clone the feel of
+&lt;URL&gt; for my brand &lt;NAME + one-line pitch&gt; —
+browse it, storyboard it at several scroll depths,
+identify its motion patterns, then rebuild that
+motion language as an original single-file page
+with my brand's palette and copy.
+Self-verify until perfect.<button class="copychip" data-copy="study">⧉ Copy</button></div>
+    </div>
+  </div>
+</section>
+
 <section id="recipes">
   <div class="sec-head">
     <div class="kick">What the skill encodes</div>
@@ -379,6 +404,9 @@ document.addEventListener("click",e=>{
   if(p){const ex=EXAMPLES.find(x=>x.id===p.dataset.prompt);copyText(ex.prompt,"Prompt copied — paste it into Claude Code ✓");}
   const c=e.target.closest("[data-copy=install]");
   if(c)copyText(INSTALL,"Install commands copied ✓");
+  const s=e.target.closest("[data-copy=study]");
+  if(s)copyText(`Using the threejs-hero skill: clone the feel of <URL> for my brand <NAME + one-line pitch> — browse it, storyboard it at several scroll depths, identify its motion patterns, then rebuild that motion language as an original single-file page with my brand's palette and copy. Self-verify until perfect.`,
+    "Study prompt copied — add your URL + brand ✓");
 });
 
 // ---- cursor light on shader surfaces
