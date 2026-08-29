@@ -135,17 +135,42 @@ DOM overlay + still mode). Working references ship with the skill:
 `examples/sona-product-hero.html`, `examples/dome-gallery.html`,
 `examples/boreal-journey.html`.
 
+**The fake-bloom kit (use it in EVERY archetype — this is the gap between "correct"
+and "award-site").** Post-processing bloom needs addon passes; you don't need them.
+What actually makes the reference sites glow:
+
+- **Never render bare `Points`** — default points are SQUARES and read as confetti.
+  Always set `map` to a canvas radial-gradient sprite (white core → transparent edge,
+  ~3 stops, 64px) with `transparent, depthWrite:false` and usually additive blending.
+- **Baked halo texture = bloom.** A 512px canvas radial gradient with a bright ring
+  band (~stops .58/.68/.72/.76/.88, peak `rgba(...,.95)` at ~.72) on an additive plane
+  IS the glowing-ring/portal look (AETHER's halo, Igloo's portal) — one draw call,
+  works under SwiftShader.
+- **Fresnel shader for glass** — ~12-line `ShaderMaterial`
+  (`vF=pow(1-|dot(n,view)|,2.4)`, alpha `vF*.9+.04`, additive, DoubleSide,
+  `depthWrite:false`) over a faint dark fill shell + a `PointLight` INSIDE the object.
+  Bright live edges, clear center — real glass read with zero env maps.
+  ⚠️ Never `MeshPhysicalMaterial{transmission}`: it renders as an OPAQUE GRAY BLOB
+  under SwiftShader and muddy on weak GPUs.
+- **Sparkle sub-cloud** — alongside a big soft-particle cloud, a 2nd `Points` of ~500
+  larger glints whose positions COPY random indices of the main cloud each frame
+  (they morph for free) with slowly pulsing opacity.
+- **Film grain** — a fixed CSS overlay (`SVG feTurbulence` data-URI, `opacity:.06,
+  mix-blend-mode:overlay`) placed under the text layer; kills flat-gradient banding
+  and adds the cinematic finish every reference site has.
+- **Layered gradient atmosphere** behind the canvas (2–3 radial glows + a vertical
+  linear ramp), even for light themes — one flat bg color reads as dead space.
+
 - **Glass product stage** (AETHER:1-style earbuds/device hero) — the product floats
-  right of the copy column inside expanding sonar rings.
-  - ⚠️ **`transmission` is a trap**: `MeshPhysicalMaterial{transmission}` renders as an
-    OPAQUE GRAY BLOB under SwiftShader (and looks muddy on weak GPUs). Fake glass
-    instead: translucent front shell (`opacity:.16, roughness:.06, depthWrite:false`)
-    + a slightly larger `side:BackSide` rim shell (`opacity:.10`) + emissive innards
-    visible through both. Reads as glass everywhere, verifies headlessly.
-  - Sonar rings: 3 thin `RingGeometry(1.5,1.56)` in the screen plane, additive,
-    staggered phases, `scale 1→2.5` while `opacity (1-ph)*.34→0`. THIN is the trick —
-    a fat ring reads as a donut, not a pulse. In still mode give each ring a DIFFERENT
-    frozen phase so the screenshot shows the expanding sequence.
+  right of the copy column inside a breathing halo + expanding sonar rings: fresnel
+  glass case (kit above), emissive buds inside, interior point light, baked halo plane
+  + a wide soft nebula plane behind it, thin geometry rings expanding past the halo,
+  two counter-rotating wireframe icosahedron shells and a two-layer soft starfield in
+  the deep background.
+  - Sonar rings: 3 thin `RingGeometry(1.94,2.0)`, additive, staggered phases,
+    `scale 1→2.6` with `opacity (1-ph)²*.4`. THIN is the trick — a fat ring reads as
+    a donut, not a pulse. In still mode give each ring a DIFFERENT frozen phase so the
+    screenshot shows the expanding sequence.
   - Orbital arcs: tilted `EllipseCurve` lines (opacity ~.3) each carrying one small
     glowing dot at `getPointAt((t*speed+phase)%1)`.
   - Put product + rings + orbits in ONE `stage` group; reposition per breakpoint in
@@ -157,9 +182,12 @@ DOM overlay + still mode). Working references ship with the skill:
   - DENSITY sells it: ~100 cards in ~8 latitude bands (counts 9…19 per band),
     `position.setFromSphericalCoords(R≈9.5,…)` + `lookAt(0,0,0)`, card height ~1.55.
     Five sparse bands read as floating litter, not a dome.
-  - Card art: `CanvasTexture` fake site thumbnails (header bar + hero block + text
-    lines, ~20% dark cards, occasional accent dot) from a SEEDED rand — zero image
-    requests, deterministic screenshots.
+  - Card art: `CanvasTexture` fake site thumbnails from a SEEDED rand — zero image
+    requests, deterministic screenshots. Art-direct them like a portfolio, not a
+    wireframe: 4–5 templates (classic site, giant-typography poster, duotone
+    image-led, dark product spotlight), ~15% dark cards, occasional accent color, and
+    **bake a soft drop shadow into each canvas** (transparent padding +
+    `shadowBlur≈22, offsetY≈10`) — the shadows are what make cards pop off the void.
   - Drag orbit with inertia (`v*=.95` on release) + slow idle auto-rotate; disambiguate
     click vs drag by pointer travel (>6 px = drag, swallow the click).
   - Click focus: raycast → tween camera to `cardPos*0.62`, `lookAt(card)`, dim all
@@ -179,13 +207,20 @@ DOM overlay + still mode). Working references ship with the skill:
   - Captions over a bright fog world need a scrim (blurred dark glass pill), not just
     text-shadow — white-on-white particles swallow bare text.
 - **Particle shape morph** (Igloo's creature / gesture demos) — ONE `Points` cloud
-  (~6k), several precomputed `Float32Array` target sets (dome, ring/portal, stacked-
-  sphere creature…). Morph = per-particle smoothstepped lerp with a per-particle
-  stagger offset (`s=clamp((blend-stagger*.5)/.5)`), plus `sin(ss*π)`-weighted scatter
-  so particles loosen mid-flight and re-condense — that scatter is what makes it read
-  as dissolution rather than a cheap tween. Creature = union of ~9 offset spheres
-  (body/head/ears/paws/snout) sampled volumetrically; silhouette matters, detail
-  doesn't — particles forgive crude geometry.
+  (~6k, soft sprites + sparkle sub-cloud from the kit), several precomputed
+  `Float32Array` target sets. Morph = per-particle smoothstepped lerp with a
+  per-particle stagger offset (`s=clamp((blend-stagger*.5)/.5)`), plus
+  `sin(ss*π)`-weighted scatter so particles loosen mid-flight and re-condense — that
+  scatter is what makes it read as dissolution rather than a cheap tween.
+  - Don't sample smooth surfaces — QUANTIZE targets into structure: the igloo is
+    brick cells on a hemisphere (rows offset half-a-brick for a running bond, a
+    skipped wedge per bottom row forming the entrance arch, plus a half-cylinder
+    tunnel); the gaps between cells read as mortar seams. Structure > density.
+  - Creature = union of ~9 offset spheres (body/head/ears/paws/snout) sampled
+    volumetrically; silhouette matters, detail doesn't — particles forgive crude
+    geometry. During the ring act, back the particle torus with the baked halo plane
+    + a soft central burst (windowed by scroll: `w=clamp(1-|p-.5|*5)`) — the particles
+    alone are a shape; the halo makes it a PORTAL.
 - **Cursor mask reveal** (Lando-Norris-style) — mostly DOM: stack alternate hero
   layers (helmet/visor variants) and drive `clip-path:circle(r at x y)` (or a WebGL
   uv-discard mask) from the pointer; snap layer choice to pointer zones so elements

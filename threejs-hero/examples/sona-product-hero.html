@@ -11,9 +11,12 @@
 html,body{height:100%}
 body{background:#070b16;color:var(--ink);font:400 16px/1.5 "Quicksand",system-ui,-apple-system,sans-serif;overflow:hidden}
 .atmo{position:fixed;inset:0;z-index:0;pointer-events:none;background:
- radial-gradient(52% 44% at 50% 52%,rgba(46,86,190,.30),transparent 70%),
- radial-gradient(38% 30% at 22% 34%,rgba(56,110,255,.14),transparent 70%),
- radial-gradient(60% 34% at 50% 100%,rgba(20,42,110,.25),transparent 72%)}
+ radial-gradient(46% 40% at 64% 48%,rgba(56,102,220,.38),transparent 70%),
+ radial-gradient(30% 26% at 20% 30%,rgba(66,120,255,.16),transparent 70%),
+ radial-gradient(70% 40% at 50% 108%,rgba(24,50,130,.35),transparent 72%),
+ linear-gradient(180deg,#05070f 0%,#0a1122 55%,#070b16 100%)}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.055;mix-blend-mode:overlay;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
 .ghost{position:fixed;inset-inline:0;top:66%;z-index:0;pointer-events:none;text-align:center;
  font-weight:700;font-size:16vw;letter-spacing:.06em;color:rgba(120,150,220,.05);user-select:none}
 canvas#gl{position:fixed;inset:0;z-index:1;display:block}
@@ -101,6 +104,7 @@ body.still .cta::before{animation:none}
 <div class="ghost" aria-hidden="true">SONA</div>
 <canvas id="gl"></canvas>
 <div class="vignette"></div>
+<div class="grain" aria-hidden="true"></div>
 <div id="ui">
   <nav class="enter d1">
     <span class="logo" aria-hidden="true">S</span>
@@ -156,24 +160,53 @@ scene.fog=new THREE.Fog(WORLD,9,26);
 const camera=new THREE.PerspectiveCamera(42,1,.1,100);
 camera.position.set(0,.2,10.5);
 
-scene.add(new THREE.HemisphereLight(0x8fb0ff,0x0a1030,.9));
-const key=new THREE.DirectionalLight(0xbdd2ff,1.6);key.position.set(4,6,7);scene.add(key);
-const rim=new THREE.DirectionalLight(0x4d7dff,1.1);rim.position.set(-6,-2,-4);scene.add(rim);
+scene.add(new THREE.HemisphereLight(0x8fb0ff,0x0a1030,.8));
+const key=new THREE.DirectionalLight(0xbdd2ff,1.7);key.position.set(4,6,7);scene.add(key);
+const rim=new THREE.DirectionalLight(0x4d7dff,1.2);rim.position.set(-6,-2,-4);scene.add(rim);
 
-// ---- product stage (product + rings + orbits), shifted right of the copy on desktop
+// ---- baked glow textures (the "fake bloom" kit — works under SwiftShader)
+function softTex(){
+  const c=document.createElement("canvas");c.width=c.height=64;
+  const x=c.getContext("2d"),g=x.createRadialGradient(32,32,0,32,32,32);
+  g.addColorStop(0,"rgba(255,255,255,1)");g.addColorStop(.35,"rgba(255,255,255,.55)");g.addColorStop(1,"rgba(255,255,255,0)");
+  x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);
+}
+function haloTex(){
+  const s=512,c=document.createElement("canvas");c.width=c.height=s;
+  const x=c.getContext("2d"),g=x.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+  g.addColorStop(.40,"rgba(60,110,255,0)");
+  g.addColorStop(.58,"rgba(70,130,255,.10)");
+  g.addColorStop(.66,"rgba(120,170,255,.55)");
+  g.addColorStop(.70,"rgba(210,230,255,.95)");
+  g.addColorStop(.74,"rgba(120,170,255,.55)");
+  g.addColorStop(.84,"rgba(70,130,255,.10)");
+  g.addColorStop(1,"rgba(60,110,255,0)");
+  x.fillStyle=g;x.fillRect(0,0,s,s);return new THREE.CanvasTexture(c);
+}
+const SOFT=softTex(),HALO=haloTex();
+
+// ---- product stage (product + halo + rings + orbits), right of the copy on desktop
 const stage=new THREE.Group();scene.add(stage);
 
 // glass case: NO transmission (renders opaque gray under SwiftShader / weak GPUs).
-// Fake glass = translucent front shell + brighter back-side rim shell + glowing innards.
+// Real glass read = fresnel-edge shader shell (bright edges, clear center) over a
+// faint fill + glowing innards + an interior point light.
 const product=new THREE.Group();stage.add(product);
-const caseGeo=new THREE.CapsuleGeometry(.92,1.35,12,28);
-const glass=new THREE.Mesh(caseGeo,
-  new THREE.MeshPhysicalMaterial({color:0xcfe0ff,metalness:0,roughness:.06,transparent:true,opacity:.16,depthWrite:false}));
+const caseGeo=new THREE.CapsuleGeometry(.92,1.35,16,36);
+const fresnelMat=new THREE.ShaderMaterial({
+  uniforms:{c:{value:new THREE.Color(0x9ec5ff)},op:{value:0}},
+  vertexShader:`varying float vF;void main(){vec3 n=normalize(normalMatrix*normal);
+    vec4 mv=modelViewMatrix*vec4(position,1.);
+    vF=pow(1.-abs(dot(n,normalize(-mv.xyz))),2.4);gl_Position=projectionMatrix*mv;}`,
+  fragmentShader:`uniform vec3 c;uniform float op;varying float vF;
+    void main(){gl_FragColor=vec4(c,(vF*.9+.04)*op);}`,
+  transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+const glass=new THREE.Mesh(caseGeo,fresnelMat);
 glass.rotation.z=Math.PI/2;product.add(glass);
-const rimShell=new THREE.Mesh(caseGeo,
-  new THREE.MeshBasicMaterial({color:0x8fb4ff,transparent:true,opacity:.10,side:THREE.BackSide,depthWrite:false}));
-rimShell.rotation.z=Math.PI/2;rimShell.scale.setScalar(1.03);product.add(rimShell);
-const budMat=new THREE.MeshStandardMaterial({color:0x39476e,roughness:.42,metalness:.1,emissive:0x1a2c66,emissiveIntensity:.45});
+const fill=new THREE.Mesh(caseGeo,
+  new THREE.MeshBasicMaterial({color:0x16223f,transparent:true,opacity:.30,depthWrite:false}));
+fill.rotation.z=Math.PI/2;fill.scale.setScalar(.985);product.add(fill);
+const budMat=new THREE.MeshStandardMaterial({color:0x46578a,roughness:.35,metalness:.15,emissive:0x2b4ba8,emissiveIntensity:.55});
 for(const sx of [-1,1]){
   const bud=new THREE.Group();
   const head=new THREE.Mesh(new THREE.SphereGeometry(.27,20,16),budMat);bud.add(head);
@@ -181,15 +214,26 @@ for(const sx of [-1,1]){
   stem.position.set(.1*sx,-.36,0);stem.rotation.z=.28*sx;bud.add(stem);
   bud.position.set(.5*sx,.02,0);product.add(bud);
 }
+const inner=new THREE.PointLight(0x7fb0ff,8,7);inner.position.set(0,.1,.6);product.add(inner);
 product.position.y=.15;
 
-// ---- sonar ring pulses (screen-plane, thin + additive)
+// ---- the AETHER halo: baked glow-ring plane + a wide nebula glow behind the product
+const halo=new THREE.Mesh(new THREE.PlaneGeometry(5.6,5.6),
+  new THREE.MeshBasicMaterial({map:HALO,transparent:true,opacity:0,
+    blending:THREE.AdditiveBlending,depthWrite:false}));
+halo.position.set(0,.15,-.4);stage.add(halo);
+const nebula=new THREE.Mesh(new THREE.PlaneGeometry(9,9),
+  new THREE.MeshBasicMaterial({map:SOFT,color:0x2a55c0,transparent:true,opacity:0,
+    blending:THREE.AdditiveBlending,depthWrite:false}));
+nebula.position.set(0,.15,-1.2);stage.add(nebula);
+
+// ---- sonar ring pulses (thin geometry rings expanding past the halo)
 const rings=[];
 for(let i=0;i<3;i++){
-  const r=new THREE.Mesh(new THREE.RingGeometry(1.5,1.56,90),
-    new THREE.MeshBasicMaterial({color:0x4d8dff,transparent:true,opacity:0,side:THREE.DoubleSide,
+  const r=new THREE.Mesh(new THREE.RingGeometry(1.94,2.0,90),
+    new THREE.MeshBasicMaterial({color:0x6da3ff,transparent:true,opacity:0,side:THREE.DoubleSide,
       blending:THREE.AdditiveBlending,depthWrite:false}));
-  r.position.z=.2;r.userData.off=i/3;stage.add(r);rings.push(r);
+  r.position.set(0,.15,.2);r.userData.off=i/3;stage.add(r);rings.push(r);
 }
 
 // ---- orbital arcs + traveling dots
@@ -206,18 +250,29 @@ for(const [rx,rz,tilt] of [[3.4,2.5,.35],[4.4,3.1,-.5],[5.6,3.8,.15]]){
   orbits.push({grp,dot,rx,rz,speed:.05+Math.random()*.04,phase:Math.random()*Math.PI*2});
 }
 
-// ---- wireframe geodesic backdrop
+// ---- wireframe geodesic backdrop (two counter-rotating shells)
 const geo=new THREE.Mesh(new THREE.IcosahedronGeometry(13,2),
-  new THREE.MeshBasicMaterial({color:0x2c4a8f,wireframe:true,transparent:true,opacity:.07}));
+  new THREE.MeshBasicMaterial({color:0x38589e,wireframe:true,transparent:true,opacity:.1}));
 geo.position.z=-6;scene.add(geo);
+const geo2=new THREE.Mesh(new THREE.IcosahedronGeometry(8.5,1),
+  new THREE.MeshBasicMaterial({color:0x2c4a8f,wireframe:true,transparent:true,opacity:.06}));
+geo2.position.z=-5;scene.add(geo2);
 
-// ---- pointer particles
+// ---- pointer particles — soft round sprites, never square points
 const N=700,pp=new Float32Array(N*3),vel=new Float32Array(N);
 for(let i=0;i<N;i++){pp[i*3]=(Math.random()-.5)*16;pp[i*3+1]=(Math.random()-.5)*9;pp[i*3+2]=-2-Math.random()*8;vel[i]=.1+Math.random()*.3;}
 const pgeo=new THREE.BufferGeometry();pgeo.setAttribute("position",new THREE.BufferAttribute(pp,3));
-const pts=new THREE.Points(pgeo,new THREE.PointsMaterial({color:0x7fa8ff,size:.045,transparent:true,opacity:.7,
+const pts=new THREE.Points(pgeo,new THREE.PointsMaterial({color:0x8fb4ff,size:.09,map:SOFT,transparent:true,opacity:.8,
   blending:THREE.AdditiveBlending,depthWrite:false}));
 scene.add(pts);
+// deep static starfield (two size layers for depth)
+for(const [n,size,op,spread] of [[900,.05,.5,1],[140,.14,.75,1]]){
+  const a=new Float32Array(n*3);
+  for(let i=0;i<n;i++){a[i*3]=(Math.random()-.5)*34*spread;a[i*3+1]=(Math.random()-.5)*20*spread;a[i*3+2]=-4-Math.random()*14;}
+  const g2=new THREE.BufferGeometry();g2.setAttribute("position",new THREE.BufferAttribute(a,3));
+  scene.add(new THREE.Points(g2,new THREE.PointsMaterial({color:0xa9c4ff,size,map:SOFT,transparent:true,
+    opacity:op,blending:THREE.AdditiveBlending,depthWrite:false})));
+}
 
 // ---- pointer / touch
 const pointer={x:0,y:0};let hasPointer=false;
@@ -273,8 +328,13 @@ function frame(){
   // intro scan: fade world in over 1.4s (elapsed-time driven)
   const k=STILL?1:Math.min(1,Math.max(0,(t-.15)/1.4));
   const kk=k*k*(3-2*k);
-  glass.material.opacity=.16*kk;rimShell.material.opacity=.10*kk;
-  geo.material.opacity=.07*kk;
+  fresnelMat.uniforms.op.value=kk;
+  fill.material.opacity=.30*kk;
+  geo.material.opacity=.1*kk;geo2.material.opacity=.06*kk;
+  const breathe=soundOn?1+Math.sin(t*3.2)*.1:1+(STILL?0:Math.sin(t*1.1)*.03);
+  halo.material.opacity=.85*kk;halo.scale.setScalar(breathe);
+  nebula.material.opacity=.5*kk;
+  inner.intensity=8*kk*(soundOn?1.5+Math.sin(t*3.2)*.5:1);
 
   if(!hasPointer&&!STILL){pointer.x=Math.sin(t*.22)*.35;pointer.y=Math.cos(t*.17)*.2;}
   camera.position.x+=(pointer.x*1.0-camera.position.x)*.045;
@@ -284,17 +344,18 @@ function frame(){
   product.rotation.y=STILL?.5:t*.25;
   product.position.y=.15+(STILL?0:Math.sin(t*.9)*.07);
 
-  const amp=soundOn?1.6:1;
+  const amp=soundOn?1.5:1;
   for(const r of rings){
-    const ph=STILL?(.2+r.userData.off*.75):((t*.28+r.userData.off)%1);
-    r.scale.setScalar(1+ph*1.5*amp);
-    r.material.opacity=(1-ph)*.34*kk*(soundOn?1.4:1);
+    const ph=STILL?(.18+r.userData.off*.8):((t*.26+r.userData.off)%1);
+    r.scale.setScalar(1+ph*1.6*amp);
+    r.material.opacity=(1-ph)*(1-ph)*.4*kk*(soundOn?1.4:1);
   }
   for(const o of orbits){
     const u=STILL?o.phase:(t*o.speed+o.phase);
     o.dot.position.set(Math.cos(u*Math.PI*2)*o.rx,0,Math.sin(u*Math.PI*2)*o.rz);
   }
   geo.rotation.y=t*.02;geo.rotation.x=t*.013;
+  geo2.rotation.y=-t*.014;geo2.rotation.z=t*.01;
 
   const pos=pgeo.attributes.position.array;
   for(let i=0;i<N;i++){
