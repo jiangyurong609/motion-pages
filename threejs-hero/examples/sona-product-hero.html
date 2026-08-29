@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SONA · 1 — Crafted for pure clarity</title>
+<meta name="description" content="SONA · 1 wireless earbuds — glass product hero demo (Three.js skill example)."/>
+<style>
+:root{--e:cubic-bezier(.22,1,.36,1);--ink:#eaf0ff;--mut:#8ea0c4;--acc:#4d7dff;--acc2:#7fb2ff}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:#070b16;color:var(--ink);font:400 16px/1.5 "Quicksand",system-ui,-apple-system,sans-serif;overflow:hidden}
+.atmo{position:fixed;inset:0;z-index:0;pointer-events:none;background:
+ radial-gradient(52% 44% at 50% 52%,rgba(46,86,190,.30),transparent 70%),
+ radial-gradient(38% 30% at 22% 34%,rgba(56,110,255,.14),transparent 70%),
+ radial-gradient(60% 34% at 50% 100%,rgba(20,42,110,.25),transparent 72%)}
+.ghost{position:fixed;inset-inline:0;top:66%;z-index:0;pointer-events:none;text-align:center;
+ font-weight:700;font-size:16vw;letter-spacing:.06em;color:rgba(120,150,220,.05);user-select:none}
+canvas#gl{position:fixed;inset:0;z-index:1;display:block}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 90% at 50% 46%,transparent 55%,rgba(2,4,10,.55) 100%)}
+#ui{position:fixed;inset:0;z-index:2;pointer-events:none}
+#ui a,#ui button{pointer-events:auto}
+.px{position:absolute;inset:0;pointer-events:none}
+/* nav */
+nav{position:absolute;top:22px;inset-inline:0;margin-inline:auto;width:fit-content;display:flex;gap:4px;align-items:center;
+ padding:7px 9px;border-radius:999px;background:rgba(10,16,32,.5);border:1px solid rgba(140,170,255,.14);
+ backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);pointer-events:auto}
+nav .logo{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:11px;background:#fff;color:#0a1226;
+ font-weight:700;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.4);transition:.35s var(--e)}
+nav .logo:hover{rotate:-6deg;scale:1.05}
+nav a{display:flex;gap:7px;align-items:center;padding:9px 14px;border-radius:999px;color:var(--mut);text-decoration:none;
+ font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;transition:.35s var(--e);position:relative;overflow:hidden}
+nav a svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.6}
+nav a:hover{color:var(--ink);background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
+ border:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 16px rgba(0,0,0,.35);translate:0 -1px}
+nav a.active{background:#fff;color:#0a1226;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+/* hero column */
+.hero{position:absolute;left:6vw;top:50%;translate:0 -50%;max-width:520px}
+.badge{display:inline-flex;gap:8px;align-items:center;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--acc2);
+ padding:7px 13px;border:1px solid rgba(90,140,255,.3);border-radius:999px;background:rgba(30,60,140,.16)}
+h1{font-size:clamp(34px,4.1vw,58px);line-height:1.08;font-weight:500;margin:20px 0 14px}
+h1 b{font-weight:600;background:linear-gradient(92deg,#9db9ff,#4d7dff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-size:15.5px;color:var(--mut);max-width:420px}
+.sub b{color:var(--ink);font-weight:600}
+.ctarow{display:flex;gap:14px;align-items:center;margin-top:26px;flex-wrap:wrap}
+.cta{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:9px;padding:15px 26px;border-radius:999px;border:0;cursor:pointer;
+ color:#fff;font:600 15px/1 inherit;letter-spacing:.02em;text-decoration:none;
+ background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 40%,rgba(0,0,0,.25)),linear-gradient(92deg,#3b66e0,#5d8bff);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 10px 30px -8px rgba(70,120,255,.55);transition:.4s var(--e)}
+.cta::before{content:"";position:absolute;top:-40%;bottom:-40%;left:-45%;width:42%;rotate:14deg;filter:blur(5px);
+ background:linear-gradient(90deg,transparent,rgba(210,225,255,.5),transparent);animation:sheen 5.5s infinite}
+@keyframes sheen{0%,55%{left:-45%}85%,100%{left:115%}}
+.cta::after{content:"";position:absolute;inset:0;opacity:0;transition:opacity .4s var(--e);
+ background:radial-gradient(120px 90px at var(--mx,50%) var(--my,50%),rgba(255,255,255,.28),transparent 60%),
+ radial-gradient(115% 95% at 50% 132%,rgba(120,170,255,.55),transparent 58%)}
+.cta:hover{translate:0 -2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 16px 42px -8px rgba(90,140,255,.7),inset 0 -12px 26px -14px rgba(140,180,255,.6)}
+.cta:hover::after{opacity:1}
+.cta:active{scale:.97}
+.cta>*{position:relative;z-index:2}
+.snd{display:inline-flex;align-items:center;gap:9px;padding:13px 20px;border-radius:999px;cursor:pointer;
+ background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.10));border:1px solid rgba(150,180,255,.22);
+ backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);color:var(--ink);font:600 13px/1 inherit;transition:.4s var(--e);
+ box-shadow:inset 0 -9px 18px -6px rgba(255,255,255,.14)}
+.snd:hover{scale:1.05;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.16))}
+.snd .dot{width:8px;height:8px;border-radius:50%;background:#5d8bff;box-shadow:0 0 10px #5d8bff;transition:.3s}
+.snd.on .dot{background:#7dffc9;box-shadow:0 0 12px #7dffc9}
+.trust{display:flex;gap:18px;margin-top:16px;font-size:13px;color:var(--mut);flex-wrap:wrap}
+.trust span::before{content:"✓ ";color:var(--acc2)}
+/* stat chips */
+.chips{position:absolute;right:5vw;bottom:7vh;display:flex;gap:12px}
+.chip{padding:13px 18px;border-radius:16px;background:rgba(14,22,44,.55);border:1px solid rgba(140,170,255,.16);
+ backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.chip .k{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.chip .v{font-size:21px;font-weight:700;margin-top:2px}
+.chip .v i{font-style:normal;font-size:12px;color:var(--mut);font-weight:500}
+/* entrance */
+.enter{opacity:0;translate:0 18px;transition:opacity .9s var(--e),translate .9s var(--e)}
+body.ready .enter{opacity:1;translate:0 0}
+.d1{transition-delay:.1s}.d2{transition-delay:.25s}.d3{transition-delay:.4s}.d4{transition-delay:.55s}.d5{transition-delay:.7s}
+body.settled .enter{transition-delay:0s}
+body.still .enter{transition:none;opacity:1;translate:0 0}
+body.still .cta::before{animation:none}
+@media (prefers-reduced-motion:reduce){.cta::before{animation:none}.enter{transition:none;opacity:1;translate:0 0}}
+/* responsive */
+@media (max-width:740px){
+ nav{left:4%;right:4%;margin-inline:0;width:auto;justify-content:space-between}
+ nav a.mid{display:none}
+ .hero{left:6vw;right:6vw;max-width:none}
+ .ghost{font-size:24vw;top:72%}
+ .chips{left:6vw;right:auto;bottom:4vh;flex-direction:column;gap:8px}
+ .chip{padding:10px 14px}
+}
+@media (min-width:741px) and (max-width:1180px){
+ .hero{max-width:440px}
+ .chips{bottom:5vh}
+}
+</style>
+</head>
+<body>
+<div class="atmo"></div>
+<div class="ghost" aria-hidden="true">SONA</div>
+<canvas id="gl"></canvas>
+<div class="vignette"></div>
+<div id="ui">
+  <nav class="enter d1">
+    <span class="logo" aria-hidden="true">S</span>
+    <a class="mid active" href="#hero"><svg viewBox="0 0 24 24"><path d="M3 12l9-8 9 8v9H3z"/></svg>Home</a>
+    <a class="mid" href="#sound"><svg viewBox="0 0 24 24"><path d="M4 10v4h4l6 5V5l-6 5H4z"/></svg>Sound</a>
+    <a class="mid" href="#specs"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Specs</a>
+    <a href="#order" style="border:1px solid rgba(150,180,255,.3)"><svg viewBox="0 0 24 24"><path d="M6 7h12l1 13H5L6 7zM9 7a3 3 0 016 0"/></svg>Pre-order</a>
+  </nav>
+  <div class="px" data-px="14">
+    <div class="hero">
+      <span class="badge enter d2" id="hero">Wireless audio · Gen 1</span>
+      <h1 class="enter d2">Crafted for<br/><b>pure clarity</b></h1>
+      <p class="sub enter d3">Meticulous, future-forward acoustics in a sealed glass shell.
+        <b>34-hour</b> charge, <b>adaptive ANC</b>, and a fit mapped to 4,000 ear scans.</p>
+      <div class="ctarow enter d4">
+        <a class="cta" href="#order" id="order"><span>Pre-order — ships in 2 weeks →</span></a>
+        <button class="snd" id="snd" aria-label="Toggle ambient sound" aria-pressed="false">
+          <span class="dot"></span><span id="sndlab">Sound: off</span>
+        </button>
+      </div>
+      <div class="trust enter d5"><span>Free returns for 60 days</span><span>2-year warranty</span></div>
+    </div>
+  </div>
+  <div class="px" data-px="26">
+    <div class="chips enter d5" id="specs">
+      <div class="chip"><div class="k">Playback</div><div class="v">34<i> hrs</i></div></div>
+      <div class="chip"><div class="k">Noise cut</div><div class="v">−42<i> dB</i></div></div>
+      <div class="chip"><div class="k">Weight</div><div class="v">3.9<i> g</i></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// failsafe: never leave UI hidden if WebGL/module load dies
+setTimeout(()=>document.body.classList.add("ready","settled"),3000);
+</script>
+<script type="module">
+const qs=new URLSearchParams(location.search);
+const STILL=qs.has("still")||matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(STILL)document.body.classList.add("still","ready","settled");
+
+let THREE;
+try{THREE=await import("./vendor/three.module.js");}
+catch{THREE=await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js");}
+
+const WORLD=0x070b16;
+const canvas=document.getElementById("gl");
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+const scene=new THREE.Scene();
+scene.fog=new THREE.Fog(WORLD,9,26);
+const camera=new THREE.PerspectiveCamera(42,1,.1,100);
+camera.position.set(0,.2,10.5);
+
+scene.add(new THREE.HemisphereLight(0x8fb0ff,0x0a1030,.9));
+const key=new THREE.DirectionalLight(0xbdd2ff,1.6);key.position.set(4,6,7);scene.add(key);
+const rim=new THREE.DirectionalLight(0x4d7dff,1.1);rim.position.set(-6,-2,-4);scene.add(rim);
+
+// ---- product stage (product + rings + orbits), shifted right of the copy on desktop
+const stage=new THREE.Group();scene.add(stage);
+
+// glass case: NO transmission (renders opaque gray under SwiftShader / weak GPUs).
+// Fake glass = translucent front shell + brighter back-side rim shell + glowing innards.
+const product=new THREE.Group();stage.add(product);
+const caseGeo=new THREE.CapsuleGeometry(.92,1.35,12,28);
+const glass=new THREE.Mesh(caseGeo,
+  new THREE.MeshPhysicalMaterial({color:0xcfe0ff,metalness:0,roughness:.06,transparent:true,opacity:.16,depthWrite:false}));
+glass.rotation.z=Math.PI/2;product.add(glass);
+const rimShell=new THREE.Mesh(caseGeo,
+  new THREE.MeshBasicMaterial({color:0x8fb4ff,transparent:true,opacity:.10,side:THREE.BackSide,depthWrite:false}));
+rimShell.rotation.z=Math.PI/2;rimShell.scale.setScalar(1.03);product.add(rimShell);
+const budMat=new THREE.MeshStandardMaterial({color:0x39476e,roughness:.42,metalness:.1,emissive:0x1a2c66,emissiveIntensity:.45});
+for(const sx of [-1,1]){
+  const bud=new THREE.Group();
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.27,20,16),budMat);bud.add(head);
+  const stem=new THREE.Mesh(new THREE.CapsuleGeometry(.1,.4,6,10),budMat);
+  stem.position.set(.1*sx,-.36,0);stem.rotation.z=.28*sx;bud.add(stem);
+  bud.position.set(.5*sx,.02,0);product.add(bud);
+}
+product.position.y=.15;
+
+// ---- sonar ring pulses (screen-plane, thin + additive)
+const rings=[];
+for(let i=0;i<3;i++){
+  const r=new THREE.Mesh(new THREE.RingGeometry(1.5,1.56,90),
+    new THREE.MeshBasicMaterial({color:0x4d8dff,transparent:true,opacity:0,side:THREE.DoubleSide,
+      blending:THREE.AdditiveBlending,depthWrite:false}));
+  r.position.z=.2;r.userData.off=i/3;stage.add(r);rings.push(r);
+}
+
+// ---- orbital arcs + traveling dots
+const orbits=[];
+for(const [rx,rz,tilt] of [[3.4,2.5,.35],[4.4,3.1,-.5],[5.6,3.8,.15]]){
+  const pts=new THREE.EllipseCurve(0,0,rx,rz,0,Math.PI*2).getPoints(160)
+    .map(p=>new THREE.Vector3(p.x,0,p.y));
+  const g=new THREE.BufferGeometry().setFromPoints(pts);
+  const line=new THREE.Line(g,new THREE.LineBasicMaterial({color:0x40639e,transparent:true,opacity:.34}));
+  const grp=new THREE.Group();grp.add(line);grp.rotation.x=Math.PI/2.4;grp.rotation.z=tilt;grp.position.y=.15;
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(.05,10,8),
+    new THREE.MeshBasicMaterial({color:0x9dc2ff}));
+  grp.add(dot);stage.add(grp);
+  orbits.push({grp,dot,rx,rz,speed:.05+Math.random()*.04,phase:Math.random()*Math.PI*2});
+}
+
+// ---- wireframe geodesic backdrop
+const geo=new THREE.Mesh(new THREE.IcosahedronGeometry(13,2),
+  new THREE.MeshBasicMaterial({color:0x2c4a8f,wireframe:true,transparent:true,opacity:.07}));
+geo.position.z=-6;scene.add(geo);
+
+// ---- pointer particles
+const N=700,pp=new Float32Array(N*3),vel=new Float32Array(N);
+for(let i=0;i<N;i++){pp[i*3]=(Math.random()-.5)*16;pp[i*3+1]=(Math.random()-.5)*9;pp[i*3+2]=-2-Math.random()*8;vel[i]=.1+Math.random()*.3;}
+const pgeo=new THREE.BufferGeometry();pgeo.setAttribute("position",new THREE.BufferAttribute(pp,3));
+const pts=new THREE.Points(pgeo,new THREE.PointsMaterial({color:0x7fa8ff,size:.045,transparent:true,opacity:.7,
+  blending:THREE.AdditiveBlending,depthWrite:false}));
+scene.add(pts);
+
+// ---- pointer / touch
+const pointer={x:0,y:0};let hasPointer=false;
+addEventListener("pointermove",e=>{
+  if(innerWidth<=740)return;
+  hasPointer=true;
+  pointer.x=(e.clientX/innerWidth)*2-1;pointer.y=(e.clientY/innerHeight)*2-1;
+  for(const el of document.querySelectorAll(".cta,nav")){
+    const r=el.getBoundingClientRect();
+    el.style.setProperty("--mx",((e.clientX-r.left)/r.width*100)+"%");
+    el.style.setProperty("--my",((e.clientY-r.top)/r.height*100)+"%");
+  }
+  for(const px of document.querySelectorAll(".px")){
+    const k=+px.dataset.px;
+    px.style.translate=`${-pointer.x*k}px ${-pointer.y*k*.6}px`;
+  }
+});
+
+// ---- sound toggle (generated hum, audio-reactive rings)
+let audio=null,gain=null,soundOn=false;
+document.getElementById("snd").addEventListener("click",e=>{
+  soundOn=!soundOn;
+  e.currentTarget.classList.toggle("on",soundOn);
+  e.currentTarget.setAttribute("aria-pressed",String(soundOn));
+  document.getElementById("sndlab").textContent="Sound: "+(soundOn?"on":"off");
+  if(soundOn&&!audio){
+    audio=new (window.AudioContext||window.webkitAudioContext)();
+    gain=audio.createGain();gain.gain.value=0;gain.connect(audio.destination);
+    for(const[f,g] of [[110,.05],[220,.028],[329,.014]]){
+      const o=audio.createOscillator();o.type="sine";o.frequency.value=f;
+      const og=audio.createGain();og.gain.value=g;o.connect(og);og.connect(gain);o.start();
+    }
+  }
+  if(audio)gain.gain.linearRampToValueAtTime(soundOn?1:0,audio.currentTime+.6);
+});
+
+// ---- resize + loop
+function resize(){
+  renderer.setSize(innerWidth,innerHeight,false);
+  camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+  // desktop: product sits right of the copy; phone: smaller, floating above the copy
+  if(innerWidth<=740){stage.position.set(0,2.1,0);stage.scale.setScalar(.62);}
+  else if(innerWidth<=1180){stage.position.set(1.6,.3,0);stage.scale.setScalar(.8);}
+  else{stage.position.set(2.3,0,0);stage.scale.setScalar(1);}
+}
+addEventListener("resize",resize);resize();
+
+const clock=new THREE.Clock();
+let firstFrame=false;
+function frame(){
+  requestAnimationFrame(frame);
+  const t=clock.getElapsedTime(),dt=Math.min(clock.getDelta(),.05)+.016;
+  // intro scan: fade world in over 1.4s (elapsed-time driven)
+  const k=STILL?1:Math.min(1,Math.max(0,(t-.15)/1.4));
+  const kk=k*k*(3-2*k);
+  glass.material.opacity=.16*kk;rimShell.material.opacity=.10*kk;
+  geo.material.opacity=.07*kk;
+
+  if(!hasPointer&&!STILL){pointer.x=Math.sin(t*.22)*.35;pointer.y=Math.cos(t*.17)*.2;}
+  camera.position.x+=(pointer.x*1.0-camera.position.x)*.045;
+  camera.position.y+=(.2-pointer.y*.6-camera.position.y)*.045;
+  camera.lookAt(0,.1,0);
+
+  product.rotation.y=STILL?.5:t*.25;
+  product.position.y=.15+(STILL?0:Math.sin(t*.9)*.07);
+
+  const amp=soundOn?1.6:1;
+  for(const r of rings){
+    const ph=STILL?(.2+r.userData.off*.75):((t*.28+r.userData.off)%1);
+    r.scale.setScalar(1+ph*1.5*amp);
+    r.material.opacity=(1-ph)*.34*kk*(soundOn?1.4:1);
+  }
+  for(const o of orbits){
+    const u=STILL?o.phase:(t*o.speed+o.phase);
+    o.dot.position.set(Math.cos(u*Math.PI*2)*o.rx,0,Math.sin(u*Math.PI*2)*o.rz);
+  }
+  geo.rotation.y=t*.02;geo.rotation.x=t*.013;
+
+  const pos=pgeo.attributes.position.array;
+  for(let i=0;i<N;i++){
+    pos[i*3+1]+=vel[i]*dt*.6;
+    pos[i*3]+=Math.sin(t+i)*dt*.05+(pointer.x*7-pos[i*3])*dt*.01;
+    if(pos[i*3+1]>5)pos[i*3+1]=-5;
+  }
+  pgeo.attributes.position.needsUpdate=true;
+
+  renderer.render(scene,camera);
+  if(!firstFrame){
+    firstFrame=true;
+    setTimeout(()=>document.body.classList.add("ready"),STILL?0:900);
+    setTimeout(()=>document.body.classList.add("settled"),STILL?0:2500);
+  }
+}
+frame();
+</script>
+</body>
+</html>

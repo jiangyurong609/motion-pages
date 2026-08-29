@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>BOREAL — scroll down to discover</title>
+<meta name="description" content="Scroll-driven camera journey over foggy terrain with particle shape morphs — Three.js skill example."/>
+<style>
+:root{--e:cubic-bezier(.22,1,.36,1);--ink:#f4f6f8;--mut:#9aa4ad}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#c9ced3;color:var(--ink);font:400 15px/1.6 "IBM Plex Mono","SF Mono",ui-monospace,monospace}
+#track{height:500vh}
+canvas#gl{position:fixed;inset:0;z-index:1;display:block}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 95% at 50% 45%,transparent 55%,rgba(60,70,80,.35) 100%)}
+#ui{position:fixed;inset:0;z-index:2;pointer-events:none}
+.brand{position:absolute;top:30px;left:34px;font-weight:700;font-size:22px;letter-spacing:.06em;color:#fff;text-shadow:0 2px 14px rgba(20,30,40,.4)}
+.brand small{display:block;font-weight:400;font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,.75);margin-top:4px}
+.mission{position:absolute;top:30px;right:34px;max-width:230px;text-align:right;font-size:10.5px;letter-spacing:.08em;color:rgba(255,255,255,.85);text-shadow:0 1px 8px rgba(20,30,40,.4)}
+.mission b{display:block;margin-bottom:6px;color:#fff}
+.hint{position:absolute;bottom:26px;left:34px;font-size:10.5px;letter-spacing:.12em;color:rgba(255,255,255,.85);text-shadow:0 1px 8px rgba(20,30,40,.4)}
+.bar{position:absolute;right:34px;bottom:26px;width:120px;height:2px;background:rgba(255,255,255,.25)}
+.bar i{display:block;height:100%;width:0;background:#fff}
+/* per-segment captions */
+.seg{position:absolute;left:50%;bottom:12vh;translate:-50% 0;text-align:center;max-width:560px;padding:18px 28px;
+ border-radius:20px;background:rgba(30,38,46,.38);border:1px solid rgba(255,255,255,.12);
+ backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+ opacity:0;translate:-50% 16px;transition:opacity .6s var(--e),translate .6s var(--e);
+ text-shadow:0 2px 16px rgba(20,30,40,.5)}
+.seg h2{font-size:clamp(22px,3vw,34px);font-weight:600;letter-spacing:.04em;color:#fff}
+.seg p{margin-top:8px;font-size:12.5px;color:rgba(255,255,255,.85);letter-spacing:.04em}
+.seg.on{opacity:1;translate:-50% 0}
+body.still .seg{transition:none}
+@media (max-width:740px){.mission{display:none}.brand{left:6vw}.hint{left:6vw}.bar{right:6vw}}
+</style>
+</head>
+<body>
+<div id="track"></div>
+<canvas id="gl"></canvas>
+<div class="vignette"></div>
+<div id="ui">
+  <div class="brand">BOREAL<small>// field survey © 2026</small></div>
+  <div class="mission"><b>////// Manifesto</b>Our mission is to map the quiet places — terrain, signal, and the creatures that live between.</div>
+  <div class="hint" id="hint">Scroll down to discover ▾</div>
+  <div class="bar"><i id="prog"></i></div>
+  <div class="seg" data-seg="0"><h2>The shelter</h2><p>A dome assembled from 6,000 points of light, holding against the fog.</p></div>
+  <div class="seg" data-seg="1"><h2>The signal</h2><p>Every survey begins with a ring — one pulse, sent into the white.</p></div>
+  <div class="seg" data-seg="2"><h2>The resident</h2><p>Something answers. It has always lived here; we only just learned to look.</p></div>
+</div>
+
+<script>setTimeout(()=>document.body.classList.add("ready"),3000);</script>
+<script type="module">
+const qs=new URLSearchParams(location.search);
+const STILL=qs.has("still")||matchMedia("(prefers-reduced-motion: reduce)").matches;
+const FORCE_P=qs.has("p")?Math.max(0,Math.min(1,parseFloat(qs.get("p")))):null;
+if(STILL)document.body.classList.add("still","ready");
+
+let THREE;
+try{THREE=await import("./vendor/three.module.js");}
+catch{THREE=await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js");}
+
+const WORLD=0xc9ced3;
+const canvas=document.getElementById("gl");
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+const scene=new THREE.Scene();
+scene.fog=new THREE.Fog(WORLD,6,30);
+const camera=new THREE.PerspectiveCamera(46,1,.1,120);
+
+scene.add(new THREE.HemisphereLight(0xf2f5f8,0x6a747c,1.15));
+const sun=new THREE.DirectionalLight(0xffffff,.9);sun.position.set(-5,8,4);scene.add(sun);
+
+let seed=11;const rand=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
+
+// ---- foggy terrain (value-noise displaced plane)
+function vnoise(x,z){
+  let v=0,a=1,f=.08;
+  for(let o=0;o<4;o++){
+    const xi=Math.floor(x*f),zi=Math.floor(z*f),xf=x*f-xi,zf=z*f-zi;
+    const h=(i,k)=>{const n=Math.sin(i*127.1+k*311.7)*43758.5453;return n-Math.floor(n);};
+    const sx=xf*xf*(3-2*xf),sz=zf*zf*(3-2*zf);
+    v+=a*((h(xi,zi)*(1-sx)+h(xi+1,zi)*sx)*(1-sz)+(h(xi,zi+1)*(1-sx)+h(xi+1,zi+1)*sx)*sz);
+    a*=.5;f*=2.1;
+  }
+  return v;
+}
+const tg=new THREE.PlaneGeometry(120,120,110,110);
+tg.rotateX(-Math.PI/2);
+{
+  const p=tg.attributes.position;
+  for(let i=0;i<p.count;i++){
+    const x=p.getX(i),z=p.getZ(i);
+    const d=Math.hypot(x,z);
+    p.setY(i,vnoise(x+40,z+40)*4.8*Math.min(1,Math.max(0,(d-6)/11))-1.2);   // flat clearing at center
+  }
+  tg.computeVertexNormals();
+}
+const terrain=new THREE.Mesh(tg,new THREE.MeshStandardMaterial({color:0xb9bec3,roughness:1,flatShading:true}));
+scene.add(terrain);
+
+// ---- particle cloud with three morph targets: dome → ring → creature
+const N=6000;
+const targets=[[],[],[]];
+// A: igloo dome (hemisphere block-ish shell over the clearing)
+for(let i=0;i<N;i++){
+  const u=rand(),v=rand();
+  const phi=Math.acos(1-u),theta=v*Math.PI*2;              // hemisphere
+  const r=3+rand()*.28;
+  targets[0].push(Math.sin(phi)*Math.cos(theta)*r,Math.cos(phi)*r*.82-1,Math.sin(phi)*Math.sin(theta)*r);
+}
+// B: ring / portal (standing torus)
+for(let i=0;i<N;i++){
+  const a=rand()*Math.PI*2,b=rand()*Math.PI*2,R=2.4,rr=.32+rand()*.14;
+  targets[1].push((R+rr*Math.cos(b))*Math.cos(a),(R+rr*Math.cos(b))*Math.sin(a)+2.6,rr*Math.sin(b)*1.6);
+}
+// C: creature (stacked-sphere bear silhouette)
+{
+  const parts=[[0,.9,0,1.35],[0,2.55,0,.78],[-.55,3.3,0,.24],[.55,3.3,0,.24],[-.62,-.4,.4,.4],[.62,-.4,.4,.4],[-.62,-.4,-.4,.4],[.62,-.4,-.4,.4],[.15,2.5,.62,.16]];
+  let per=Math.ceil(N/parts.length),n=0;
+  for(const [cx,cy,cz,cr] of parts)for(let i=0;i<per&&n<N;i++,n++){
+    const th=rand()*Math.PI*2,ph=Math.acos(2*rand()-1),r=cr*Math.cbrt(rand()*.4+.6);
+    targets[2].push(cx+r*Math.sin(ph)*Math.cos(th),cy+r*Math.cos(ph),cz+r*Math.sin(ph)*Math.sin(th));
+  }
+  while(targets[2].length<N*3)targets[2].push(0,1,0);
+}
+const stagger=new Float32Array(N);for(let i=0;i<N;i++)stagger[i]=rand();
+const cur=new Float32Array(targets[0]);
+const pg=new THREE.BufferGeometry();
+pg.setAttribute("position",new THREE.BufferAttribute(cur,3));
+const cloud=new THREE.Points(pg,new THREE.PointsMaterial({color:0xffffff,size:.055,transparent:true,opacity:.95,
+  blending:THREE.AdditiveBlending,depthWrite:false}));
+scene.add(cloud);
+// glow disc under the cloud
+const disc=new THREE.Mesh(new THREE.CircleGeometry(4.4,48),
+  new THREE.MeshBasicMaterial({color:0xe8eef4,transparent:true,opacity:.5}));
+disc.rotation.x=-Math.PI/2;disc.position.y=-1.15;scene.add(disc);
+
+// ---- camera rail: high approach → low glide → close orbit of the cloud
+const rail=new THREE.CatmullRomCurve3([
+  new THREE.Vector3(0,7.5,22),
+  new THREE.Vector3(-4.2,4.6,15),
+  new THREE.Vector3(-5.4,3.2,9.6),
+  new THREE.Vector3(-2.4,2.5,6.8),
+  new THREE.Vector3(3,2.7,6.4),
+  new THREE.Vector3(5.8,3,5),
+]);
+const lookRail=new THREE.CatmullRomCurve3([
+  new THREE.Vector3(0,.2,0),
+  new THREE.Vector3(0,.8,0),
+  new THREE.Vector3(0,1.6,0),
+  new THREE.Vector3(0,2,0),
+  new THREE.Vector3(0,1.9,0),
+  new THREE.Vector3(0,1.6,0),
+]);
+
+// ---- scroll → progress
+let target_p=0,p=0;
+function readScroll(){
+  const max=document.body.scrollHeight-innerHeight;
+  target_p=max>0?scrollY/max:0;
+}
+addEventListener("scroll",readScroll,{passive:true});
+if(FORCE_P!==null){target_p=p=FORCE_P;}
+
+// segment logic: 0-.33 dome, .33-.66 ring, .66-1 creature
+const segs=[...document.querySelectorAll(".seg")];
+function morphState(pp){
+  // returns [fromIdx,toIdx,blend]
+  if(pp<1/3)return [0,1,Math.max(0,(pp-2/9)/(1/9))];      // hold dome, morph in last third of segment
+  if(pp<2/3)return [1,2,Math.max(0,(pp-5/9)/(1/9))];
+  return [2,2,0];
+}
+
+function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
+addEventListener("resize",resize);resize();
+
+const clock=new THREE.Clock();
+let firstFrame=false;
+const pointer={x:0,y:0};let hasPointer=false;
+addEventListener("pointermove",e=>{if(innerWidth<=740)return;hasPointer=true;
+  pointer.x=(e.clientX/innerWidth)*2-1;pointer.y=(e.clientY/innerHeight)*2-1;});
+
+function frame(){
+  requestAnimationFrame(frame);
+  const t=clock.getElapsedTime();
+  if(FORCE_P===null)p+=(target_p-p)*.07;                   // smoothed scrub
+  document.getElementById("prog").style.width=(p*100)+"%";
+  document.getElementById("hint").style.opacity=p>.04?0:1;
+
+  // camera on rail + gentle pointer sway
+  const cp=rail.getPointAt(Math.min(.999,p));
+  const lp=lookRail.getPointAt(Math.min(.999,p));
+  const sway=hasPointer||STILL?1:0;
+  camera.position.set(
+    cp.x+pointer.x*.5+(sway?0:Math.sin(t*.2)*.3),
+    cp.y-pointer.y*.3,
+    cp.z);
+  camera.lookAt(lp);
+
+  // particle morph with per-particle stagger + curl noise breathing
+  const [a,b,blend]=morphState(p);
+  const A=targets[a],B=targets[b];
+  for(let i=0;i<N;i++){
+    const s=Math.max(0,Math.min(1,(blend-stagger[i]*.5)/.5));
+    const ss=s*s*(3-2*s);
+    for(let c=0;c<3;c++){
+      let v=A[i*3+c]+(B[i*3+c]-A[i*3+c])*ss;
+      // scatter mid-morph: particles loosen while traveling
+      v+=Math.sin(i*12.9898+c*4.1+t*(STILL?0:1.4))*.16*Math.sin(ss*Math.PI);
+      // idle shimmer
+      if(!STILL)v+=Math.sin(t*.8+i*.37+c*2)*.012;
+      cur[i*3+c]=v;
+    }
+  }
+  pg.attributes.position.needsUpdate=true;
+  cloud.rotation.y=STILL?0:t*.06;
+  disc.material.opacity=.5-p*.25;
+
+  // captions
+  const si=p<1/3?0:p<2/3?1:2;
+  segs.forEach((el,i)=>el.classList.toggle("on",i===si&&p>.02));
+
+  renderer.render(scene,camera);
+  if(!firstFrame){firstFrame=true;readScroll();setTimeout(()=>document.body.classList.add("ready"),STILL?0:600);}
+}
+frame();
+</script>
+</body>
+</html>

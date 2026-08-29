@@ -1,17 +1,26 @@
 # threejs-hero — a Claude Code skill for immersive 3D landing pages
 
 A [Claude Code](https://claude.com/claude-code) skill that teaches the agent to build
-**Sylva-style immersive Three.js hero pages** as a single HTML file (+ a vendored
-three.js): a foggy monochromatic 3D world, organic geometry sweeping the lower half,
-crisp DOM overlay UI, mouse-orbit parallax, pointer particles, a Death-Stranding-style
-wireframe scan intro, glass cards with scan-line reveals, and a small living creature —
-no build step, **responsive down to phones, touch- and reduced-motion-aware**, verified
-via a multi-viewport headless-Chrome screenshot loop **plus a design-review (aesthetic +
-conversion) pass**, so the result is ready to mount in a production webapp on day 1.
+**award-site-style immersive Three.js pages** as a single HTML file (+ a vendored
+three.js): the Sylva-style foggy hero (organic geometry, crisp DOM overlay UI,
+mouse-orbit parallax, pointer particles, Death-Stranding wireframe scan intro, glass
+cards, a living creature) **plus four more archetypes distilled from award-winning
+sites** — a glass product stage with sonar rings (AETHER:1-style), a drag-orbit dome
+gallery with click-to-focus camera flights (OpenPurpose-style), scroll-driven camera
+journeys with particle shape morphs (Igloo-Inc-style), and recipes for cursor mask
+reveals (Lando Norris), paper poster walls (MISC), and webcam gesture control — all
+with no build step, **responsive down to phones, touch- and reduced-motion-aware**,
+verified via a multi-viewport headless-Chrome screenshot loop **plus a design-review
+(aesthetic + conversion) pass**, so the result is ready to mount in a production
+webapp on day 1.
 
 | Sylva replica (bundled example) | Wireframe scan intro | Applied to a real brand |
 |---|---|---|
 | ![Sylva replica](assets/sylva-still.png) | ![Scan intro](assets/sylva-intro.png) | ![FrontDesk hero](assets/frontdesk-still.png) |
+
+| Glass product stage | Dome gallery | Scroll journey + particle morph |
+|---|---|---|
+| ![SONA product hero](assets/sona-still.png) | ![Dome gallery](assets/dome-still.png) | ![BOREAL journey](assets/boreal-still.png) |
 
 ## Install
 
@@ -59,6 +68,15 @@ Then in Claude Code, prompts like these will route through the skill:
   tilt-flatten and art zoom, rippling play rings, an expo-out easing system — pure
   CSS + ~10 lines of JS, with the stagger-delay trap and still-mode/reduced-motion
   guards documented.
+- **Expanded archetypes**: glass product stage (fake-glass shells — `transmission` is
+  an opaque-gray trap under SwiftShader — sonar rings, orbital arcs, audio-reactive
+  toggle), dome media gallery (density rules, seeded canvas thumbnails, drag-vs-click
+  disambiguation, raycast fly-to-focus), scroll-driven camera rails (smoothed scrub,
+  clearing-vs-terrain rule, caption scrims), multi-target particle morphs (stagger +
+  mid-flight scatter), cursor mask reveals, paper poster walls, gesture control.
+- **Forcing params for verification**: any state only user input can reach gets a
+  query param that pins it (`?still`, `?p=0.5`, `?focus=40`) so every keyframe and
+  interaction is a plain headless screenshot.
 - **Ship checklist**: mounting into a real app — static assets, verified routes and
   anchors, meta/OG, a11y, perf sanity.
 
@@ -74,8 +92,24 @@ Then in Claude Code, prompts like these will route through the skill:
   into a receptionist orb. This one shows the full production treatment — conversion-
   first hero column, working demo modal, glass stat chips, atmosphere + vignette,
   phone/tablet layouts, touch idle-drift, reduced-motion support.
+- [`threejs-hero/examples/sona-product-hero.html`](threejs-hero/examples/sona-product-hero.html)
+  — **glass product stage** (studied from the AETHER:1 earbuds site): a fake-glass
+  capsule (no `transmission` — it renders opaque under SwiftShader) with glowing buds
+  inside, thin additive sonar ring pulses, tilted orbital arcs with traveling dots, a
+  wireframe geodesic backdrop, and a working WebAudio sound toggle that makes the
+  rings react. Product sits beside the copy on desktop, floats above it on phones.
+- [`threejs-hero/examples/dome-gallery.html`](threejs-hero/examples/dome-gallery.html)
+  — **drag-orbit dome gallery** (studied from OpenPurpose®): ~100 canvas-generated
+  site thumbnails on the inside of a sphere, inertial drag, click a card and the
+  camera flies to it while the rest dim (Esc / "Back to dome" returns). Try
+  `?focus=40` to jump straight to a focused card.
+- [`threejs-hero/examples/boreal-journey.html`](threejs-hero/examples/boreal-journey.html)
+  — **scroll-driven camera journey + particle morphs** (studied from Igloo Inc):
+  scrolling scrubs the camera along a spline over foggy noise terrain while a 6k-point
+  cloud morphs dome → ring portal → particle creature, with per-segment captions. Try
+  `?p=0.5` or `?p=0.95` to pin any point of the journey.
 
-Verify either file locally:
+Verify any file locally:
 
 ```bash
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
@@ -90,6 +124,11 @@ CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   demo and his write-up on prompting Opus 5 to build Three.js landing pages
   (inspiration he cited: <https://instagram.com/p/DYVXOx6kdmq>). The bundled Sylva
   example is an original-code replica study of that design, included for education.
+- The expanded archetypes are original-code studies of interaction patterns seen on
+  the AETHER:1 earbuds concept, [OpenPurpose®](https://openpurpose.com),
+  [Igloo Inc](https://igloo.inc) (Awwwards Site of the Year), the official Lando
+  Norris site, MISC, and the ITOM sketch portfolio — no code or assets were taken
+  from any of them; the SONA / Archive° / BOREAL brands are fictional.
 - Built and verified with Claude Code.
 
 ## License

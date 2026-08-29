@@ -1,6 +1,6 @@
 ---
 name: threejs-hero
-description: Build production-ready immersive Three.js landing/hero pages — foggy 3D world + crisp DOM overlay, mouse-orbit parallax, pointer particles, wireframe scan intro, glass cards with scan-line reveal; responsive to phone/tablet, touch-aware, with a mandatory multi-viewport screenshot loop and a design-review (aesthetic + conversion) pass. Use when asked for a "3D landing page", "Three.js hero", "living/breathing homepage", or to apply the Sylva-style 3D effect to a brand.
+description: Build production-ready immersive Three.js landing/hero pages — foggy 3D world + crisp DOM overlay, mouse-orbit parallax, pointer particles, wireframe scan intro, glass cards with scan-line reveal; plus expanded archetypes — glass product stage with sonar rings (AETHER-style), drag-orbit dome media gallery with click-to-focus (OpenPurpose-style), scroll-driven camera journeys with particle shape morphs (Igloo-style), cursor mask reveals, paper poster walls, gesture control; responsive to phone/tablet, touch-aware, with a mandatory multi-viewport screenshot loop and a design-review (aesthetic + conversion) pass. Use when asked for a "3D landing page", "Three.js hero", "living/breathing homepage", a 3D product page, a 3D gallery, a scroll-story page, or to apply an award-site 3D effect to a brand.
 ---
 
 # Three.js Immersive Hero Pages
@@ -11,8 +11,13 @@ geometry sweeps across the lower half, and ALL text/UI lives in a crisp DOM over
 never as 3D text. Single HTML file, < 1 MB of code, 60 fps. The same world can later be
 dimmed and reused as a backdrop under a normal content page.
 
-A working reference implementation ships with this skill: `examples/sylva-replica.html`.
-Read it before building — it demonstrates every pattern below.
+Working reference implementations ship with this skill — read the one nearest your
+task before building:
+- `examples/sylva-replica.html` — the foggy hero (every base pattern below);
+- `examples/frontdesk-hero.html` — the hero applied to a real SaaS brand;
+- `examples/sona-product-hero.html` — glass product stage + sonar rings + orbitals;
+- `examples/dome-gallery.html` — drag-orbit dome gallery + click-to-focus fly;
+- `examples/boreal-journey.html` — scroll-scrubbed camera rail + particle morphs.
 
 ## Architecture (non-negotiables)
 
@@ -122,6 +127,76 @@ Never put two of these on the same element via `transform`.
   creature to the brand (butterfly, bird, glowing spark, paper plane).
 - **Traveling pulses** — glowing spheres riding `curve.getPointAt((t*speed+off)%1)`
   toward a converging point; good for "flow" metaphors (calls, data, energy).
+
+## Expanded archetypes (derived from award-site studies — AETHER:1, OpenPurpose, Igloo Inc, Lando Norris, MISC, ITOM)
+
+Beyond the foggy hero, four more page shapes reuse the same architecture (fog world +
+DOM overlay + still mode). Working references ship with the skill:
+`examples/sona-product-hero.html`, `examples/dome-gallery.html`,
+`examples/boreal-journey.html`.
+
+- **Glass product stage** (AETHER:1-style earbuds/device hero) — the product floats
+  right of the copy column inside expanding sonar rings.
+  - ⚠️ **`transmission` is a trap**: `MeshPhysicalMaterial{transmission}` renders as an
+    OPAQUE GRAY BLOB under SwiftShader (and looks muddy on weak GPUs). Fake glass
+    instead: translucent front shell (`opacity:.16, roughness:.06, depthWrite:false`)
+    + a slightly larger `side:BackSide` rim shell (`opacity:.10`) + emissive innards
+    visible through both. Reads as glass everywhere, verifies headlessly.
+  - Sonar rings: 3 thin `RingGeometry(1.5,1.56)` in the screen plane, additive,
+    staggered phases, `scale 1→2.5` while `opacity (1-ph)*.34→0`. THIN is the trick —
+    a fat ring reads as a donut, not a pulse. In still mode give each ring a DIFFERENT
+    frozen phase so the screenshot shows the expanding sequence.
+  - Orbital arcs: tilted `EllipseCurve` lines (opacity ~.3) each carrying one small
+    glowing dot at `getPointAt((t*speed+phase)%1)`.
+  - Put product + rings + orbits in ONE `stage` group; reposition per breakpoint in
+    `resize()` (desktop: `x≈+2.3` beside the copy; phone: `y≈+2.1, scale .62` above it).
+  - Sound toggle homage: generate a 3-oscillator WebAudio hum (no media files), and
+    make ring amplitude/opacity react — an honest, working "Sound: on/off" chip.
+- **Dome media gallery** (OpenPurpose-style) — dozens of cards on the inside of a
+  sphere, camera at center; drag to orbit, click to fly to a card.
+  - DENSITY sells it: ~100 cards in ~8 latitude bands (counts 9…19 per band),
+    `position.setFromSphericalCoords(R≈9.5,…)` + `lookAt(0,0,0)`, card height ~1.55.
+    Five sparse bands read as floating litter, not a dome.
+  - Card art: `CanvasTexture` fake site thumbnails (header bar + hero block + text
+    lines, ~20% dark cards, occasional accent dot) from a SEEDED rand — zero image
+    requests, deterministic screenshots.
+  - Drag orbit with inertia (`v*=.95` on release) + slow idle auto-rotate; disambiguate
+    click vs drag by pointer travel (>6 px = drag, swallow the click).
+  - Click focus: raycast → tween camera to `cardPos*0.62`, `lookAt(card)`, dim all
+    other cards to `opacity .18`, show a DOM caption pill + "Back" (Esc works too).
+- **Scroll-driven camera journey** (Igloo/ITOM-style) — a fixed canvas under a tall
+  scroll track (`#track{height:500vh}`); progress `p = scrollY/max`, smoothed
+  (`p += (target-p)*.07`), scrubs the camera along a `CatmullRomCurve3` rail with a
+  parallel look-at rail; DOM caption blocks fade per progress segment.
+  - **Add a `?p=0..1` override** that pins progress — scrolled states become plain
+    `--screenshot` calls (no CDP needed), and every keyframe of the journey is
+    verifiable. Generalize this: ANY interactive state a screenshot can't reach by
+    itself gets a forcing query param (`?focus=N` for the dome's fly-to, etc.).
+  - ⚠️ The rail must clear the terrain: displaced-noise ground WILL rise above a
+    low camera mid-path and fill the frame with a featureless slab. Flatten a clearing
+    around the subject (`amplitude *= clamp((d-6)/11,0,1)`) and keep rail y above the
+    local terrain max; verify with `?p=` shots at 0/.25/.5/.75/.95.
+  - Captions over a bright fog world need a scrim (blurred dark glass pill), not just
+    text-shadow — white-on-white particles swallow bare text.
+- **Particle shape morph** (Igloo's creature / gesture demos) — ONE `Points` cloud
+  (~6k), several precomputed `Float32Array` target sets (dome, ring/portal, stacked-
+  sphere creature…). Morph = per-particle smoothstepped lerp with a per-particle
+  stagger offset (`s=clamp((blend-stagger*.5)/.5)`), plus `sin(ss*π)`-weighted scatter
+  so particles loosen mid-flight and re-condense — that scatter is what makes it read
+  as dissolution rather than a cheap tween. Creature = union of ~9 offset spheres
+  (body/head/ears/paws/snout) sampled volumetrically; silhouette matters, detail
+  doesn't — particles forgive crude geometry.
+- **Cursor mask reveal** (Lando-Norris-style) — mostly DOM: stack alternate hero
+  layers (helmet/visor variants) and drive `clip-path:circle(r at x y)` (or a WebGL
+  uv-discard mask) from the pointer; snap layer choice to pointer zones so elements
+  change the instant the cursor crosses them.
+- **Paper poster wall** (MISC-style) — draggable infinite plane of poster planes;
+  a small vertex wobble (`z += sin(uv.y*π + t)*bendAmp`) with `bendAmp` fed by drag
+  velocity so posters flex like paper on drag/scroll/click.
+- **Gesture control** (webcam demos) — MediaPipe Hands (or FaceLandmarker) mapped onto
+  the SAME particle-morph machinery: pinch distance → gather/scatter blend, palm x/y →
+  group rotation. Keep it an optional progressive enhancement behind a permission
+  prompt; pointer fallback always works.
 
 ## DOM overlay kit (matches the reference look)
 
@@ -286,6 +361,14 @@ Headless traps (each one produces a FALSE failure or false pass):
   `Emulation.setDeviceMetricsOverride` for true phone viewports (also bypasses the
   500px window minimum). Measure `scrollY`/rects in the same session so you never
   debug a tooling artifact as a layout bug.
+- **Interactive states get forcing params**: any state reached only by user input
+  (scroll progress, a focused gallery card, a finished morph) gets a query param that
+  pins it (`?p=0.5`, `?focus=40`) — then it's a plain `--screenshot` call. Verify the
+  journey at several `?p` keyframes, not just the landing frame.
+- **State-class specificity trap**: a state override like `body.focused .disc{opacity:0}`
+  silently LOSES to the entrance rule `body.ready .disc.enter{opacity:1}` (more
+  specific). The focused screenshot still shows the disc. Make state overrides win
+  (`!important` or match specificity) and screenshot the state to prove it.
 - **Hover states ARE screenshotable**: make a debug copy with
   `sed 's/:hover/.dbg/g' page.html > dbg.html`, append a script adding `.dbg` to one
   nav link, the CTA, and the play disc, then screenshot in `?still` mode. Verify the
@@ -353,5 +436,11 @@ hero deliberately as a premium dark section.
 "orbit using mouse" → §orbit · "add particles to pointer" → §particles · "wireframe
 intro like Death Stranding" → §scan intro · "scan effect on card images while they
 load" → §scan-line reveal · "butterfly that lands and flies away on mouse-over" →
-§creature · "recreate this in Three.js in a single HTML file, self-verify until
-perfect" → the whole recipe.
+§creature · "3D product page like AETHER / glass earbuds hero" → §glass product stage ·
+"gallery dome / sphere of screenshots like OpenPurpose" → §dome media gallery ·
+"scroll tells the story like Igloo Inc" / "camera walks through the scene" →
+§scroll-driven camera journey · "particles form a shape / logo / creature" →
+§particle shape morph · "image changes as the mouse moves over it like Lando Norris"
+→ §cursor mask reveal · "draggable poster wall" → §paper poster wall · "control it
+with hand gestures" → §gesture control · "recreate this in Three.js in a single HTML
+file, self-verify until perfect" → the whole recipe.
