@@ -6,7 +6,7 @@ Status: ☐ todo · ◐ submitted · ✓ live
 | # | Directory | Where | Status | Notes |
 |---|-----------|-------|--------|-------|
 | 1 | GitHub topics | repo settings | ✓ | threejs, webgl, claude, claude-code, claude-skills, ai-agents, landing-page, creative-coding |
-| 2 | awesome-claude-code | github.com/hesreallyhim/awesome-claude-code | ☐ | PR under Skills section; follow CONTRIBUTING format |
+| 2 | awesome-claude-code | github.com/hesreallyhim/awesome-claude-code | ☐ | NO PRs — web issue form only, must be filed by a human: github.com/hesreallyhim/awesome-claude-code/issues/new?template=recommend-resource.yml · Eligible from Aug 31 (repo must be 14 days old; first commit Aug 17) · description must be factual one-liner, no emojis |
 | 3 | awesome-claude-skills lists | search GitHub for active ones | ☐ | PR to the 1–2 with most stars |
 | 4 | AlternativeTo | alternativeto.net/manage-item | ☐ | List as alternative to: Framer templates, Webflow templates, React Bits |
 | 5 | SaaSHub | saashub.com/submit | ☐ | Free listing, dofollow |
@@ -19,7 +19,7 @@ Status: ☐ todo · ◐ submitted · ✓ live
 | 12 | r/webdev Showoff Saturday | reddit, Saturdays only | ☐ | Weekly thread — comment, don't post |
 | 13 | r/ClaudeAI | reddit | ☐ | Frame as "I built a skill that…" with demo GIF |
 | 14 | MotionSites | motionsites.ai submit form | ☐ | They accept template submissions — submit the showcase itself |
-| 15 | Product Hunt | see product-hunt.md | ☐ | The anchor launch |
+| 15 | Product Hunt | see product-hunt.md | ◐ | SCHEDULED for Tue Sep 1, 00:01 PT — prelaunch dashboard: producthunt.com/products/motion-pages/motion-pages/prelaunch |
 | 16 | Hacker News | see show-hn.md | ☐ | Different day than PH (spread traffic) |
 
 ## Order of operations
