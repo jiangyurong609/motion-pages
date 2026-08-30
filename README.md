@@ -41,7 +41,7 @@ webapp on day 1.
 
 | Sylva replica (bundled example) | Wireframe scan intro | Applied to a real brand |
 |---|---|---|
-| ![Sylva replica](assets/sylva-still.png) | ![Scan intro](assets/sylva-intro.png) | ![FrontDesk hero](assets/frontdesk-still.png) |
+| ![Sylva replica](assets/sylva-still.png) | ![Scan intro](assets/sylva-intro.png) | ![Fernline hero](assets/fernline-still.png) |
 
 | Glass product stage | Dome gallery | Scroll journey + particle morph |
 |---|---|---|
@@ -131,9 +131,9 @@ personalized one in the [Playground](https://motion-pages.pages.dev/#playground)
 - [`motion-pages/examples/sylva-replica.html`](motion-pages/examples/sylva-replica.html)
   — replica study of the original nature scene (open it in a browser, move the mouse,
   hover the butterfly).
-- [`motion-pages/examples/frontdesk-hero.html`](motion-pages/examples/frontdesk-hero.html)
-  — the same recipe re-themed for a real SaaS brand
-  ([FrontDesk](https://frontdeskhq.co), an AI phone receptionist): the mossy branches
+- [`motion-pages/examples/fernline-hero.html`](motion-pages/examples/fernline-hero.html)
+  — the same recipe re-themed for a SaaS brand
+  (Fernline, a fictional AI phone receptionist): the mossy branches
   become glowing call-wires, the butterfly becomes a message spark, call pulses flow
   into a receptionist orb. This one shows the full production treatment — conversion-
   first hero column, working demo modal, glass stat chips, atmosphere + vignette,
@@ -182,7 +182,7 @@ CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   the AETHER:1 earbuds concept, [OpenPurpose®](https://openpurpose.com),
   [Igloo Inc](https://igloo.inc) (Awwwards Site of the Year), the official Lando
   Norris site, MISC, and the ITOM sketch portfolio — no code or assets were taken
-  from any of them; the SONA / Archive° / BOREAL brands are fictional.
+  from any of them; the Fernline / SONA / Archive° / BOREAL brands are fictional.
 - Built and verified with Claude Code.
 
 ## License

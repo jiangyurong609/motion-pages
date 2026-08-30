@@ -14,7 +14,7 @@ dimmed and reused as a backdrop under a normal content page.
 Working reference implementations ship with this skill — read the one nearest your
 task before building:
 - `examples/sylva-replica.html` — the foggy hero (every base pattern below);
-- `examples/frontdesk-hero.html` — the hero applied to a real SaaS brand;
+- `examples/fernline-hero.html` — the hero applied to a fictional SaaS brand;
 - `examples/sona-product-hero.html` — glass product stage + sonar rings + orbitals;
 - `examples/dome-gallery.html` — drag-orbit dome gallery + click-to-focus fly;
 - `examples/boreal-journey.html` — scroll-scrubbed camera rail + particle morphs;

@@ -15,7 +15,7 @@
 ## Live examples (view source for working reference code)
 
 - [Sylva replica — foggy living-world hero, scan intro, creature](https://jiangyurong609.github.io/motion-pages/examples/sylva-replica.html)
-- [FrontDesk — the hero applied to a real SaaS brand](https://jiangyurong609.github.io/motion-pages/examples/frontdesk-hero.html)
+- [Fernline — the hero applied to a fictional SaaS brand](https://jiangyurong609.github.io/motion-pages/examples/fernline-hero.html)
 - [SONA·1 — glass product stage, fresnel shader, sonar rings](https://jiangyurong609.github.io/motion-pages/examples/sona-product-hero.html)
 - [Archive° — drag-orbit dome gallery, click-to-focus camera flight](https://jiangyurong609.github.io/motion-pages/examples/dome-gallery.html)
 - [BOREAL — scroll-scrubbed camera rail, particle shape morphs](https://jiangyurong609.github.io/motion-pages/examples/boreal-journey.html)
