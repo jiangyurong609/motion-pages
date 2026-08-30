@@ -358,6 +358,27 @@ surface behaves like a lit object. Pure CSS + ~10 lines of JS, no libraries:
   sheen/ripple keyframes under `body.still` (they run on the REAL clock and break
   deterministic screenshots) and under `prefers-reduced-motion`.
 
+## Easing grammar (curves have semantics — don't use one for everything)
+
+`--e` above is the *hover* curve. Pick curves by what the motion MEANS, then reuse
+the same handful everywhere — a consistent bezier set is what makes motion feel
+like one brand instead of a component kit:
+
+- **Entering** (cards/modals/toasts appearing) → **ease-out** (fast feedback,
+  soft landing): `cubic-bezier(0,0,.2,1)` or the expo-out `--e`.
+- **Leaving** (dismiss, close, fade-away) → **ease-in** (`cubic-bezier(.4,0,1,1)`)
+  — slow start reads as "letting go", and nobody needs to track the end of an exit.
+- **Moving within the page** (reorder, expand/collapse, panel slide, page
+  transitions) → **ease-in-out** (`cubic-bezier(.45,0,.55,1)`) — the whole journey
+  is on screen, so show both the pickup and the set-down.
+- **Loops** (orbit drift, marquees, rotation, pulse rings) → **linear** or sine —
+  any easing in a loop reads as a stutter.
+- **Brand signature**: define the full set as custom properties once
+  (`--e-out/--e-in/--e-inout`) and never write a raw curve at a use site. One
+  distinctive overshoot curve (e.g. `cubic-bezier(.34,1.56,.64,1)`) reserved for
+  the ONE hero moment (CTA settle, logo land) is a recognizable motion identity;
+  overshoot everywhere is a toy.
+
 ## Responsive + touch (mandatory — this ships to phones on day 1)
 
 Absolute desktop positioning collapses into a card-pile on a 390px screen. Two
@@ -421,6 +442,25 @@ result.
 
 Prompt vocabulary: "clone the feel of <URL>" / "make my landing page feel like
 <URL>" → this workflow.
+
+## Intake (30 seconds, before any code)
+
+Don't start building from the effect name alone — answer these first, from the
+prompt or by asking. Every rework round traces back to a skipped intake question:
+
+1. **What kind of page?** One-screen standalone hero vs scrolling product page —
+   this forks the phone strategy (§Responsive) and the archetype.
+2. **Who lands on it, feeling what?** ("developers, awe", "buyers, trust") — this
+   picks the world density and how loud the motion can be.
+3. **Existing brand?** Palette/fonts/logo/real copy to honor (§Theming) — or are we
+   inventing an identity? Never invent stats either way.
+4. **Upgrade or rebuild?** "Make my page feel like X" on an existing site means
+   keep their structure and content, re-skin the atmosphere — not a rewrite.
+5. **Industry constraints?** (finance/health = restrained motion, legible trust
+   elements; games/fashion = go louder.)
+
+If asked for **directions** ("show me 3 takes"), make them *genuinely* different —
+different archetype + palette + type + motion rhythm — not one layout in 3 tints.
 
 ## Build order (follow strictly)
 
@@ -512,11 +552,53 @@ revision round; check all of them:
    Then HOVER everything: every interactive element must respond as a lit object
    (sheen, cursor light, eased lift — see §Fluid UI). If buttons only change color,
    the page reads as "basic three.js demo", not the reference.
-10. Then `open page.html` for motion feel — easing, flap speed, parallax amplitude are
+10. **AI-slop lint** — reject the page if it contains the tells every reader now
+    recognizes as generated: Inter/system-ui as the display face, blue→purple
+    gradient headline text, glassmorphism cards floating on a purple gradient,
+    emoji-bulleted feature lists, three equal feature cards with icon-title-blurb,
+    every radius 12px, `ease .2s` everywhere. Each is fine *deliberately*; together
+    they read as "nobody designed this". The demos here use editorial serifs, ink
+    palettes, and asymmetric collages precisely to stay out of that basin.
+11. Then `open page.html` for motion feel — easing, flap speed, parallax amplitude are
     judgment calls headless can't make.
+
+## Runtime tooling (scripts/ — the executable half of the review passes)
+
+Two zero-dependency tools ship next to this file (Node ≥22 + any Chrome):
+
+- **`node scripts/audit.mjs page.html`** — headless design lint: ~22 rules across
+  desktop/tablet/phone covering the AI-slop lint, easing grammar, reduced-motion,
+  the stagger-delay trap, console errors, blank-frame/canvas-alive pixel checks,
+  rendered text contrast, phone overflow, tap targets, `?still=1` determinism,
+  and a11y names. FAIL = ship blocker (exit 1 — wire it into CI as a pre-deploy
+  gate); WARN = judgment call to carry into the human design-review read.
+  `--json` for machine output, `--viewport=phone` to scope. **Run it after the
+  self-verify loop passes and again before shipping** — screenshots prove it
+  renders; the audit proves nobody will clock it as generated.
+- **`scripts/picker.js`** — live "dial mode": the human opens the page in a real
+  browser, pastes this file into the DevTools console, clicks any element, and
+  gets a precise context block (selector + markup + computed styles) on the
+  clipboard to paste back to you. Treat that block as authoritative targeting —
+  no guessing which element they meant.
+
+**Command vocabulary** — when the user says one of these words, it maps to a
+specific pass, not a vibe:
+
+- **`audit`** → run `scripts/audit.mjs`, fix every FAIL, then walk the
+  §Design-review pass and report both.
+- **`variants` / "3 directions"** → §Intake rule: three genuinely distinct
+  directions (archetype + palette + type + motion rhythm), compact diffs, wait
+  for the pick, apply only that one, re-audit.
+- **`typeset`** → type-only pass: display face, scale, tracking, measure,
+  micro-text cull — no layout changes.
+- **`distill`** → reduce: cut the weakest chips/cards/labels until every region
+  has one winner (§Design-review #7), no new elements.
+- **`bolder`** → raise contrast of hierarchy (scale jump, color pop, motion
+  accent on the ONE hero moment) without adding elements.
 
 ## Ship checklist (mounting into a real webapp)
 
+- `node scripts/audit.mjs page.html` exits 0 (no FAILs on any viewport).
 - Copy `vendor/three.module.js` + media into the app's static dir (`public/`); keep
   the local-first import path valid from the mounted route.
 - Links: relative, pointing at anchor ids/routes that exist in the app (grep them).
@@ -554,4 +636,6 @@ load" → §scan-line reveal · "butterfly that lands and flies away on mouse-ov
 → §cursor mask reveal · "liquid glass" / "ripple distortion over the headline" →
 §liquid-glass ripple typography · "draggable poster wall" / "posters that flex like
 paper" → §springy poster wall · "control it with hand gestures" → §gesture control ·
-"recreate this in a single HTML file, self-verify until perfect" → the whole recipe.
+"recreate this in a single HTML file, self-verify until perfect" → the whole recipe ·
+"show me 3 directions" → §Intake (three genuinely distinct art directions, then build
+the picked one).

@@ -22,6 +22,23 @@ Status: ☐ todo · ◐ submitted · ✓ live
 | 15 | Product Hunt | see product-hunt.md | ◐ | SCHEDULED for Tue Sep 1, 00:01 PT — prelaunch dashboard: producthunt.com/products/motion-pages/motion-pages/prelaunch |
 | 16 | Hacker News | see show-hn.md | ☐ | Different day than PH (spread traffic) |
 
+## Skill-roundup creators (new channel — verified Aug 2026)
+
+小红书/短视频 "N 个必装 Claude skills" roundup videos are a real discovery channel
+for skills now (e.g. 起哥的AI实战's "用这2个Skill做出高级感UI" covering
+Impeccable + Taste Skill; multiple "9 个必装 skills" compilations). Pitch路径:
+
+- DM roundup creators with the showcase link + 15s screen recording; the ask is
+  inclusion in their next compilation, not a dedicated video.
+- Taste Skill maintains a curated skill toolbox (13 skills) — check their repo for
+  a submission path; getting collected there = ongoing referral.
+- **Positioning vs the design skills they cover**: Impeccable = design linting +
+  design language (guards the floor); Taste = general design workflow. motion-pages
+  = the *ceiling* — award-site immersive heroes (3D worlds, shader type, scroll
+  cinema) as one-file pages. Complementary, not competing — "use theirs to keep
+  pages clean, use ours when the page IS the wow." Use this framing in pitches and
+  in any 评论区 exchanges.
+
 ## Order of operations
 
 1. Week before: #2–3 (PRs take days to merge), #6 (queue), GitHub topics ✓
