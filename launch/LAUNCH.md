@@ -1,7 +1,12 @@
 # Launch plan — motion-pages
 
 Ship order: X/小红书 teaser → Product Hunt → Show HN → directories → community PRs.
-Everything links to the showcase: https://jiangyurong609.github.io/motion-pages/
+Everything links to the showcase: https://motion-pages.pages.dev
+
+**Paste-ready copy lives in the per-channel files:**
+[product-hunt.md](product-hunt.md) · [show-hn.md](show-hn.md) ·
+[x-thread.md](x-thread.md) · [xiaohongshu.md](xiaohongshu.md) ·
+[directories.md](directories.md). This file is the strategy overview.
 
 ## Product Hunt
 
