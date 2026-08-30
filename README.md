@@ -139,7 +139,7 @@ The audit makes the skill's review passes executable: AI-slop tells (Inter displ
 type, blue-purple gradient text, default `ease .2s`…), easing grammar, reduced-motion
 handling, the stagger-delay hover-lag trap, console errors, blank-frame and
 canvas-alive pixel checks, rendered text contrast, phone overflow, tap targets,
-`?still=1` determinism, a11y names. All seven bundled demos pass it.
+`?still=1` determinism, a11y names. All nine bundled demos pass it.
 
 [`scripts/picker.js`](scripts/picker.js) is the live loop: paste it into the DevTools
 console on your page, click an element, and a precise context block (selector +
@@ -182,6 +182,16 @@ skill answers with 3 genuinely distinct variants and waits for your pick.
   — **springy draggable poster wall** (no WebGL at all): an infinite wrapped grid of
   canvas-painted posters that flex like paper — spring tilts driven by drag lag,
   momentum, click-to-enlarge modal.
+- [`motion-pages/examples/volera-morph.html`](motion-pages/examples/volera-morph.html)
+  — **particle shape morph** (the standalone archetype): 6k seeded glow particles
+  dissolve between a soaring crane (parametric wing sweeps), a quantized V-formation
+  and a moon-gate ring — per-particle stagger plus mid-flight scatter is what makes
+  it read as dissolution, and the cursor repels the flock locally.
+- [`motion-pages/examples/tempo-easing.html`](motion-pages/examples/tempo-easing.html)
+  — **the easing grammar, interactive** (pure DOM, zero requests): five curves ×
+  five jobs as replayable exhibit cards — entrances ease-out, exits ease-in, moves
+  ease-in-out, loops linear, one signature overshoot — with a CTA that copies the
+  whole curve set. The page demonstrates the grammar on itself.
 
 Verify any file locally:
 

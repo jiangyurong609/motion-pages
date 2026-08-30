@@ -10,7 +10,7 @@ AI-generated landing pages don't have to look AI-generated.
 This liquid-glass hero is one prompt. The whole page is a single HTML file an
 agent built and screenshot-verified.
 
-7 live demos, all open source ↓
+9 live demos, all open source ↓
 https://motion-pages.pages.dev
 
 ## 2 — The gallery (media: assets/demo.gif) [~180 chars]

@@ -1,0 +1,28 @@
+Using the motion-pages skill, build a particle shape-morph hero ("VOLERA"-class) as ONE self-contained HTML file with Three.js (local vendor import, CDN fallback). Follow this spec exactly, then self-verify until it matches.
+
+WORLD
+- Ink-night ground #0e1220; fog matches the background exactly (fog == bg is the atmosphere trick). Camera z≈10.5, fov 46, world cloud shifted right of center on desktop (x≈1.7) so the copy owns the left; centered on phone.
+- ONE Points cloud (~5.6k, soft additive glow sprites from a radial CanvasTexture, warm amber #ffd9a0, size ~.06) + a sparse pale-blue sparkle sub-cloud (~260, bigger, dimmer) + a baked radial halo plane behind the cloud (the portal glow).
+- Deterministic seeded PRNG for ALL particle sampling so ?still renders the identical cloud every run.
+
+THREE TARGET SETS (precomputed Float32Arrays — quantize into STRUCTURE, don't sample smooth surfaces)
+1. "the crane" — body/neck/head/beak/tail as a union of offset ellipsoids (rejection-sampled), but the wings are ONE continuous parametric sweep per side: span along z (t·3.55, √-distributed so particles crowd inboard), left wing rises (+1.35·t^1.35), right wing banks low (−.95·t^1.25), chord tapers (1−t·.72). Segmented ellipsoid wings read as a staircase; a sweep reads as a wing.
+2. "the migration" — a QUANTIZED V-formation: apex bird right of center, two arms of 6 birds sweeping left with ±z spread; each bird is a small chevron streak cluster. Structure > density.
+3. "the moon gate" — torus ring (R≈2.6) + every 7th particle on a sparse inner disc; with the base yaw the circle reads as an angled portal ellipse, and the halo plane glows through it.
+- Base yaw ≈.8 rad on the cloud so wingspans cross the SCREEN, not the depth axis — plus a slow sin() sway.
+
+MORPH (the actual archetype)
+- Per-particle smoothstepped lerp with a per-particle stagger offset: ss = smooth(clamp((blend − stagger·.5)/.5)).
+- sin(ss·π)-weighted scatter along a fixed per-particle unit vector (~.9 amplitude) so particles LOOSEN mid-flight and re-condense — that scatter is what reads as dissolution instead of a cheap tween.
+- CTA "Next form →" + click-anywhere advance + auto-cycle every ~8s; manual advance resets the auto timer. A glass chip shows the current form's name.
+
+INPUT
+- pointermove (desktop only): local repel — particles within r push away from a repel point mapped from the cursor; camera eases toward pointer parallax. No pointer yet (or touch): slow sine idle drift so the world breathes on phones.
+- Idle per-particle breathing (tiny sin offsets) outside still mode.
+
+DOM OVERLAY
+- Editorial serif stack (Iowan Old Style/Palatino/Georgia — no webfont requests). Brand top-left with one accent letter; catalog number top-right; lower-left stack: amber kicker, serif H1, muted sub, amber pill CTA + form chip; centered uppercase hint at bottom. Vignette overlay. Easing grammar: entrances ease-out with stagger, H1 gets the ONE overshoot curve; body.settled kills stagger delays after the intro.
+- ?still: pinned clock (t=0), blend=1 (crane fully formed), UI settled instantly — but KEEP the rAF loop presenting (a lone render outside rAF never composites in headless); every frame identical. prefers-reduced-motion = still.
+
+SELF-VERIFY
+- Headless 1600x900 ?still: the crane must read as a soaring bird (wingspan diagonal across the frame, body mass at center, tips tapering), not as bands or blobs; text left, world right, nothing colliding. 390x844: cloud centered above the stack, no horizontal overflow. Click through all three forms in a live session and screenshot each — every form must be nameable by a stranger. Run scripts/audit.mjs — zero FAILs.

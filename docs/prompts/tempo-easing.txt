@@ -1,0 +1,27 @@
+Using the motion-pages skill, build an interactive easing-grammar reference ("TEMPO"-class) as ONE self-contained HTML file — pure DOM, NO libraries, NO WebGL, zero external requests. Follow this spec exactly, then self-verify until it matches.
+
+CONCEPT
+- A working cheat-sheet that demonstrates the skill's §Easing grammar on itself: five curves, five jobs, and every micro-interaction on the page uses the very curve set it documents. "Motion has grammar." is the promise; clicking any card replays its verb.
+
+DESIGN (anti-slop on purpose)
+- Warm paper ground #f2efe6, ink #16140f, ONE accent (vermilion #d9482b). Editorial serif stack (Iowan Old Style/Palatino/Georgia). No gradients, no glassmorphism, no Inter.
+- Header: letterspaced wordmark with one accent letter + three quiet links. Hero: kicker, giant serif H1, explainer sub; right column a giant accent numeral "5" with a side note. A full-bleed marquee strip between hero and grid — uppercase mantra scrolling on a LINEAR loop (it IS the linear exhibit, labeled as such).
+- Card grid 3-across (2-across tablet, 1 phone), last card spans 2 columns. Each card: name ("Enter — ease-out"), the literal cubic-bezier value in mono, a one-line job description, a small SVG plot of the curve (axes + accent path), a dashed demo stage, and a Replay pill.
+
+THE FIVE EXHIBITS (each stage replays its curve on a .play class toggle)
+1. Enter — ease-out cubic-bezier(0,0,.2,1): a toast slides up into the stage.
+2. Exit — ease-in cubic-bezier(.4,0,1,1): an accent chip lifts away and fades.
+3. Move — ease-in-out cubic-bezier(.45,0,.55,1): a block crosses the stage left→right.
+4. Loop — linear: an orbiting dot that never stops; its "Replay" pill honestly reads "∞ never stops".
+5. Signature — one overshoot cubic-bezier(.34,1.56,.64,1): the brand mark scales in and LANDS. Copy states the rule: overshoot everywhere is a toy; overshoot once is a signature.
+- Replay mechanics: remove .play, kill transitions, force reflow, restore, re-add .play on the next frame. Stages also replay on click; they auto-play once staggered after the entrance settles.
+- The page's own entrances use ease-out with stagger delays; the H1 uses the overshoot curve (its ONE hero moment); body.settled zeroes the delays after the intro so hovers never lag.
+
+FOOTER
+- One line naming the page as a single-file example + an accent CTA "Copy the curve set" that copies the commented :root custom-property block (--e-out/--e-in/--e-io/--e-hero) to the clipboard, with button-label feedback.
+
+STILL + A11Y
+- ?still: everything settled, marquee and orbit animations frozen, every stage in its POST state EXCEPT the exit demo (a played exit is an empty box in a screenshot — leave the chip visible). prefers-reduced-motion: same freeze via media query. :focus-visible outlines, honest button labels, title + meta description.
+
+SELF-VERIFY
+- Headless 1600x1300 ?still: five cards all legible with curve plots, marquee strip readable, nothing overflowing; 390x844: single column, no horizontal scroll. Run scripts/audit.mjs — target zero FAILs and zero WARNs (this page is the grammar; it has no excuse).

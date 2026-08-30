@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TEMPO — motion has grammar</title>
+<meta name="description" content="An interactive easing grammar: five curves, five jobs, zero libraries. Pure-DOM motion-pages skill example."/>
+<style>
+:root{
+ --e-out:cubic-bezier(0,0,.2,1);
+ --e-in:cubic-bezier(.4,0,1,1);
+ --e-io:cubic-bezier(.45,0,.55,1);
+ --e-hero:cubic-bezier(.34,1.56,.64,1);
+ --paper:#f2efe6;--ink:#16140f;--mut:#7d7668;--acc:#d9482b;--card:#faf8f1
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);
+ font:400 16.5px/1.6 "Iowan Old Style","Palatino Linotype",Georgia,serif}
+::selection{background:var(--acc);color:#fff}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 5%}
+/* ---------- hero ---------- */
+header{display:flex;justify-content:space-between;align-items:center;padding:26px 5%}
+.brand{font-weight:700;letter-spacing:.3em;font-size:17px}
+.brand em{font-style:normal;color:var(--acc)}
+header nav{display:flex;gap:26px;font-size:13.5px}
+header a{color:var(--mut);text-decoration:none;transition:color .35s var(--e-out)}
+header a:hover{color:var(--ink)}
+.hero{padding:7vh 5% 6vh;display:grid;grid-template-columns:1.25fr 1fr;gap:48px;align-items:end}
+.kicker{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--acc);margin-bottom:18px}
+h1{font-size:clamp(44px,6.2vw,88px);line-height:.98;font-weight:600;letter-spacing:-.01em}
+h1 .land{display:inline-block}
+.sub{color:var(--mut);max-width:46ch;margin-top:22px}
+.heroRight{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.bigNum{font-size:96px;line-height:1;color:var(--acc);font-weight:600}
+.heroRight p{font-size:14px;color:var(--mut);max-width:30ch}
+/* marquee — the linear loop, labeled */
+.strip{border-block:1px solid rgba(22,20,15,.18);overflow:hidden;white-space:nowrap;padding:13px 0;margin:2vh 0 6vh}
+.strip span{display:inline-block;padding-right:56px;font-size:13px;letter-spacing:.26em;text-transform:uppercase;color:var(--mut);
+ animation:slide 26s linear infinite}
+@keyframes slide{to{translate:-50% 0}}
+/* ---------- grammar cards ---------- */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding-bottom:9vh}
+.card{background:var(--card);border:1px solid rgba(22,20,15,.14);border-radius:4px;padding:26px 26px 22px;
+ display:flex;flex-direction:column;gap:14px;position:relative;
+ transition:translate .45s var(--e-out),box-shadow .45s var(--e-out)}
+.card:hover{translate:0 -6px;box-shadow:0 26px 60px -30px rgba(22,20,15,.4)}
+.card.wide{grid-column:span 2}
+.card h2{font-size:22px;font-weight:600}
+.card .bez{font:12.5px/1 ui-monospace,SFMono-Regular,monospace;color:var(--mut)}
+.card .job{font-size:14px;color:var(--mut);min-height:44px}
+.card svg.curve{width:74px;height:74px;position:absolute;top:22px;right:22px}
+.curve path{fill:none;stroke:var(--acc);stroke-width:2.5}
+.curve line{stroke:rgba(22,20,15,.22);stroke-width:1}
+/* stages */
+.stage{height:110px;border:1px dashed rgba(22,20,15,.22);border-radius:4px;position:relative;overflow:hidden;background:var(--paper)}
+.replay{align-self:flex-start;border:1px solid rgba(22,20,15,.3);background:none;border-radius:999px;
+ padding:9px 18px;font:600 12.5px/1 Georgia,serif;letter-spacing:.08em;cursor:pointer;color:var(--ink);
+ transition:background .3s var(--e-out),color .3s var(--e-out),scale .3s var(--e-out)}
+.replay:hover{background:var(--ink);color:var(--paper);scale:1.04}
+/* 1 · enter (ease-out): toast slides up-in */
+.toast{position:absolute;left:14px;right:14px;bottom:12px;background:var(--ink);color:var(--paper);
+ border-radius:4px;padding:12px 16px;font-size:13.5px;
+ translate:0 130%;transition:translate .55s var(--e-out)}
+.stage.play .toast{translate:0 0}
+/* 2 · exit (ease-in): chip lets go */
+.chip{position:absolute;left:50%;top:50%;translate:-50% -50%;background:var(--acc);color:#fff;
+ border-radius:999px;padding:11px 22px;font-size:13.5px;
+ transition:translate .5s var(--e-in),opacity .5s var(--e-in)}
+.stage.play .chip{translate:-50% -190%;opacity:0}
+/* 3 · move (ease-in-out): panel crosses */
+.panel{position:absolute;left:12px;top:50%;translate:0 -50%;width:66px;height:66px;background:var(--ink);
+ border-radius:4px;transition:left .7s var(--e-io)}
+.stage.play .panel{left:calc(100% - 78px)}
+/* 4 · loop (linear): orbit dot */
+.orbitStage{display:flex;align-items:center;justify-content:center}
+.orbit{width:74px;height:74px;position:relative;animation:spin 5s linear infinite}
+.orbit::before{content:"";position:absolute;inset:0;border:1px solid rgba(22,20,15,.3);border-radius:50%}
+.orbit::after{content:"";position:absolute;top:-5px;left:50%;width:10px;height:10px;margin-left:-5px;
+ background:var(--acc);border-radius:50%}
+@keyframes spin{to{rotate:360deg}}
+/* 5 · signature (overshoot): the mark lands — the ONE hero moment */
+.mark{position:absolute;left:50%;top:50%;translate:-50% -50%;font-size:52px;font-weight:700;color:var(--acc);
+ scale:0;transition:scale .8s var(--e-hero)}
+.stage.play .mark{scale:1}
+/* footer */
+footer{border-top:1px solid rgba(22,20,15,.18);padding:34px 5% 44px;display:flex;justify-content:space-between;
+ align-items:center;flex-wrap:wrap;gap:18px}
+footer .f{font-size:13.5px;color:var(--mut)}
+.ctaBig{border:0;border-radius:999px;background:var(--acc);color:#fff;padding:17px 32px;
+ font:600 15px/1 Georgia,serif;cursor:pointer;
+ transition:scale .4s var(--e-out),box-shadow .4s var(--e-out);box-shadow:0 16px 44px -16px rgba(217,72,43,.6)}
+.ctaBig:hover{scale:1.06;box-shadow:0 22px 54px -14px rgba(217,72,43,.75)}
+/* entrances */
+.enter{opacity:0;translate:0 24px;transition:opacity .8s var(--e-out),translate .8s var(--e-out)}
+h1.enter{transition:opacity .9s var(--e-hero),translate .9s var(--e-hero)}
+body.ready .enter{opacity:1;translate:0 0}
+.d1{transition-delay:.06s}.d2{transition-delay:.16s}.d3{transition-delay:.28s}.d4{transition-delay:.4s}.d5{transition-delay:.52s}
+body.settled .enter{transition-delay:0s}
+body.still .enter{transition:none;opacity:1;translate:0 0}
+body.still .strip span,body.still .orbit{animation:none}
+@media (prefers-reduced-motion: reduce){
+ .strip span,.orbit{animation:none}
+ .enter{transition:none;opacity:1;translate:0 0}
+}
+@media (max-width:740px){
+ .hero{grid-template-columns:1fr;gap:26px;padding-top:4vh}
+ .heroRight{flex-direction:row;align-items:center;gap:20px}
+ .bigNum{font-size:56px}
+ .grid{grid-template-columns:1fr}
+ .card.wide{grid-column:span 1}
+ header nav{display:none}
+}
+@media (min-width:741px) and (max-width:1180px){.grid{grid-template-columns:1fr 1fr}.card.wide{grid-column:span 2}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand enter d1">TEM<em>P</em>O</div>
+  <nav class="enter d1" aria-label="Site">
+    <a href="#grammar">Grammar</a><a href="#grammar">Curves</a><a href="#end">Studio</a>
+  </nav>
+</header>
+
+<section class="hero wrap">
+  <div>
+    <div class="kicker enter d1">A working reference · no libraries</div>
+    <h1 class="enter d2"><span class="land">Motion</span> has grammar.</h1>
+    <p class="sub enter d3">Five curves, five jobs. Entrances land soft, exits let go,
+      in-page moves show both halves, loops never ease, and one signature overshoot
+      is reserved for the moment that matters. Click any card to replay its verb.</p>
+  </div>
+  <div class="heroRight enter d4">
+    <div class="bigNum" aria-hidden="true">5</div>
+    <p>curves cover every micro-interaction on this page — inspect the CSS, it's one
+      custom-property set.</p>
+  </div>
+</section>
+
+<div class="strip enter d5" aria-hidden="true"><span>
+ linear is for loops · ease-out is for entrances · ease-in is for exits · ease-in-out is for journeys · overshoot is for the hero moment ·
+ linear is for loops · ease-out is for entrances · ease-in is for exits · ease-in-out is for journeys · overshoot is for the hero moment ·
+</span></div>
+
+<main class="grid wrap" id="grammar">
+  <div class="card enter d1">
+    <svg class="curve" viewBox="0 0 74 74" aria-hidden="true"><line x1="6" y1="68" x2="68" y2="68"/><line x1="6" y1="68" x2="6" y2="6"/><path d="M6 68 C6 68, 18 6, 68 6"/></svg>
+    <h2>Enter — ease-out</h2>
+    <div class="bez">cubic-bezier(0, 0, .2, 1)</div>
+    <p class="job">Fast feedback, soft landing. Toasts, cards, anything appearing.</p>
+    <div class="stage" data-demo><div class="toast">Saved to the atlas ✓</div></div>
+    <button class="replay">Replay</button>
+  </div>
+
+  <div class="card enter d2">
+    <svg class="curve" viewBox="0 0 74 74" aria-hidden="true"><line x1="6" y1="68" x2="68" y2="68"/><line x1="6" y1="68" x2="6" y2="6"/><path d="M6 68 C6 68, 56 68, 68 6"/></svg>
+    <h2>Exit — ease-in</h2>
+    <div class="bez">cubic-bezier(.4, 0, 1, 1)</div>
+    <p class="job">Slow start reads as letting go — nobody tracks the end of an exit.</p>
+    <div class="stage" data-demo><div class="chip">dismiss me</div></div>
+    <button class="replay">Replay</button>
+  </div>
+
+  <div class="card enter d3">
+    <svg class="curve" viewBox="0 0 74 74" aria-hidden="true"><line x1="6" y1="68" x2="68" y2="68"/><line x1="6" y1="68" x2="6" y2="6"/><path d="M6 68 C24 68, 50 6, 68 6"/></svg>
+    <h2>Move — ease-in-out</h2>
+    <div class="bez">cubic-bezier(.45, 0, .55, 1)</div>
+    <p class="job">The whole journey is on screen: show the pickup and the set-down.</p>
+    <div class="stage" data-demo><div class="panel"></div></div>
+    <button class="replay">Replay</button>
+  </div>
+
+  <div class="card enter d4">
+    <svg class="curve" viewBox="0 0 74 74" aria-hidden="true"><line x1="6" y1="68" x2="68" y2="68"/><line x1="6" y1="68" x2="6" y2="6"/><path d="M6 68 L68 6"/></svg>
+    <h2>Loop — linear</h2>
+    <div class="bez">linear</div>
+    <p class="job">Any easing inside a loop reads as a stutter. Orbits, marquees, spinners.</p>
+    <div class="stage orbitStage"><div class="orbit" aria-hidden="true"></div></div>
+    <button class="replay" data-noop aria-label="Linear loops never stop — nothing to replay">∞ never stops</button>
+  </div>
+
+  <div class="card wide enter d5">
+    <svg class="curve" viewBox="0 0 74 74" aria-hidden="true"><line x1="6" y1="68" x2="68" y2="68"/><line x1="6" y1="68" x2="6" y2="6"/><path d="M6 68 C20 68, 30 -14, 46 4 C56 14, 60 6, 68 6"/></svg>
+    <h2>Signature — one overshoot</h2>
+    <div class="bez">cubic-bezier(.34, 1.56, .64, 1)</div>
+    <p class="job">A brand's motion identity is ONE distinctive curve on ONE hero moment —
+      the logo landing, the CTA settling. Overshoot everywhere is a toy; overshoot once
+      is a signature.</p>
+    <div class="stage" data-demo><div class="mark">T.</div></div>
+    <button class="replay">Replay</button>
+  </div>
+</main>
+
+<footer id="end">
+  <div class="f">TEMPO · a motion-pages example — the whole page is one HTML file, zero requests.</div>
+  <button class="ctaBig" id="copyCss">Copy the curve set</button>
+</footer>
+
+<script>
+const qs=new URLSearchParams(location.search);
+const STILL=qs.has("still")||matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(STILL)document.body.classList.add("still","ready","settled");
+else{setTimeout(()=>document.body.classList.add("ready"),250);
+     setTimeout(()=>document.body.classList.add("settled"),1900);}
+
+/* stage replays: reset (no transition) → force reflow → play */
+for(const card of document.querySelectorAll(".card")){
+  const stage=card.querySelector(".stage[data-demo]");
+  const btn=card.querySelector(".replay");
+  if(!stage){ if(btn?.dataset.noop!==undefined) btn.addEventListener("click",()=>{}); continue; }
+  const play=()=>{
+    stage.classList.remove("play");
+    for(const el of stage.children){el.style.transition="none";}
+    void stage.offsetWidth;
+    for(const el of stage.children){el.style.transition="";}
+    requestAnimationFrame(()=>stage.classList.add("play"));
+  };
+  btn.addEventListener("click",play);
+  stage.addEventListener("click",play);
+  if(!STILL)setTimeout(play,2300+Math.random()*800);
+  // still mode: settle every stage in its POST state except the exit demo —
+  // a played exit is an empty box in the screenshot
+  else if(!stage.querySelector(".chip"))stage.classList.add("play");
+}
+
+/* copy the easing set */
+const CSS_SET=`:root{
+  --e-out: cubic-bezier(0, 0, .2, 1);      /* entrances */
+  --e-in: cubic-bezier(.4, 0, 1, 1);       /* exits */
+  --e-io: cubic-bezier(.45, 0, .55, 1);    /* in-page moves */
+  --e-hero: cubic-bezier(.34, 1.56, .64, 1); /* ONE signature moment */
+}`;
+const copyBtn=document.getElementById("copyCss");
+copyBtn.addEventListener("click",async()=>{
+  try{await navigator.clipboard.writeText(CSS_SET);copyBtn.textContent="Copied ✓";}
+  catch{console.log(CSS_SET);copyBtn.textContent="Logged to console";}
+  setTimeout(()=>copyBtn.textContent="Copy the curve set",1600);
+});
+</script>
+</body>
+</html>

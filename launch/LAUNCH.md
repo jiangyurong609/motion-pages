@@ -40,7 +40,7 @@ Everything links to the showcase: https://motion-pages.pages.dev
 ## X / Twitter thread (6 tweets)
 
 1. Hook: video of PURA liquid typography + "this page is one prompt" + link.
-2. The gallery: GIF, "7 live demos, each with a copy-paste prompt."
+2. The gallery: GIF, "9 live demos, each with a copy-paste prompt."
 3. The trick: fake-bloom kit explained in one image (before/after squares vs sprites).
 4. The loop: screenshot-verify GIF (BOREAL ?p= sweep) — "the agent checks its own work."
 5. Beyond three.js: Paperworks drag video — "spring physics is 15 lines of CSS transforms."

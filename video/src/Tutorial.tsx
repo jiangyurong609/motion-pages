@@ -477,7 +477,7 @@ const Cta: React.FC = () => {
             fontWeight: 700,
           }}
         >
-          7 demos · 7 prompts · one file each
+          9 demos · 9 prompts · one file each
         </div>
       </Pop>
       <Pop delay={11} style={{display: 'flex', gap: 26}}>

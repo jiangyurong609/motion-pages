@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VOLERA — a field atlas of flight</title>
+<meta name="description" content="Particle shape morph hero — 6k particles dissolve between a crane, a migrating V-formation and a moon ring. Three.js skill example."/>
+<style>
+:root{--e-out:cubic-bezier(0,0,.2,1);--e-in:cubic-bezier(.4,0,1,1);--e-hero:cubic-bezier(.34,1.56,.64,1);--e:cubic-bezier(.22,1,.36,1)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:#0e1220;color:#f0ead9;overflow:hidden;
+ font:400 16px/1.55 "Iowan Old Style","Palatino Linotype",Georgia,serif}
+canvas#gl{position:fixed;inset:0;z-index:1;display:block}
+.vignette{position:fixed;inset:0;z-index:2;pointer-events:none;
+ background:radial-gradient(120% 100% at 50% 42%,transparent 55%,rgba(6,8,15,.85) 100%)}
+#ui{position:fixed;inset:0;z-index:3;pointer-events:none}
+#ui a,#ui button{pointer-events:auto}
+.brand{position:absolute;top:30px;left:4.5%;font-weight:700;font-size:19px;letter-spacing:.34em}
+.brand i{font-style:normal;color:#ffd9a0}
+.no{position:absolute;top:30px;right:4.5%;font-size:11px;letter-spacing:.22em;color:#9aa0b4;text-transform:uppercase}
+.stack{position:absolute;left:4.5%;bottom:9vh;max-width:560px;display:flex;flex-direction:column;gap:18px}
+.kicker{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:#ffd9a0}
+h1{font-size:clamp(38px,4.6vw,64px);line-height:1.06;font-weight:600}
+.sub{font-size:16.5px;color:#b9bfce;max-width:44ch}
+.row{display:flex;gap:14px;align-items:center;margin-top:6px}
+.cta{border:0;border-radius:999px;background:#ffd9a0;color:#141828;padding:16px 30px;
+ font:600 15px/1 "Iowan Old Style",Georgia,serif;letter-spacing:.02em;cursor:pointer;
+ transition:scale .4s var(--e),box-shadow .4s var(--e);box-shadow:0 18px 50px -16px rgba(255,217,160,.55)}
+.cta:hover{scale:1.06;box-shadow:0 24px 60px -14px rgba(255,217,160,.7)}
+.cta:active{scale:.98}
+.form{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:#9aa0b4;
+ border:1px solid rgba(240,234,217,.22);border-radius:999px;padding:12px 20px;
+ background:rgba(10,13,24,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.form b{color:#f0ead9;font-weight:600}
+.hint{position:absolute;bottom:30px;inset-inline:0;text-align:center;font-size:11px;
+ letter-spacing:.24em;text-transform:uppercase;color:#767d93}
+:focus-visible{outline:2px solid #ffd9a0;outline-offset:3px}
+/* entrances: ease-out grammar; hero H1 gets the ONE overshoot moment */
+.enter{opacity:0;translate:0 22px;transition:opacity .8s var(--e-out),translate .8s var(--e-out)}
+h1.enter{transition:opacity .9s var(--e-hero),translate .9s var(--e-hero)}
+body.ready .enter{opacity:1;translate:0 0}
+.d1{transition-delay:.08s}.d2{transition-delay:.2s}.d3{transition-delay:.34s}.d4{transition-delay:.48s}
+body.settled .enter{transition-delay:0s}
+body.still .enter{transition:none;opacity:1;translate:0 0}
+@media (max-width:740px){
+ .stack{left:5%;right:5%;bottom:7vh;max-width:none}
+ .no{display:none}
+ h1{font-size:34px}
+ .row{flex-wrap:wrap}
+}
+@media (min-width:741px) and (max-width:1180px){.stack{max-width:480px}}
+</style>
+</head>
+<body>
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="vignette"></div>
+<div id="ui">
+  <div class="brand enter d1">V<i>O</i>LERA</div>
+  <div class="no enter d1">Field atlas · N° 03</div>
+  <div class="stack">
+    <div class="kicker enter d1">Six thousand points of light</div>
+    <h1 class="enter d2">The night has a wingspan.</h1>
+    <div class="sub enter d3">An atlas of migration drawn in particles — every form
+      dissolves into the next the way a flock loosens, banks, and re-gathers.</div>
+    <div class="row enter d4">
+      <button class="cta" id="next" aria-label="Morph to the next form">Next form →</button>
+      <div class="form">now: <b id="formName">the crane</b></div>
+    </div>
+  </div>
+  <div class="hint enter d4" id="hint">Move the cursor through the flock · Click to re-form</div>
+</div>
+
+<script type="module">
+const qs=new URLSearchParams(location.search);
+const STILL=qs.has("still")||matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(STILL)document.body.classList.add("still","ready","settled");
+else{setTimeout(()=>document.body.classList.add("ready"),400);
+     setTimeout(()=>document.body.classList.add("settled"),2100);}
+
+let THREE;
+try{THREE=await import("./vendor/three.module.js");}
+catch{THREE=await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js");}
+
+const WORLD=0x0e1220;
+const canvas=document.getElementById("gl");
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setClearColor(WORLD,1);
+const scene=new THREE.Scene();
+scene.fog=new THREE.Fog(WORLD,9,20);
+const cam=new THREE.PerspectiveCamera(46,1,.1,60);
+cam.position.set(0,.15,10.5);
+
+/* deterministic PRNG so ?still renders the identical cloud every run */
+let seed=20260830;
+const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+
+const N=5600;
+
+/* ---- target A: crane — union of offset spheres, silhouette over detail ---- */
+function craneTargets(){
+  // wings = one continuous parametric sweep per side (span along z, chord along
+  // x, tapering) — segmented ellipsoids read as a staircase, a sweep reads as a wing
+  const bodyParts=[ // [cx,cy,cz, rx,ry,rz, weight]
+    [0,-.05,0,  1.3,.32,.4, 17],          // body
+    [1.5,.42,0,  .5,.22,.22, 5],          // neck reach
+    [2.25,.75,0, .3,.25,.22, 4],          // head
+    [2.72,.72,0, .34,.08,.09,2],          // beak
+    [-1.65,.02,0,.8,.12,.24, 5],          // tail
+  ];
+  const bodyW=bodyParts.reduce((a,p)=>a+p[6],0);
+  const WING=.62; // share of particles in the wings
+  const out=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    if(rnd()<WING){
+      const side=rnd()<.5?1:-1, t=Math.sqrt(rnd()); // more particles inboard
+      const span=t*3.55;
+      const y=side>0 ? .28+1.35*Math.pow(t,1.35)      // left wing rises
+                     : .28-.95*Math.pow(t,1.25);      // right banks low
+      const chord=(1-t*.72)*1.15;                     // taper to the tip
+      out[i*3]  =-.15+(rnd()-.5)*chord;
+      out[i*3+1]=y+(rnd()-.5)*.16;
+      out[i*3+2]=side*span+(rnd()-.5)*.18;
+    }else{
+      let w=rnd()*bodyW,p=bodyParts[0];
+      for(const q of bodyParts){w-=q[6];if(w<=0){p=q;break;}}
+      let x,y,z;do{x=rnd()*2-1;y=rnd()*2-1;z=rnd()*2-1;}while(x*x+y*y+z*z>1);
+      out[i*3]=p[0]+x*p[3];out[i*3+1]=p[1]+y*p[4];out[i*3+2]=p[2]+z*p[5];
+    }
+  }
+  return out;
+}
+
+/* ---- target B: V-formation — QUANTIZED birds along two arms ---- */
+function flockTargets(){
+  const birds=[];
+  birds.push([2.4,.9,0]);                      // apex sits right of center
+  for(let k=1;k<=6;k++){
+    birds.push([2.4-k*.95, .9-k*.42,  k*.55]); // arm 1 sweeps left-down-near
+    birds.push([2.4-k*.95, .9-k*.34, -k*.55]); // arm 2
+  }
+  const out=new Float32Array(N*3);
+  const per=Math.floor(N/birds.length);
+  for(let i=0;i<N;i++){
+    const b=birds[Math.min(Math.floor(i/per),birds.length-1)];
+    // each bird = tiny chevron cluster (two wing strokes), quantized cells
+    const arm=rnd()<.5?1:-1, t=rnd();
+    const jx=(rnd()-.5)*.1, jy=(rnd()-.5)*.08;
+    out[i*3]  =b[0]-t*.42+jx;
+    out[i*3+1]=b[1]+t*.16+jy;
+    out[i*3+2]=b[2]+arm*t*.4+(rnd()-.5)*.08;
+  }
+  return out;
+}
+
+/* ---- target C: moon ring — torus portal + sparse halo disc ---- */
+function ringTargets(){
+  const out=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    if(i%7===0){ // sparse inner disc
+      const r=Math.sqrt(rnd())*2.1,a=rnd()*Math.PI*2;
+      out[i*3]=Math.cos(a)*r;out[i*3+1]=Math.sin(a)*r*.98;out[i*3+2]=(rnd()-.5)*.2;
+    }else{
+      const a=rnd()*Math.PI*2,tube=rnd()*Math.PI*2,R=2.6,r=.16+rnd()*.1;
+      out[i*3]  =Math.cos(a)*(R+Math.cos(tube)*r);
+      out[i*3+1]=Math.sin(a)*(R+Math.cos(tube)*r);
+      out[i*3+2]=Math.sin(tube)*r*2.2;
+    }
+  }
+  return out;
+}
+
+const FORMS=[
+  {name:"the crane",pts:craneTargets()},
+  {name:"the migration",pts:flockTargets()},
+  {name:"the moon gate",pts:ringTargets()},
+];
+
+/* per-particle stagger + scatter direction (fixed, seeded) */
+const stagger=new Float32Array(N),scat=new Float32Array(N*3);
+for(let i=0;i<N;i++){
+  stagger[i]=rnd();
+  const a=rnd()*Math.PI*2,b=Math.acos(rnd()*2-1);
+  scat[i*3]=Math.sin(b)*Math.cos(a);scat[i*3+1]=Math.sin(b)*Math.sin(a);scat[i*3+2]=Math.cos(b);
+}
+
+/* soft glow sprite texture */
+function glowTex(inner,outer){
+  const c=document.createElement("canvas");c.width=c.height=64;
+  const g=c.getContext("2d"),gr=g.createRadialGradient(32,32,2,32,32,30);
+  gr.addColorStop(0,inner);gr.addColorStop(.4,outer);gr.addColorStop(1,"rgba(0,0,0,0)");
+  g.fillStyle=gr;g.fillRect(0,0,64,64);
+  return new THREE.CanvasTexture(c);
+}
+
+const geo=new THREE.BufferGeometry();
+const pos=new Float32Array(FORMS[0].pts);
+geo.setAttribute("position",new THREE.BufferAttribute(pos,3));
+const mat=new THREE.PointsMaterial({size:.062,map:glowTex("rgba(255,236,200,1)","rgba(255,190,110,.55)"),
+  transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,color:0xffd9a0});
+const cloud=new THREE.Points(geo,mat);
+scene.add(cloud);
+
+/* sparkle sub-cloud — pale blue, bigger, fewer */
+const NS=260,sgeo=new THREE.BufferGeometry();
+const spos=new Float32Array(NS*3);
+for(let i=0;i<NS;i++){spos[i*3]=(rnd()-.5)*16;spos[i*3+1]=(rnd()-.5)*9;spos[i*3+2]=(rnd()-.5)*10-2;}
+sgeo.setAttribute("position",new THREE.BufferAttribute(spos,3));
+scene.add(new THREE.Points(sgeo,new THREE.PointsMaterial({size:.09,
+  map:glowTex("rgba(210,225,255,1)","rgba(150,180,255,.35)"),transparent:true,
+  depthWrite:false,blending:THREE.AdditiveBlending,opacity:.7})));
+
+/* baked halo plane behind the cloud — the portal glow */
+const halo=new THREE.Mesh(new THREE.PlaneGeometry(11,11),
+  new THREE.MeshBasicMaterial({map:glowTex("rgba(90,80,140,.5)","rgba(40,40,80,.22)"),
+  transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));
+halo.position.z=-2.5;scene.add(halo);
+
+/* ---- morph state ---- */
+let formIdx=0,blend=1,from=new Float32Array(FORMS[0].pts),to=FORMS[0].pts;
+const formName=document.getElementById("formName");
+function morphTo(idx){
+  from.set(pos);to=FORMS[idx].pts;blend=0;formIdx=idx;auto=0;
+  formName.textContent=FORMS[idx].name;
+}
+document.getElementById("next").addEventListener("click",()=>morphTo((formIdx+1)%FORMS.length));
+let auto=0;
+
+/* pointer: local repel + camera drift; idle drift until first pointer */
+const pointer={x:0,y:0},repel=new THREE.Vector3(99,99,0);
+let hasPointer=false;
+addEventListener("pointermove",e=>{
+  if(innerWidth<=740)return;
+  hasPointer=true;
+  pointer.x=e.clientX/innerWidth*2-1;pointer.y=e.clientY/innerHeight*2-1;
+  repel.set(pointer.x*5.4,-pointer.y*3,.4);
+});
+addEventListener("click",e=>{
+  if(e.target.closest("#ui a,#ui button"))return;
+  morphTo((formIdx+1)%FORMS.length);
+});
+
+const smooth=(t)=>t*t*(3-2*t);
+const clock=new THREE.Clock();
+function resize(){
+  const w=innerWidth,h=innerHeight;
+  renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();
+  // world sits right of the copy on desktop, centered on phone
+  const shift=w<=740?0:1.7;
+  cloud.position.x=shift;halo.position.x=shift;
+}
+addEventListener("resize",resize);resize();
+
+function frame(){
+  // still mode pins the clock — the loop keeps presenting (a lone render
+  // outside rAF never composites in headless), every frame identical
+  const t=STILL?0:clock.getElapsedTime();
+  if(!STILL){
+    blend=Math.min(1,blend+.0075);
+    auto+=1/60;
+    if(auto>8){auto=0;morphTo((formIdx+1)%FORMS.length);}
+  }
+  const px=hasPointer?pointer.x:Math.sin(t*.22)*.35;
+  const py=hasPointer?pointer.y:Math.cos(t*.19)*.2;
+  cam.position.x+=(px*1.1-cam.position.x)*.05;
+  cam.position.y+=(.15-py*.7-cam.position.y)*.05;
+  cam.lookAt(cloud.position.x*.6,.2,0);
+  // base yaw turns the crane's wingspan across the screen instead of into depth
+  cloud.rotation.y=.8+Math.sin(t*.1)*.14;
+  const arr=geo.attributes.position.array;
+  for(let i=0;i<N;i++){
+    const ss=smooth(Math.min(1,Math.max(0,(blend-stagger[i]*.5)/.5)));
+    const loose=Math.sin(ss*Math.PI)*.9;   // dissolution mid-flight
+    let x=from[i*3]+(to[i*3]-from[i*3])*ss+scat[i*3]*loose;
+    let y=from[i*3+1]+(to[i*3+1]-from[i*3+1])*ss+scat[i*3+1]*loose;
+    let z=from[i*3+2]+(to[i*3+2]-from[i*3+2])*ss+scat[i*3+2]*loose;
+    if(!STILL){
+      y+=Math.sin(t*.9+i*.37)*.025;        // idle breathing
+      const dx=x-repel.x,dy=y-repel.y,d2=dx*dx+dy*dy;
+      if(d2<1.2){const f=(1.2-d2)*.5/(Math.sqrt(d2)+.06);x+=dx*f;y+=dy*f;}
+    }
+    arr[i*3]=x;arr[i*3+1]=y;arr[i*3+2]=z;
+  }
+  geo.attributes.position.needsUpdate=true;
+  renderer.render(scene,cam);
+  requestAnimationFrame(frame);
+}
+if(STILL)blend=1;
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
