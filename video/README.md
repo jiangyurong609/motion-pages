@@ -1,13 +1,19 @@
 # motion-pages tutorial video
 
-A ~47s tutorial/teaser rendered with [Remotion](https://remotion.dev): hook →
-3-step "copy a prompt into Claude Code" walkthrough → demo montage → CTA.
+A ~33s tutorial/teaser rendered with [Remotion](https://remotion.dev). Beat-cut
+edit: 4-cut "this is one prompt" hook → brand card → 3-step "paste a prompt into
+Claude Code" walkthrough → value chips → CTA. Music: "Voxel Revolution" by
+Kevin MacLeod (incompetech.com), CC BY 4.0 — credit it in the post/video
+description when publishing.
 
 ## Structure
 
-- `src/Tutorial.tsx` — the composition (1920×1080 @ 30fps, 1410 frames)
+- `src/Tutorial.tsx` — the composition (1920×1080 @ 30fps, 992 frames, cuts on
+  the 112 BPM beat grid)
 - `public/clips/*.mp4` — real footage of the demo pages (gitignored; regenerate
   with `python3 record-clips.py`)
+- `public/audio/voxel-revolution.mp3` — music bed (gitignored; fetch from
+  incompetech.com: "Voxel Revolution")
 - `record-clips.py` — records each demo headlessly with driven mouse/scroll input
 
 ## Render locally

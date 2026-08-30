@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   AbsoluteFill,
+  Audio,
   Sequence,
   OffthreadVideo,
   staticFile,
@@ -20,12 +21,19 @@ const inter = loadInter();
 
 export const FPS = 30;
 
-const HOOK = 180; // 6s
-const STEP1 = 210; // 7s
-const STEP2 = 390; // 13s
-const STEP3 = 360; // 12s
-const CTA = 270; // 9s
-export const TUTORIAL_DURATION = HOOK + STEP1 + STEP2 + STEP3 + CTA; // 1410 = 47s
+// "Voxel Revolution" is ~112 BPM → one beat ≈ 16 frames at 30fps. Every cut
+// below lands on a beat multiple so the edit feels locked to the music.
+const BEAT = 16;
+
+const HOOK = 12 * BEAT; // 4 hard cuts
+const BRAND = 3 * BEAT;
+const STEP1 = 6 * BEAT;
+const STEP2 = 14 * BEAT;
+const STEP3 = 10 * BEAT;
+const VALUES = 6 * BEAT;
+const CTA = 11 * BEAT;
+export const TUTORIAL_DURATION =
+  HOOK + BRAND + STEP1 + STEP2 + STEP3 + VALUES + CTA; // 992 ≈ 33s
 
 const INK = '#0b0e1a';
 const PAPER = '#f4f1ea';
@@ -34,20 +42,52 @@ const GREEN = '#5eead4';
 
 // ---------- helpers ----------
 
-const FadeIn: React.FC<{
+// Full-bleed footage with a punch-zoom: lands hard on the cut, settles fast.
+const Punch: React.FC<{
+  src: string;
+  startFrom?: number;
+  duration: number;
+  panX?: number; // px drift over the cut, alternate sign per cut
+}> = ({src, startFrom = 0, duration, panX = 0}) => {
+  const frame = useCurrentFrame();
+  const p = interpolate(frame, [0, duration], [0, 1], {
+    easing: Easing.out(Easing.exp),
+    extrapolateRight: 'clamp',
+  });
+  const scale = 1.1 - 0.08 * p;
+  const x = panX * (frame / duration);
+  return (
+    <AbsoluteFill style={{transform: `scale(${scale}) translateX(${x}px)`}}>
+      <OffthreadVideo
+        muted
+        src={staticFile(src)}
+        startFrom={startFrom}
+        style={{width: '100%', height: '100%', objectFit: 'cover'}}
+      />
+    </AbsoluteFill>
+  );
+};
+
+// Big line of type that snaps in with overshoot.
+const Pop: React.FC<{
   children: React.ReactNode;
   delay?: number;
-  from?: number; // px translateY
   style?: React.CSSProperties;
-}> = ({children, delay = 0, from = 24, style}) => {
+}> = ({children, delay = 0, style}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
-  const s = spring({frame: frame - delay, fps, config: {damping: 200}});
+  const s = spring({
+    frame: frame - delay,
+    fps,
+    config: {damping: 14, stiffness: 160, mass: 0.7},
+  });
+  const blur = interpolate(s, [0, 1], [10, 0]);
   return (
     <div
       style={{
-        opacity: s,
-        transform: `translateY(${(1 - s) * from}px)`,
+        opacity: Math.min(1, s * 1.4),
+        transform: `scale(${0.85 + 0.15 * s})`,
+        filter: `blur(${blur}px)`,
         ...style,
       }}
     >
@@ -56,45 +96,40 @@ const FadeIn: React.FC<{
   );
 };
 
-const SceneFade: React.FC<{children: React.ReactNode; duration: number}> = ({
-  children,
-  duration,
-}) => {
-  const frame = useCurrentFrame();
-  const opacity = interpolate(
-    frame,
-    [0, 12, duration - 12, duration],
-    [0, 1, 1, 0],
-    {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'}
-  );
-  return <AbsoluteFill style={{opacity}}>{children}</AbsoluteFill>;
+const bigType: React.CSSProperties = {
+  fontFamily: playfair.fontFamily,
+  fontWeight: 900,
+  fontSize: 132,
+  lineHeight: 1.04,
+  color: PAPER,
+  textAlign: 'center',
+  background: 'rgba(11,14,26,0.88)',
+  borderRadius: 28,
+  padding: '18px 56px 30px',
+  boxShadow: '0 30px 90px rgba(11,14,26,0.5)',
 };
 
-const Kicker: React.FC<{children: React.ReactNode}> = ({children}) => (
-  <div
-    style={{
-      fontFamily: inter.fontFamily,
-      fontSize: 26,
-      letterSpacing: '0.32em',
-      textTransform: 'uppercase',
-      color: GREEN,
-      fontWeight: 600,
-    }}
+const Center: React.FC<{children: React.ReactNode}> = ({children}) => (
+  <AbsoluteFill
+    style={{alignItems: 'center', justifyContent: 'center', padding: '0 100px'}}
   >
     {children}
-  </div>
+  </AbsoluteFill>
 );
 
-const UrlChip: React.FC<{children: React.ReactNode}> = ({children}) => (
+const Chip: React.FC<{children: React.ReactNode; big?: boolean}> = ({
+  children,
+  big,
+}) => (
   <div
     style={{
       fontFamily: mono.fontFamily,
-      fontSize: 30,
+      fontSize: big ? 34 : 28,
       color: PAPER,
-      background: 'rgba(11,14,26,0.72)',
-      border: '1px solid rgba(244,241,234,0.28)',
+      background: 'rgba(11,14,26,0.7)',
+      border: '1px solid rgba(244,241,234,0.3)',
       borderRadius: 999,
-      padding: '14px 34px',
+      padding: big ? '16px 40px' : '12px 30px',
       backdropFilter: 'blur(8px)',
     }}
   >
@@ -102,411 +137,415 @@ const UrlChip: React.FC<{children: React.ReactNode}> = ({children}) => (
   </div>
 );
 
-const ClipFill: React.FC<{src: string; darken?: number}> = ({src, darken = 0}) => (
-  <AbsoluteFill>
-    <OffthreadVideo
-      muted
-      src={staticFile(src)}
-      style={{width: '100%', height: '100%', objectFit: 'cover'}}
-    />
-    {darken > 0 && (
-      <AbsoluteFill
-        style={{
-          background: `linear-gradient(180deg, rgba(11,14,26,${darken * 0.5}) 0%, rgba(11,14,26,0) 35%, rgba(11,14,26,${darken}) 100%)`,
-        }}
-      />
-    )}
-  </AbsoluteFill>
-);
-
-// ---------- scenes ----------
-
-const Hook: React.FC = () => {
-  const frame = useCurrentFrame();
-  const zoom = interpolate(frame, [0, HOOK], [1, 1.06], {
-    easing: Easing.out(Easing.quad),
-  });
-  const line2 = frame >= 90;
-  return (
-    <SceneFade duration={HOOK}>
-      <AbsoluteFill style={{transform: `scale(${zoom})`}}>
-        <ClipFill src="clips/pura.mp4" darken={0.85} />
-      </AbsoluteFill>
-      <AbsoluteFill
-        style={{
-          justifyContent: 'flex-end',
-          padding: '0 120px 110px',
-          gap: 26,
-        }}
-      >
-        <FadeIn delay={10}>
-          <Kicker>motion-pages · open source</Kicker>
-        </FadeIn>
-        <FadeIn delay={20}>
-          <div
-            style={{
-              fontFamily: playfair.fontFamily,
-              fontWeight: 900,
-              fontSize: 92,
-              lineHeight: 1.06,
-              color: PAPER,
-              maxWidth: 1450,
-              textShadow: '0 3px 40px rgba(11,14,26,0.95), 0 1px 8px rgba(11,14,26,0.8)',
-            }}
-          >
-            AI pages don&rsquo;t have to look AI&#8209;generated.
-          </div>
-        </FadeIn>
-        {line2 && (
-          <FadeIn delay={92}>
-            <div
-              style={{
-                fontFamily: inter.fontFamily,
-                fontSize: 40,
-                color: 'rgba(244,241,234,0.85)',
-                textShadow: '0 2px 24px rgba(11,14,26,0.9)',
-              }}
-            >
-              This liquid-glass page is <b style={{color: GREEN}}>one prompt</b>.
-              Here&rsquo;s the whole recipe.
-            </div>
-          </FadeIn>
-        )}
-      </AbsoluteFill>
-    </SceneFade>
-  );
-};
-
-const StepTitle: React.FC<{n: string; title: string; sub?: string}> = ({
-  n,
-  title,
-  sub,
-}) => (
-  <div style={{display: 'flex', flexDirection: 'column', gap: 14}}>
-    <Kicker>step {n}</Kicker>
+const StepTag: React.FC<{n: string; text: string}> = ({n, text}) => (
+  <div
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 22,
+      alignSelf: 'flex-start',
+      background: 'rgba(11,14,26,0.72)',
+      borderRadius: 999,
+      padding: '14px 36px 14px 16px',
+      backdropFilter: 'blur(8px)',
+    }}
+  >
     <div
       style={{
-        fontFamily: playfair.fontFamily,
-        fontWeight: 900,
-        fontSize: 76,
-        color: PAPER,
-        lineHeight: 1.05,
+        fontFamily: inter.fontFamily,
+        fontWeight: 800,
+        fontSize: 34,
+        color: INK,
+        background: GREEN,
+        borderRadius: 999,
+        width: 62,
+        height: 62,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
     >
-      {title}
+      {n}
     </div>
-    {sub ? (
-      <div
-        style={{
-          fontFamily: inter.fontFamily,
-          fontSize: 34,
-          color: 'rgba(244,241,234,0.8)',
-          maxWidth: 1100,
-        }}
-      >
-        {sub}
-      </div>
-    ) : null}
+    <div
+      style={{
+        fontFamily: inter.fontFamily,
+        fontWeight: 800,
+        fontSize: 46,
+        color: PAPER,
+        textShadow: '0 2px 24px rgba(11,14,26,0.9)',
+      }}
+    >
+      {text}
+    </div>
   </div>
 );
 
-const Step1: React.FC = () => {
-  const cards: {src: string; label: string}[] = [
-    {src: 'clips/sylva.mp4', label: 'Foggy living world'},
-    {src: 'clips/dome.mp4', label: '360° dome gallery'},
-    {src: 'clips/paper.mp4', label: 'Springy poster wall'},
-  ];
+// ---------- hook: 4 hard cuts, each "this is one prompt" ----------
+
+const HOOK_CUTS: {
+  src: string;
+  startFrom: number;
+  frames: number;
+  line: string;
+}[] = [
+  {src: 'clips/pura.mp4', startFrom: 60, frames: 4 * BEAT, line: 'This is one prompt.'},
+  {src: 'clips/sylva.mp4', startFrom: 90, frames: 4 * BEAT, line: 'So is this.'},
+  {src: 'clips/dome.mp4', startFrom: 100, frames: 2 * BEAT, line: 'And this.'},
+  {src: 'clips/paper.mp4', startFrom: 80, frames: 2 * BEAT, line: 'This too.'},
+];
+
+const Hook: React.FC = () => {
+  let at = 0;
   return (
-    <SceneFade duration={STEP1}>
-      <AbsoluteFill style={{background: INK, padding: '90px 120px', gap: 54}}>
-        <FadeIn delay={4}>
-          <StepTitle
-            n="1"
-            title="Pick a world on the showcase"
-            sub="7 live demos — every one is a real single-file page the agent built."
-          />
-        </FadeIn>
-        <div style={{display: 'flex', gap: 40, flex: 1, minHeight: 0}}>
-          {cards.map((c, i) => (
-            <FadeIn key={c.src} delay={20 + i * 10} from={40} style={{flex: 1, display: 'flex'}}>
-              <div
-                style={{
-                  flex: 1,
-                  borderRadius: 22,
-                  overflow: 'hidden',
-                  position: 'relative',
-                  border: '1px solid rgba(244,241,234,0.14)',
-                }}
-              >
-                <OffthreadVideo
-                  muted
-                  src={staticFile(c.src)}
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                  }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    padding: '70px 28px 24px',
-                    background:
-                      'linear-gradient(180deg, rgba(11,14,26,0) 0%, rgba(11,14,26,0.85) 100%)',
-                    fontFamily: inter.fontFamily,
-                    fontSize: 28,
-                    fontWeight: 600,
-                    color: PAPER,
-                  }}
-                >
-                  {c.label}
-                </div>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-        <FadeIn delay={60} style={{alignSelf: 'center'}}>
-          <UrlChip>motion-pages.pages.dev</UrlChip>
-        </FadeIn>
-      </AbsoluteFill>
-    </SceneFade>
+    <AbsoluteFill style={{background: INK}}>
+      {HOOK_CUTS.map((c) => {
+        const from = at;
+        at += c.frames;
+        return (
+          <Sequence key={c.line} from={from} durationInFrames={c.frames}>
+            <Punch
+              src={c.src}
+              startFrom={c.startFrom}
+              duration={c.frames}
+              panX={from % (8 * BEAT) === 0 ? -30 : 30}
+            />
+            <Center>
+              <Pop>
+                <div style={bigType}>{c.line}</div>
+              </Pop>
+            </Center>
+          </Sequence>
+        );
+      })}
+    </AbsoluteFill>
   );
 };
 
+// ---------- brand card ----------
+
+const Brand: React.FC = () => (
+  <AbsoluteFill
+    style={{
+      background: INK,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 20,
+    }}
+  >
+    <Pop>
+      <div style={{...bigType, fontSize: 120}}>motion-pages</div>
+    </Pop>
+    <Pop delay={4}>
+      <div
+        style={{
+          fontFamily: inter.fontFamily,
+          fontSize: 36,
+          color: 'rgba(244,241,234,0.75)',
+        }}
+      >
+        an open-source agent skill for living landing pages
+      </div>
+    </Pop>
+  </AbsoluteFill>
+);
+
+// ---------- step 1 ----------
+
+const Step1: React.FC = () => (
+  <AbsoluteFill style={{background: INK}}>
+    <Punch src="clips/dome.mp4" startFrom={40} duration={STEP1} panX={-24} />
+    <AbsoluteFill
+      style={{
+        background:
+          'linear-gradient(180deg, rgba(11,14,26,0.55) 0%, rgba(11,14,26,0) 40%, rgba(11,14,26,0.75) 100%)',
+      }}
+    />
+    <AbsoluteFill style={{padding: '80px 110px', justifyContent: 'space-between'}}>
+      <Pop>
+        <StepTag n="1" text="Pick a world on the live showcase" />
+      </Pop>
+      <Pop delay={8} style={{alignSelf: 'center'}}>
+        <Chip big>motion-pages.pages.dev</Chip>
+      </Pop>
+    </AbsoluteFill>
+  </AbsoluteFill>
+);
+
+// ---------- step 2: terminal ----------
+
 const PROMPT_TEXT =
-  'Using the motion-pages skill, build the foggy living-world hero for my brand as ONE self-contained HTML file. Keep every mechanic, then self-verify until it matches.';
+  'Use the motion-pages skill: build the foggy living-world hero for my brand as ONE self-contained HTML file. Self-verify until it matches.';
 
 const STATUS_LINES: {t: string; at: number}[] = [
-  {t: '● building world — fog == background, baked glow sprites', at: 170},
-  {t: '● screenshot 1600×900 … ✓', at: 215},
-  {t: '● screenshot 820×1180 … ✓', at: 245},
-  {t: '● screenshot 390×844 (phone reflow) … ✓', at: 275},
-  {t: '✔ design review passed — your world is ready', at: 315},
+  {t: '● building world — fog == background, baked glow sprites', at: 6 * BEAT},
+  {t: '● screenshot 1600×900 … ✓', at: 7.5 * BEAT},
+  {t: '● screenshot 820×1180 … ✓', at: 9 * BEAT},
+  {t: '● screenshot 390×844 (phone reflow) … ✓', at: 10.5 * BEAT},
+  {t: '✔ design review passed — your world is ready', at: 12 * BEAT},
 ];
 
 const Step2: React.FC = () => {
   const frame = useCurrentFrame();
-  // typing runs frames 40..160
   const typed = Math.round(
-    interpolate(frame, [40, 160], [0, PROMPT_TEXT.length], {
+    interpolate(frame, [BEAT, 5 * BEAT], [0, PROMPT_TEXT.length], {
       extrapolateLeft: 'clamp',
       extrapolateRight: 'clamp',
     })
   );
-  const cursorOn = Math.floor(frame / 15) % 2 === 0;
+  const cursorOn = Math.floor(frame / 12) % 2 === 0;
   return (
-    <SceneFade duration={STEP2}>
-      <AbsoluteFill style={{background: INK, padding: '90px 120px', gap: 50}}>
-        <FadeIn delay={4}>
-          <StepTitle
-            n="2"
-            title="Copy its prompt into Claude Code"
-            sub="The agent builds the page, then screenshots its own work at three sizes and iterates until it looks right."
-          />
-        </FadeIn>
-        <FadeIn delay={18} from={40} style={{flex: 1, display: 'flex'}}>
+    <AbsoluteFill style={{background: INK, padding: '70px 110px', gap: 40}}>
+      <Pop>
+        <StepTag n="2" text="Paste its prompt into Claude Code" />
+      </Pop>
+      <Pop delay={4} style={{flex: 1, display: 'flex'}}>
+        <div
+          style={{
+            flex: 1,
+            background: '#080a14',
+            borderRadius: 20,
+            border: '1px solid rgba(244,241,234,0.14)',
+            overflow: 'hidden',
+            boxShadow: '0 40px 120px rgba(0,0,0,0.5)',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           <div
             style={{
-              flex: 1,
-              background: '#080a14',
-              borderRadius: 20,
-              border: '1px solid rgba(244,241,234,0.14)',
-              padding: '0 0 30px',
-              overflow: 'hidden',
-              boxShadow: '0 40px 120px rgba(0,0,0,0.5)',
+              display: 'flex',
+              gap: 10,
+              padding: '20px 24px',
+              borderBottom: '1px solid rgba(244,241,234,0.08)',
+              alignItems: 'center',
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                gap: 10,
-                padding: '20px 24px',
-                borderBottom: '1px solid rgba(244,241,234,0.08)',
-                alignItems: 'center',
-              }}
-            >
-              {['#ff5f57', '#febc2e', '#28c840'].map((c) => (
-                <div
-                  key={c}
-                  style={{width: 16, height: 16, borderRadius: 8, background: c}}
-                />
-              ))}
+            {['#ff5f57', '#febc2e', '#28c840'].map((c) => (
               <div
-                style={{
-                  fontFamily: mono.fontFamily,
-                  color: 'rgba(244,241,234,0.5)',
-                  fontSize: 22,
-                  marginLeft: 14,
-                }}
-              >
-                claude — motion-pages
-              </div>
-            </div>
+                key={c}
+                style={{width: 16, height: 16, borderRadius: 8, background: c}}
+              />
+            ))}
             <div
               style={{
-                padding: '30px 36px',
                 fontFamily: mono.fontFamily,
-                fontSize: 27,
-                lineHeight: 1.75,
-                color: PAPER,
+                color: 'rgba(244,241,234,0.5)',
+                fontSize: 22,
+                marginLeft: 14,
               }}
             >
-              <div style={{color: GREEN}}>$ claude</div>
-              <div style={{maxWidth: 1500, whiteSpace: 'pre-wrap'}}>
-                <span style={{color: 'rgba(244,241,234,0.55)'}}>&gt; </span>
-                {PROMPT_TEXT.slice(0, typed)}
-                {typed < PROMPT_TEXT.length && cursorOn ? (
-                  <span style={{background: PAPER, color: INK}}>&nbsp;</span>
-                ) : null}
-              </div>
-              {STATUS_LINES.filter((l) => frame >= l.at).map((l) => (
-                <FadeIn key={l.t} from={10} delay={l.at}>
-                  <div
-                    style={{
-                      color: l.t.startsWith('✔') ? GREEN : 'rgba(244,241,234,0.75)',
-                      fontWeight: l.t.startsWith('✔') ? 700 : 400,
-                    }}
-                  >
-                    {l.t}
-                  </div>
-                </FadeIn>
-              ))}
+              claude — motion-pages
             </div>
           </div>
-        </FadeIn>
-      </AbsoluteFill>
-    </SceneFade>
+          <div
+            style={{
+              padding: '28px 36px',
+              fontFamily: mono.fontFamily,
+              fontSize: 30,
+              lineHeight: 1.7,
+              color: PAPER,
+            }}
+          >
+            <div style={{color: GREEN}}>$ claude</div>
+            <div style={{maxWidth: 1560, whiteSpace: 'pre-wrap'}}>
+              <span style={{color: 'rgba(244,241,234,0.55)'}}>&gt; </span>
+              {PROMPT_TEXT.slice(0, typed)}
+              {typed < PROMPT_TEXT.length && cursorOn ? (
+                <span style={{background: PAPER, color: INK}}>&nbsp;</span>
+              ) : null}
+            </div>
+            {STATUS_LINES.filter((l) => frame >= l.at).map((l) => (
+              <Pop key={l.t} delay={l.at}>
+                <div
+                  style={{
+                    color: l.t.startsWith('✔') ? GREEN : 'rgba(244,241,234,0.75)',
+                    fontWeight: l.t.startsWith('✔') ? 700 : 400,
+                    fontSize: l.t.startsWith('✔') ? 36 : 30,
+                  }}
+                >
+                  {l.t}
+                </div>
+              </Pop>
+            ))}
+          </div>
+        </div>
+      </Pop>
+    </AbsoluteFill>
   );
 };
+
+// ---------- step 3: results, two hard cuts ----------
 
 const Step3: React.FC = () => {
-  const frame = useCurrentFrame();
   const HALF = STEP3 / 2;
-  const first = frame < HALF;
   return (
-    <SceneFade duration={STEP3}>
-      {first ? (
-        <ClipFill src="clips/fernline.mp4" darken={0.7} />
-      ) : (
-        <ClipFill src="clips/boreal.mp4" darken={0.7} />
-      )}
-      <AbsoluteFill style={{padding: '90px 120px', justifyContent: 'space-between'}}>
-        <FadeIn delay={4}>
-          <StepTitle n="3" title="Get your world" />
-        </FadeIn>
-        <FadeIn delay={first ? 16 : HALF + 16} from={20}>
-          <div
-            style={{
-              fontFamily: inter.fontFamily,
-              fontSize: 34,
-              color: PAPER,
-              background: 'rgba(11,14,26,0.62)',
-              border: '1px solid rgba(244,241,234,0.2)',
-              borderRadius: 16,
-              padding: '18px 30px',
-              alignSelf: 'flex-start',
-              display: 'inline-block',
-              backdropFilter: 'blur(8px)',
-            }}
-          >
-            {first ? (
-              <>
-                <b>Fernline</b> — a full conversion hero, phone-ready, from one
-                prompt
-              </>
-            ) : (
-              <>
-                <b>BOREAL</b> — a scroll journey the agent verified frame by frame
-              </>
-            )}
-          </div>
-        </FadeIn>
-      </AbsoluteFill>
-    </SceneFade>
+    <AbsoluteFill style={{background: INK}}>
+      <Sequence durationInFrames={HALF}>
+        <Punch src="clips/fernline.mp4" startFrom={70} duration={HALF} panX={-26} />
+        <ResultOverlay label="Fernline — a full conversion hero, phone-ready" />
+      </Sequence>
+      <Sequence from={HALF} durationInFrames={HALF}>
+        <Punch src="clips/boreal.mp4" startFrom={110} duration={HALF} panX={26} />
+        <ResultOverlay label="BOREAL — a scroll journey, verified frame by frame" />
+      </Sequence>
+    </AbsoluteFill>
   );
 };
 
-const Cta: React.FC = () => {
-  return (
-    <SceneFade duration={CTA}>
-      <AbsoluteFill
-        style={{
-          background: `radial-gradient(ellipse 60% 50% at 50% 42%, #1a1640 0%, ${INK} 70%)`,
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 34,
-        }}
-      >
-        <FadeIn delay={6}>
-          <div
-            style={{
-              fontFamily: playfair.fontFamily,
-              fontWeight: 900,
-              fontSize: 210,
-              color: PAPER,
-              lineHeight: 1,
-            }}
-          >
-            M
-          </div>
-        </FadeIn>
-        <FadeIn delay={16}>
+const ResultOverlay: React.FC<{label: string}> = ({label}) => (
+  <AbsoluteFill style={{padding: '80px 110px', justifyContent: 'space-between'}}>
+    <Pop>
+      <StepTag n="3" text="Get your world" />
+    </Pop>
+    <Pop delay={6} style={{alignSelf: 'flex-start'}}>
+      <Chip big>{label}</Chip>
+    </Pop>
+  </AbsoluteFill>
+);
+
+// ---------- values: chips on the beat ----------
+
+const VALUE_ITEMS = ['one HTML file', 'no build step', 'phone-ready', 'MIT'];
+
+const Values: React.FC = () => (
+  <AbsoluteFill
+    style={{
+      background: `radial-gradient(ellipse 60% 50% at 50% 45%, #1a1640 0%, ${INK} 70%)`,
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}
+  >
+    <div style={{display: 'flex', gap: 30}}>
+      {VALUE_ITEMS.map((v, i) => (
+        <Pop key={v} delay={i * BEAT * 0.75}>
           <div
             style={{
               fontFamily: inter.fontFamily,
+              fontWeight: 800,
               fontSize: 44,
-              color: PAPER,
-              fontWeight: 700,
-              letterSpacing: '0.02em',
+              color: i === VALUE_ITEMS.length - 1 ? INK : PAPER,
+              background:
+                i === VALUE_ITEMS.length - 1 ? GREEN : 'rgba(244,241,234,0.08)',
+              border: '1px solid rgba(244,241,234,0.25)',
+              borderRadius: 18,
+              padding: '22px 38px',
             }}
           >
-            7 demos · 7 prompts · MIT · no build step
+            {v}
           </div>
-        </FadeIn>
-        <FadeIn delay={28} style={{display: 'flex', gap: 26}}>
-          <UrlChip>motion-pages.pages.dev</UrlChip>
-          <UrlChip>github.com/jiangyurong609/motion-pages</UrlChip>
-        </FadeIn>
-        <FadeIn delay={44}>
-          <div
-            style={{
-              fontFamily: inter.fontFamily,
-              fontSize: 30,
-              color: ACCENT,
-              fontWeight: 600,
-            }}
-          >
-            Paste one prompt tonight. Star it if you want more worlds.
-          </div>
-        </FadeIn>
-      </AbsoluteFill>
-    </SceneFade>
+        </Pop>
+      ))}
+    </div>
+  </AbsoluteFill>
+);
+
+// ---------- CTA ----------
+
+const Cta: React.FC = () => {
+  const frame = useCurrentFrame();
+  const glow = 0.5 + 0.5 * Math.sin(frame / 9);
+  return (
+    <AbsoluteFill
+      style={{
+        background: `radial-gradient(ellipse 60% 50% at 50% 40%, #1a1640 0%, ${INK} 70%)`,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 30,
+      }}
+    >
+      <Pop>
+        <div
+          style={{
+            fontFamily: playfair.fontFamily,
+            fontWeight: 900,
+            fontSize: 190,
+            color: PAPER,
+            lineHeight: 1,
+            textShadow: `0 0 ${40 + glow * 50}px rgba(139,124,248,${0.35 + glow * 0.3})`,
+          }}
+        >
+          M
+        </div>
+      </Pop>
+      <Pop delay={5}>
+        <div
+          style={{
+            fontFamily: inter.fontFamily,
+            fontSize: 44,
+            color: PAPER,
+            fontWeight: 700,
+          }}
+        >
+          7 demos · 7 prompts · one file each
+        </div>
+      </Pop>
+      <Pop delay={11} style={{display: 'flex', gap: 26}}>
+        <Chip big>motion-pages.pages.dev</Chip>
+        <Chip big>github.com/jiangyurong609/motion-pages</Chip>
+      </Pop>
+      <Pop delay={18}>
+        <div
+          style={{
+            fontFamily: inter.fontFamily,
+            fontSize: 32,
+            color: ACCENT,
+            fontWeight: 600,
+          }}
+        >
+          Paste one prompt tonight ★
+        </div>
+      </Pop>
+    </AbsoluteFill>
   );
 };
 
 // ---------- root ----------
 
+const starts = (() => {
+  const durations = [HOOK, BRAND, STEP1, STEP2, STEP3, VALUES, CTA];
+  const out: number[] = [];
+  let acc = 0;
+  for (const d of durations) {
+    out.push(acc);
+    acc += d;
+  }
+  return out;
+})();
+
 export const Tutorial: React.FC = () => {
+  const frame = useCurrentFrame();
+  const musicVolume = interpolate(
+    frame,
+    [0, 10, TUTORIAL_DURATION - 50, TUTORIAL_DURATION - 5],
+    [0, 0.85, 0.85, 0],
+    {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'}
+  );
   return (
     <AbsoluteFill style={{background: INK}}>
+      <Audio
+        src={staticFile('audio/voxel-revolution.mp3')}
+        volume={musicVolume}
+      />
       <Sequence durationInFrames={HOOK}>
         <Hook />
       </Sequence>
-      <Sequence from={HOOK} durationInFrames={STEP1}>
+      <Sequence from={starts[1]} durationInFrames={BRAND}>
+        <Brand />
+      </Sequence>
+      <Sequence from={starts[2]} durationInFrames={STEP1}>
         <Step1 />
       </Sequence>
-      <Sequence from={HOOK + STEP1} durationInFrames={STEP2}>
+      <Sequence from={starts[3]} durationInFrames={STEP2}>
         <Step2 />
       </Sequence>
-      <Sequence from={HOOK + STEP1 + STEP2} durationInFrames={STEP3}>
+      <Sequence from={starts[4]} durationInFrames={STEP3}>
         <Step3 />
       </Sequence>
-      <Sequence from={HOOK + STEP1 + STEP2 + STEP3} durationInFrames={CTA}>
+      <Sequence from={starts[5]} durationInFrames={VALUES}>
+        <Values />
+      </Sequence>
+      <Sequence from={starts[6]} durationInFrames={CTA}>
         <Cta />
       </Sequence>
     </AbsoluteFill>

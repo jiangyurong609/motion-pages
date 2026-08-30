@@ -1,0 +1,7 @@
+# Overrides gcloud's default use of .gitignore — the clips MUST ship in the
+# build context even though they are not committed to git.
+.git
+node_modules
+out
+build
+.env

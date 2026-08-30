@@ -1,17 +1,27 @@
 #!/bin/bash
-# Deploys the Remotion Cloud Run service + site bundle, then renders in the cloud.
-# Requires video/.env with REMOTION_GCP_* credentials (see README).
+# Renders the tutorial on Google Cloud Run (as a Cloud Run Job) and prints
+# the GCS output URL. Rebuilds the image first so src/ changes are picked up.
+#
+# Note: this project's GCP org enforces uniform bucket-level access, which
+# Remotion's stock Cloud Run service can't write through (it sets legacy
+# per-object ACLs). This job path renders with plain `remotion render` inside
+# a container and uploads without ACLs instead.
 set -e
 cd "$(dirname "$0")"
 
-REGION="${REMOTION_GCP_REGION:-us-east1}"
-SITE="motion-pages-tutorial"
+PROJECT=video-agent-493605
+REGION=us-west1
+IMAGE=us-west1-docker.pkg.dev/$PROJECT/remotion/motion-pages-render:v1
+JOB=motion-pages-render
 
-echo "==> ensure Cloud Run service"
-npx remotion cloudrun services deploy --region="$REGION" || true
+echo "==> build + push image"
+gcloud builds submit --project $PROJECT --region $REGION --tag $IMAGE . | tail -2
 
-echo "==> bundle + upload site"
-npx remotion cloudrun sites create src/index.ts --site-name="$SITE" --region="$REGION"
+echo "==> update job"
+gcloud run jobs update $JOB --image $IMAGE --region $REGION --project $PROJECT >/dev/null
 
-echo "==> render in Cloud Run"
-npx remotion cloudrun render "$SITE" Tutorial --region="$REGION" "$@"
+echo "==> execute"
+gcloud run jobs execute $JOB --region $REGION --project $PROJECT --wait
+
+echo "==> output"
+echo "https://storage.googleapis.com/remotioncloudrun-opnlqyyku0/renders/tutorial.mp4"
