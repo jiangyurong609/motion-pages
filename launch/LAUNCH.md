@@ -1,11 +1,11 @@
-# Launch plan — threejs-hero
+# Launch plan — motion-pages
 
 Ship order: X/小红书 teaser → Product Hunt → Show HN → directories → community PRs.
-Everything links to the showcase: https://jiangyurong609.github.io/threejs-hero-skill/
+Everything links to the showcase: https://jiangyurong609.github.io/motion-pages/
 
 ## Product Hunt
 
-- **Name:** threejs-hero
+- **Name:** motion-pages
 - **Tagline:** Award-site motion pages, one prompt away
 - **Description (260):** An open-source Claude Code skill that teaches your AI agent
   to build award-site-style motion pages — 3D worlds, glass product stages, dome

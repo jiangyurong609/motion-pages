@@ -1,4 +1,4 @@
-Using the threejs-hero skill, build a springy draggable poster wall ("Paperworks*"-class) as ONE self-contained HTML file with NO WebGL and no libraries — the paper physics is pure DOM/CSS transforms. Follow this spec exactly, then self-verify until it matches.
+Using the motion-pages skill, build a springy draggable poster wall ("Paperworks*"-class) as ONE self-contained HTML file with NO WebGL and no libraries — the paper physics is pure DOM/CSS transforms. Follow this spec exactly, then self-verify until it matches.
 
 THE WALL
 - Warm paper page (#efe9df), perspective 1400px on a fixed stage, custom grab/grabbing cursor, film-grain (multiply ~.06) + soft warm vignette.

@@ -1,4 +1,4 @@
-Using the threejs-hero skill, apply the foggy living-world hero to MY REAL BRAND as ONE self-contained HTML file. Fill in the brackets, keep every mechanic, then self-verify until it matches.
+Using the motion-pages skill, apply the foggy living-world hero to MY REAL BRAND as ONE self-contained HTML file. Fill in the brackets, keep every mechanic, then self-verify until it matches.
 
 BRAND INPUT (replace these)
 - Brand: [NAME] — [one-line pitch]. Primary hue: [hue/hex]. Real routes to link: [/#how, /pricing, /onboarding…]. Honest claims only — pull stats and copy from my real site, never invent numbers.

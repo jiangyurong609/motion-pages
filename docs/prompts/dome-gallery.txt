@@ -1,4 +1,4 @@
-Using the threejs-hero skill, build a drag-orbit dome media gallery ("Archive°"-class) as ONE self-contained HTML file. Follow this spec exactly, then self-verify until it matches.
+Using the motion-pages skill, build a drag-orbit dome media gallery ("Archive°"-class) as ONE self-contained HTML file. Follow this spec exactly, then self-verify until it matches.
 
 ARCHITECTURE
 - Single .html + vendored ./vendor/three.module.js (local-first import, CDN fallback). No other deps.

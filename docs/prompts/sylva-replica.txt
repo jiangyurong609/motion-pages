@@ -1,4 +1,4 @@
-Using the threejs-hero skill, build an immersive foggy living-world hero as ONE self-contained HTML file. This is the foundational recipe — follow this spec exactly, then self-verify until it matches.
+Using the motion-pages skill, build an immersive foggy living-world hero as ONE self-contained HTML file. This is the foundational recipe — follow this spec exactly, then self-verify until it matches.
 
 ARCHITECTURE
 - Single .html + vendored ./vendor/three.module.js (local-first import, CDN fallback). Fixed layers: atmo gradient blooms → giant translucent ghost wordmark (sized so the WHOLE word fits ~65vw, placed low so the world occludes it) → transparent WebGL canvas → vignette → DOM UI. Text is ALWAYS DOM, never 3D.

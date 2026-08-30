@@ -1,9 +1,9 @@
 ---
-name: threejs-hero
+name: motion-pages
 description: Build production-ready immersive motion pages in the award-site mold — Three.js worlds (foggy heroes, glass product stages with sonar rings, drag-orbit dome galleries, scroll-driven camera journeys with particle morphs) AND non-Three.js motion (raw-WebGL liquid-glass ripple typography, springy draggable poster walls, cursor mask reveals, gesture control) — each a single HTML file with a crisp DOM overlay, responsive to phone/tablet, touch-aware, with a mandatory multi-viewport screenshot loop and a design-review (aesthetic + conversion) pass. Use when asked for a "3D landing page", "Three.js hero", "living/breathing homepage", a 3D product page, a 3D gallery, a scroll-story page, "liquid glass", a ripple/distortion hero, a draggable poster wall, or to apply an award-site motion effect to a brand.
 ---
 
-# Three.js Immersive Hero Pages
+# Motion Pages — Award-Site Immersive & Motion Recipes
 
 Recipe derived from (and verified by replicating) the "Sylva — Step into the living
 world" example: a monochromatic foggy 3D world fills the viewport, organic hero

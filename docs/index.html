@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>threejs-hero — award-site motion pages, one prompt away</title>
+<title>motion-pages — award-site motion, one prompt away</title>
 <meta name="description" content="An open-source Claude Code skill that builds award-site-style motion pages as single HTML files — Three.js worlds, liquid-glass shaders, springy poster walls. Live demos + full build-spec prompts."/>
-<meta property="og:title" content="threejs-hero — award-site motion pages, one prompt away"/>
+<meta property="og:title" content="motion-pages — award-site motion, one prompt away"/>
 <meta property="og:description" content="Open-source skill: 3D hero worlds, glass product stages, dome galleries, scroll journeys, liquid-glass typography, poster walls. Live demos + full build-spec prompts."/>
-<meta property="og:image" content="https://jiangyurong609.github.io/threejs-hero-skill/assets/pura-still.png"/>
+<meta property="og:image" content="https://jiangyurong609.github.io/motion-pages/assets/pura-still.png"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23f4efe8'/%3E%3Ccircle cx='32' cy='32' r='18' fill='%23c92f1e'/%3E%3C/svg%3E"/>
 <style>
@@ -176,12 +176,12 @@ footer a:hover{border-bottom-color:var(--ink)}
 <div class="grain" aria-hidden="true"></div>
 
 <header class="mast">
-  <span class="wm">threejs-hero<i>*</i></span>
+  <span class="wm">motion-pages<i>*</i></span>
   <nav class="top">
     <a class="mid" href="#index">Index</a>
     <a class="mid" href="#bench">Bench</a>
     <a class="mid" href="#install">Install</a>
-    <a class="gh" href="https://github.com/jiangyurong609/threejs-hero-skill">★ <span id="stars">GitHub</span></a>
+    <a class="gh" href="https://github.com/jiangyurong609/motion-pages">★ <span id="stars">GitHub</span></a>
   </nav>
 </header>
 
@@ -250,7 +250,7 @@ footer a:hover{border-bottom-color:var(--ink)}
         depths, greps its bundles for tech signals, maps what it sees to this skill's recipes — then
         rebuilds that motion language as original code for your brand. It studies patterns; it never
         copies code, assets, or content.</p>
-      <div class="codeblk">Using the threejs-hero skill: clone the feel of
+      <div class="codeblk">Using the motion-pages skill: clone the feel of
 &lt;URL&gt; for my brand &lt;NAME + one-line pitch&gt; —
 browse it, storyboard it at several scroll depths,
 identify its motion patterns, then rebuild that
@@ -275,7 +275,7 @@ Self-verify until perfect.<button class="copychip" data-copy="study">⧉ Copy</b
         <li>Every control works — honest labels, real routes</li>
         <li>Hover everything: surfaces respond like lit objects</li>
       </ul>
-      <p style="margin-top:14px"><a class="tlink" href="https://github.com/jiangyurong609/threejs-hero-skill/blob/main/SKILL.md">Read the full skill — SKILL.md ↗</a></p>
+      <p style="margin-top:14px"><a class="tlink" href="https://github.com/jiangyurong609/motion-pages/blob/main/SKILL.md">Read the full skill — SKILL.md ↗</a></p>
     </div>
   </div>
 </section>
@@ -290,8 +290,8 @@ Self-verify until perfect.<button class="copychip" data-copy="study">⧉ Copy</b
       <div class="step"><p><b>Watch it verify itself</b> — the agent screenshots desktop, tablet, and phone, and iterates until the page passes the review.</p></div>
     </div>
     <div class="codeblk"><span class="cmt"># install</span>
-git clone https://github.com/jiangyurong609/threejs-hero-skill.git
-cp -r threejs-hero-skill/threejs-hero ~/.claude/skills/
+git clone https://github.com/jiangyurong609/motion-pages.git
+cp -r motion-pages/motion-pages ~/.claude/skills/
 
 <span class="cmt"># then, in Claude Code:</span>
 <span class="cmt">"Build me a 3D landing page for my brand.</span>
@@ -301,11 +301,11 @@ cp -r threejs-hero-skill/threejs-hero ~/.claude/skills/
 </main>
 
 <footer>
-  <span>threejs-hero<i style="color:var(--red)">*</i> — MIT, free forever · plates are original-code
+  <span>motion-pages<i style="color:var(--red)">*</i> — MIT, free forever · plates are original-code
     studies of public award-site motion patterns · fictional brands throughout</span>
-  <span><a href="https://github.com/jiangyurong609/threejs-hero-skill">github</a> ·
+  <span><a href="https://github.com/jiangyurong609/motion-pages">github</a> ·
     <a href="llms.txt">llms.txt for AI agents</a> ·
-    <a href="https://threejs-hero.pages.dev">threejs-hero.pages.dev</a></span>
+    <a href="https://motion-pages.pages.dev">motion-pages.pages.dev</a></span>
 </footer>
 
 <div id="toast" role="status"></div>
@@ -361,7 +361,7 @@ function render(){
         <div class="rlinks">
           <button class="tlink red" data-prompt="${ex.id}">⧉ Copy the prompt</button>
           <a class="tlink" href="examples/${ex.id}.html" target="_blank" rel="noopener">Open ↗</a>
-          <a class="tlink" href="https://github.com/jiangyurong609/threejs-hero-skill/blob/main/threejs-hero/examples/${ex.id}.html" target="_blank" rel="noopener">View source</a>
+          <a class="tlink" href="https://github.com/jiangyurong609/motion-pages/blob/main/motion-pages/examples/${ex.id}.html" target="_blank" rel="noopener">View source</a>
         </div>
       </div>
       <div class="plate-wrap"><div class="plate" data-live="examples/${ex.id}.html">
@@ -386,9 +386,9 @@ rows.addEventListener("click",e=>{
 render();
 
 // ---------- copy plumbing
-const INSTALL=`git clone https://github.com/jiangyurong609/threejs-hero-skill.git
-cp -r threejs-hero-skill/threejs-hero ~/.claude/skills/`;
-const STUDY=`Using the threejs-hero skill: clone the feel of <URL> for my brand <NAME + one-line pitch> — browse it, storyboard it at several scroll depths, identify its motion patterns, then rebuild that motion language as an original single-file page with my brand's palette and copy. Self-verify until perfect.`;
+const INSTALL=`git clone https://github.com/jiangyurong609/motion-pages.git
+cp -r motion-pages/motion-pages ~/.claude/skills/`;
+const STUDY=`Using the motion-pages skill: clone the feel of <URL> for my brand <NAME + one-line pitch> — browse it, storyboard it at several scroll depths, identify its motion patterns, then rebuild that motion language as an original single-file page with my brand's palette and copy. Self-verify until perfect.`;
 let toastTimer;
 function toast(msg){const t=document.getElementById("toast");
  t.innerHTML=msg+' <i>✓</i>';t.classList.add("on");
@@ -412,7 +412,7 @@ document.addEventListener("click",e=>{
 });
 
 // ---------- live stars
-fetch("https://api.github.com/repos/jiangyurong609/threejs-hero-skill")
+fetch("https://api.github.com/repos/jiangyurong609/motion-pages")
  .then(r=>r.ok?r.json():null)
  .then(d=>{if(d&&typeof d.stargazers_count==="number")
    document.getElementById("stars").textContent=d.stargazers_count>=1000
@@ -453,7 +453,7 @@ const PGRECIPE={
 };
 document.getElementById("pgCopy").addEventListener("click",()=>{
   copyText(
-`Using the threejs-hero skill: build ${PGRECIPE[pg.mode]}.
+`Using the motion-pages skill: build ${PGRECIPE[pg.mode]}.
 
 Brand: "${pg.brand}". Tagline: "${pg.tag}".
 Palette: derive everything from base hue ${pg.hue} — accent hsl(${pg.hue}, 85%, 60%), page background hsl(${pg.hue}, 45%, 5%)${pg.mode==="liquid"?" (liquid mode: keep the ivory paper background, tint only the orb and accents)":""}, fog color == background color.

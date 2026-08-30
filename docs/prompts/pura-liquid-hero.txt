@@ -1,4 +1,4 @@
-Using the threejs-hero skill, build a liquid-glass editorial hero ("PURA"-class) as ONE self-contained HTML file with NO libraries — raw WebGL only. Follow this spec exactly, then self-verify until it matches.
+Using the motion-pages skill, build a liquid-glass editorial hero ("PURA"-class) as ONE self-contained HTML file with NO libraries — raw WebGL only. Follow this spec exactly, then self-verify until it matches.
 
 SOURCE LAYER (what the liquid distorts)
 - Paint the editorial page ONCE on an offscreen 1920x1080 2D canvas: ivory #f4efe8 ground; 9 faint concentric arcs upper-right (rgba(26,23,20,.05)); giant serif display type centered — first word ~30% of height in Didot/Playfair/Georgia stack ("MEASURED"-scale), second word italic lowercase below; a glossy accent orb (layered radial gradients: hot core → deep red #c92f1e → dark rim, plus a white specular blob and a soft ground shadow ellipse); two uppercase micro-caption rows top-left/top-right.

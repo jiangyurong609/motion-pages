@@ -1,10 +1,10 @@
-# threejs-hero — a Claude Code skill for award-site motion pages
+# motion-pages — a Claude Code skill for award-site motion
 
 Immersive Three.js worlds, liquid-glass shader typography, springy poster walls —
 single-file pages, screenshot-verified.
 
-**🌐 Showcase: <https://threejs-hero.pages.dev>** (mirror:
-<https://jiangyurong609.github.io/threejs-hero-skill/>)
+**🌐 Showcase: <https://motion-pages.pages.dev>** (mirror:
+<https://jiangyurong609.github.io/motion-pages/>)
 
 On the showcase you can:
 
@@ -23,7 +23,7 @@ On the showcase you can:
 - **🤖 Hand it to any agent** — [`llms.txt`](docs/llms.txt) links the full skill and
   every live example for AI agents outside Claude Code.
 
-![threejs-hero demo — scroll journey flythrough and example pages](assets/demo.gif)
+![motion-pages demo — scroll journey flythrough and example pages](assets/demo.gif)
 
 A [Claude Code](https://claude.com/claude-code) skill that teaches the agent to build
 **award-site-style immersive Three.js pages** as a single HTML file (+ a vendored
@@ -54,8 +54,8 @@ webapp on day 1.
 ## Install
 
 ```bash
-git clone https://github.com/jiangyurong609/threejs-hero-skill.git
-cp -r threejs-hero-skill/threejs-hero ~/.claude/skills/
+git clone https://github.com/jiangyurong609/motion-pages.git
+cp -r motion-pages/motion-pages ~/.claude/skills/
 ```
 
 Then in Claude Code, prompts like these will route through the skill:
@@ -68,8 +68,8 @@ Then in Claude Code, prompts like these will route through the skill:
 - "Add a butterfly that lands on the branch and flies away on mouse-over"
 
 Or skip prompt-writing entirely: grab a **full build-spec prompt** from the
-[showcase gallery](https://threejs-hero.pages.dev/#examples) or generate a
-personalized one in the [Playground](https://threejs-hero.pages.dev/#playground).
+[showcase gallery](https://motion-pages.pages.dev/#examples) or generate a
+personalized one in the [Playground](https://motion-pages.pages.dev/#playground).
 
 ## What the skill encodes
 
@@ -128,37 +128,37 @@ personalized one in the [Playground](https://threejs-hero.pages.dev/#playground)
 
 ## Bundled examples
 
-- [`threejs-hero/examples/sylva-replica.html`](threejs-hero/examples/sylva-replica.html)
+- [`motion-pages/examples/sylva-replica.html`](motion-pages/examples/sylva-replica.html)
   — replica study of the original nature scene (open it in a browser, move the mouse,
   hover the butterfly).
-- [`threejs-hero/examples/frontdesk-hero.html`](threejs-hero/examples/frontdesk-hero.html)
+- [`motion-pages/examples/frontdesk-hero.html`](motion-pages/examples/frontdesk-hero.html)
   — the same recipe re-themed for a real SaaS brand
   ([FrontDesk](https://frontdeskhq.co), an AI phone receptionist): the mossy branches
   become glowing call-wires, the butterfly becomes a message spark, call pulses flow
   into a receptionist orb. This one shows the full production treatment — conversion-
   first hero column, working demo modal, glass stat chips, atmosphere + vignette,
   phone/tablet layouts, touch idle-drift, reduced-motion support.
-- [`threejs-hero/examples/sona-product-hero.html`](threejs-hero/examples/sona-product-hero.html)
+- [`motion-pages/examples/sona-product-hero.html`](motion-pages/examples/sona-product-hero.html)
   — **glass product stage** (studied from the AETHER:1 earbuds site): a fake-glass
   capsule (no `transmission` — it renders opaque under SwiftShader) with glowing buds
   inside, thin additive sonar ring pulses, tilted orbital arcs with traveling dots, a
   wireframe geodesic backdrop, and a working WebAudio sound toggle that makes the
   rings react. Product sits beside the copy on desktop, floats above it on phones.
-- [`threejs-hero/examples/dome-gallery.html`](threejs-hero/examples/dome-gallery.html)
+- [`motion-pages/examples/dome-gallery.html`](motion-pages/examples/dome-gallery.html)
   — **drag-orbit dome gallery** (studied from OpenPurpose®): ~100 canvas-generated
   site thumbnails on the inside of a sphere, inertial drag, click a card and the
   camera flies to it while the rest dim (Esc / "Back to dome" returns). Try
   `?focus=40` to jump straight to a focused card.
-- [`threejs-hero/examples/boreal-journey.html`](threejs-hero/examples/boreal-journey.html)
+- [`motion-pages/examples/boreal-journey.html`](motion-pages/examples/boreal-journey.html)
   — **scroll-driven camera journey + particle morphs** (studied from Igloo Inc):
   scrolling scrubs the camera along a spline over foggy noise terrain while a 6k-point
   cloud morphs dome → ring portal → particle creature, with per-segment captions. Try
   `?p=0.5` or `?p=0.95` to pin any point of the journey.
-- [`threejs-hero/examples/pura-liquid-hero.html`](threejs-hero/examples/pura-liquid-hero.html)
+- [`motion-pages/examples/pura-liquid-hero.html`](motion-pages/examples/pura-liquid-hero.html)
   — **liquid-glass ripple typography** (no three.js — raw WebGL): a fragment shader
   turns the whole editorial page liquid; cursor ripples, a glass lens, and chromatic
   aberration warp giant serif type painted on an offscreen canvas.
-- [`threejs-hero/examples/paperworks-posterwall.html`](threejs-hero/examples/paperworks-posterwall.html)
+- [`motion-pages/examples/paperworks-posterwall.html`](motion-pages/examples/paperworks-posterwall.html)
   — **springy draggable poster wall** (no WebGL at all): an infinite wrapped grid of
   canvas-painted posters that flex like paper — spring tilts driven by drag lag,
   momentum, click-to-enlarge modal.
@@ -169,7 +169,7 @@ Verify any file locally:
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 "$CHROME" --headless=new --enable-unsafe-swiftshader --window-size=1440,900 \
   --screenshot=out.png --virtual-time-budget=8000 \
-  "file://$PWD/threejs-hero/examples/sylva-replica.html?still"
+  "file://$PWD/motion-pages/examples/sylva-replica.html?still"
 ```
 
 ## Credits
