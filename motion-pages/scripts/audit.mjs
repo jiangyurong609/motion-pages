@@ -23,6 +23,10 @@ const args = process.argv.slice(2);
 const flags = new Set(args.filter((a) => a.startsWith('--')));
 const jsonOut = flags.has('--json');
 const vpFilter = [...flags].find((f) => f.startsWith('--viewport='))?.split('=')[1];
+if (vpFilter && !['desktop', 'tablet', 'phone'].includes(vpFilter)) {
+  console.error(`unknown viewport "${vpFilter}" — use desktop|tablet|phone`);
+  process.exit(2);
+}
 const target = args.find((a) => !a.startsWith('--'));
 if (!target) {
   console.error('usage: node scripts/audit.mjs <page.html|url> [--json] [--viewport=desktop|tablet|phone]');
@@ -226,12 +230,16 @@ const INSPECT_JS = String.raw`(() => {
     !/^(svg|path|circle|rect|g|line|polyline|use)$/i.test(el.tagName));
   out.interactiveCount = interactive.length;
   out.defaultEase = 0; out.customBezier = 0; out.deadHover = [];
+  // comma-lists: split durations/timings per transition entry (parens-safe split)
+  const splitList = (v) => v.split(/,(?![^(]*\))/).map((x) => x.trim());
   for (const el of interactive) {
     const s = getComputedStyle(el);
-    const dur = parseFloat(s.transitionDuration) || 0;
-    if (s.transitionTimingFunction.includes('cubic-bezier')) out.customBezier++;
-    else if (s.transitionTimingFunction === 'ease' && dur > 0 && dur <= 0.25) out.defaultEase++;
-    if (dur === 0 && !el.closest('canvas')) out.deadHover.push(sel(el));
+    const durs = splitList(s.transitionDuration).map((v) => parseFloat(v) || 0);
+    const maxDur = Math.max(...durs, 0);
+    const timings = splitList(s.transitionTimingFunction);
+    if (timings.some((t) => t.includes('cubic-bezier'))) out.customBezier++;
+    else if (timings.every((t) => t === 'ease') && maxDur > 0 && maxDur <= 0.25) out.defaultEase++;
+    if (maxDur === 0 && !el.closest('canvas')) out.deadHover.push(sel(el));
   }
   out.deadHover = out.deadHover.slice(0, 8);
 
@@ -263,13 +271,18 @@ const INSPECT_JS = String.raw`(() => {
   for (const sh of document.styleSheets) {
     try { for (const r of sh.cssRules) css += r.cssText + '\n'; } catch {}
   }
-  // CSS media query OR JS matchMedia handling both count (single-file pages
-  // keep scripts inline, so outerHTML sees them)
-  out.hasReducedMotion = /prefers-reduced-motion/.test(css) ||
-    /prefers-reduced-motion/.test(document.documentElement.outerHTML);
+  // Reduced-motion handling: an actual @media rule in CSS, or a matchMedia()
+  // query in inline scripts (single-file pages) — not just the string anywhere.
+  const scriptText = [...document.scripts].map((s) => s.textContent).join('\n');
+  out.hasReducedMotion = /@media[^{]*prefers-reduced-motion/.test(css) ||
+    /matchMedia\s*\([^)]*prefers-reduced-motion/.test(scriptText);
   out.hasFocusStyle = /:focus/.test(css);
   out.hasCubicBezierCSS = /cubic-bezier/.test(css);
   out.animCount = document.getAnimations ? document.getAnimations().length : -1;
+  // "does this page animate at all" — finished entrance animations and
+  // hover-only transitions don't show in getAnimations() at settle
+  out.hasKeyframes = /@keyframes/.test(css);
+  out.hasTransitions = /transition[^;:]*:\s*[^;]*(\d\.?\d*m?s)/.test(css);
 
   // infinite loops with easing (stutter check)
   out.easedLoops = [];
@@ -295,7 +308,10 @@ const INSPECT_JS = String.raw`(() => {
   out.innerWidth = innerWidth;
   out.smallTaps = interactive.filter((el) => {
     const r = el.getBoundingClientRect();
-    return Math.min(r.width, r.height) < 32 && Math.max(r.width, r.height) < 80;
+    // inline text links get a pass; anything else needs both dimensions tappable
+    if (el.tagName === 'A' && getComputedStyle(el).display === 'inline' &&
+        el.textContent.trim().length > 2) return false;
+    return r.width < 28 || r.height < 28;
   }).slice(0, 8).map(sel);
   out.microText = visible.filter((el) => {
     const hasText = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
@@ -305,8 +321,11 @@ const INSPECT_JS = String.raw`(() => {
   // a11y: unnamed icon buttons
   out.unnamed = [...document.querySelectorAll('a,button,[role=button]')].filter((el) => {
     if (!vis(el)) return false;
+    const labelledBy = (el.getAttribute('aria-labelledby') ?? '').split(/\s+/)
+      .map((id) => document.getElementById(id)?.textContent ?? '').join(' ');
     const name = (el.textContent.trim() || el.getAttribute('aria-label') ||
-      el.getAttribute('title') || el.querySelector('img[alt]')?.alt || '').trim();
+      labelledBy.trim() || el.getAttribute('title') ||
+      el.querySelector('img[alt]')?.alt || '').trim();
     return !name;
   }).slice(0, 8).map(sel);
 
@@ -385,9 +404,9 @@ function evaluateRules(vp, d, png, stillDiff, consoleErrors) {
     'no cubic-bezier anywhere — page is running on browser defaults');
   rule('motion/eased-loops', 'warn', d.easedLoops.length === 0,
     `infinite loops with easing (reads as stutter): ${d.easedLoops.map((l) => l.sel + '→' + l.name).join(', ')}`);
-  rule('motion/reduced-motion', 'fail',
-    d.hasReducedMotion || (d.animCount === 0 && d.canvas.length === 0),
-    'page animates but has no prefers-reduced-motion handling');
+  const animates = d.canvas.length > 0 || d.animCount > 0 || d.hasKeyframes || d.hasTransitions;
+  rule('motion/reduced-motion', 'fail', d.hasReducedMotion || !animates,
+    'page animates but has no prefers-reduced-motion handling (@media rule or matchMedia)');
   rule('motion/stagger-trap', 'fail', d.delayTrap.length === 0,
     `interactive elements still carry transition-delay after settle (hover lag): ${d.delayTrap.join(', ')}`);
   rule('motion/dead-hover', 'warn', d.deadHover.length <= d.interactiveCount * 0.3,
@@ -406,15 +425,25 @@ function evaluateRules(vp, d, png, stillDiff, consoleErrors) {
       rule('tech/canvas-alive', 'warn', st && st.std > 0.004,
         'canvas region is a flat fill — world may not be rendering (fog==bg is fine, zero variance is not)');
     }
-    // contrast: sample big text rects against the actual rendered pixels
+    // contrast (heuristic): sample the ring AROUND each text rect — the rect
+    // itself contains the glyphs, which would drag "background" toward the
+    // text color and invent low-contrast findings
     const weak = [];
     for (const t of d.textRects) {
       if (t.w < 20 || t.h < 8) continue;
-      const st = regionStats(png, t);
-      if (!st) continue;
+      const pad = 6;
+      const bands = [
+        {x: t.x - pad, y: t.y - pad, w: t.w + 2 * pad, h: pad},
+        {x: t.x - pad, y: t.y + t.h, w: t.w + 2 * pad, h: pad},
+        {x: t.x - pad, y: t.y, w: pad, h: t.h},
+        {x: t.x + t.w, y: t.y, w: pad, h: t.h},
+      ].map((b) => regionStats(png, b)).filter(Boolean);
+      if (!bands.length) continue;
+      const n = bands.reduce((a, b) => a + b.n, 0);
+      const bgMean = bands.reduce((a, b) => a + b.mean * b.n, 0) / n;
       const textL = relLum(...t.color);
-      const c = contrast(textL, st.mean);
-      const min = t.size >= 24 ? 2.2 : 3.0; // rendered-average heuristic, below WCAG on purpose
+      const c = contrast(textL, bgMean);
+      const min = t.size >= 24 ? 2.2 : 3.0; // deliberately below WCAG — warn-level heuristic
       if (c < min) weak.push(`${t.sel} (${c.toFixed(1)}:1 @${Math.round(t.size)}px)`);
     }
     rule('tech/contrast', 'warn', weak.length === 0,
@@ -465,13 +494,21 @@ try {
     await cdp.send('Emulation.setDeviceMetricsOverride',
       {width: vp.width, height: vp.height, deviceScaleFactor: 1, mobile: vp.mobile}, sessionId);
 
-    const loaded = new Promise((res) => {
-      const h = (p, sid) => { if (sid === sessionId) res(); };
+    const awaitLoad = (ms = 15000) => new Promise((res) => {
+      const h = (p, sid) => { if (sid === sessionId) res('load'); };
       cdp.on('Page.loadEventFired', h);
-      setTimeout(res, 15000);
+      setTimeout(() => res('timeout'), ms);
     });
-    await cdp.send('Page.navigate', {url: pageUrl}, sessionId);
-    await loaded;
+    let loaded = awaitLoad();
+    const nav = await cdp.send('Page.navigate', {url: pageUrl}, sessionId);
+    if (nav.errorText) {
+      console.error(`navigation failed: ${nav.errorText} — ${pageUrl}`);
+      process.exit(2);
+    }
+    if (await loaded === 'timeout') {
+      console.error(`page did not fire load within 15s — ${pageUrl}`);
+      process.exit(2);
+    }
     await sleep(SETTLE_MS);
 
     const {result} = await cdp.send('Runtime.evaluate',
@@ -499,7 +536,9 @@ try {
     let stillDiff = null;
     if (vp.name === 'desktop') {
       const stillUrl = pageUrl + (pageUrl.includes('?') ? '&' : '?') + 'still=1';
+      loaded = awaitLoad(10000);
       await cdp.send('Page.navigate', {url: stillUrl}, sessionId);
+      await loaded;
       await sleep(1800);
       const a = decodePNG((await cdp.send('Page.captureScreenshot', {format: 'png'}, sessionId)).data);
       await sleep(700);

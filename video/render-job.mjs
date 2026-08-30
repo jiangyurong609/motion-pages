@@ -20,4 +20,4 @@ if (r.status !== 0) {
 const storage = new Storage();
 await storage.bucket(bucket).upload('/tmp/out.mp4', {destination: dest});
 console.log(`uploaded gs://${bucket}/${dest}`);
-console.log(`public url: https://storage.googleapis.com/${bucket}/${dest}`);
+console.log(`object url (needs public bucket IAM or auth): https://storage.googleapis.com/${bucket}/${dest}`);

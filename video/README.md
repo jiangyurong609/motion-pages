@@ -28,18 +28,23 @@ python3 record-clips.py   # once, to produce public/clips
 
 ## Render on Google Cloud Run
 
-One-time setup (already done for project `video-agent-493605`):
+The pipeline is a custom Cloud Run **Job** (not Remotion's stock Cloud Run
+service — the org enforces uniform bucket-level access, which rejects the
+service's per-object ACL writes). One-time setup for a fresh project:
 
-1. Service account `remotion-sa` with roles `run.admin`, `storage.admin`,
-   `iam.serviceAccountUser`
-2. `video/.env` (gitignored) with `REMOTION_GCP_PRIVATE_KEY`,
-   `REMOTION_GCP_CLIENT_EMAIL`, `REMOTION_GCP_PROJECT_ID`
+1. Enable APIs: Cloud Build, Artifact Registry, Cloud Run, Cloud Storage
+2. Artifact Registry docker repo `remotion` in `us-west1`
+3. A GCS output bucket (set `OUT_BUCKET`; default is this project's
+   `remotioncloudrun-opnlqyyku0`)
+4. The job's runtime service account needs `storage.objectAdmin` on that
+   bucket (default compute SA works if granted)
 
 Then:
 
 ```bash
-./render-cloud.sh   # deploys service, bundles site to GCS, renders in Cloud Run
+./render-cloud.sh   # builds image (clips ship via .gcloudignore), creates or
+                    # updates the job, executes it, prints the gs:// path
 ```
 
-The render output lands in the `remotioncloudrun-*` GCS bucket; the CLI prints
-the download URL.
+Download with `gsutil cp gs://<bucket>/renders/tutorial.mp4 out/` — the https
+URL only works publicly if the bucket grants `allUsers` objectViewer.
