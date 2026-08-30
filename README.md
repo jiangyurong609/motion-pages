@@ -126,6 +126,26 @@ personalized one in the [Playground](https://motion-pages.pages.dev/#playground)
 - **Ship checklist**: mounting into a real app — static assets, verified routes and
   anchors, meta/OG, a11y, perf sanity.
 
+## Runtime tooling
+
+Zero-dependency (Node ≥22 + Chrome), lives in [`scripts/`](scripts/):
+
+```bash
+node scripts/audit.mjs mypage.html         # design lint: ~22 rules × 3 viewports
+node scripts/audit.mjs mypage.html --json  # exit 1 on blockers → CI pre-deploy gate
+```
+
+The audit makes the skill's review passes executable: AI-slop tells (Inter display
+type, blue-purple gradient text, default `ease .2s`…), easing grammar, reduced-motion
+handling, the stagger-delay hover-lag trap, console errors, blank-frame and
+canvas-alive pixel checks, rendered text contrast, phone overflow, tap targets,
+`?still=1` determinism, a11y names. All seven bundled demos pass it.
+
+[`scripts/picker.js`](scripts/picker.js) is the live loop: paste it into the DevTools
+console on your page, click an element, and a precise context block (selector +
+markup + computed styles) lands on your clipboard — paste it to your agent and the
+skill answers with 3 genuinely distinct variants and waits for your pick.
+
 ## Bundled examples
 
 - [`motion-pages/examples/sylva-replica.html`](motion-pages/examples/sylva-replica.html)
