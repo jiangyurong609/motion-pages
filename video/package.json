@@ -1,0 +1,23 @@
+{
+  "name": "motion-pages-video",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render Tutorial out/tutorial.mp4",
+    "render:cloud": "remotion cloudrun render"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.290",
+    "@remotion/cloudrun": "^4.0.290",
+    "@remotion/google-fonts": "^4.0.290",
+    "dotenv": "^17.4.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "^4.0.290"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "typescript": "^5.8.0"
+  }
+}
