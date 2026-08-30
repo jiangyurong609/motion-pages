@@ -174,10 +174,6 @@ CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 ## Credits
 
-- Inspired by [Meng To](https://twitter.com/MengTo)'s "Sylva — Into the living world"
-  demo and his write-up on prompting Opus 5 to build Three.js landing pages
-  (inspiration he cited: <https://instagram.com/p/DYVXOx6kdmq>). The bundled Sylva
-  example is an original-code replica study of that design, included for education.
 - The expanded archetypes are original-code studies of interaction patterns seen on
   the AETHER:1 earbuds concept, [OpenPurpose®](https://openpurpose.com),
   [Igloo Inc](https://igloo.inc) (Awwwards Site of the Year), the official Lando
