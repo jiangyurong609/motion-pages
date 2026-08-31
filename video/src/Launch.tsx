@@ -14,9 +14,13 @@ import {
 } from 'remotion';
 import {loadFont as loadPlayfair} from '@remotion/google-fonts/PlayfairDisplay';
 import {loadFont as loadMono} from '@remotion/google-fonts/IBMPlexMono';
+import {loadFont as loadSerifSC} from '@remotion/google-fonts/NotoSerifSC';
+import {loadFont as loadSansSC} from '@remotion/google-fonts/NotoSansSC';
 
 const playfair = loadPlayfair();
 const mono = loadMono();
+const serifSC = loadSerifSC();
+const sansSC = loadSansSC();
 
 export const FPS = 30;
 
@@ -36,6 +40,98 @@ const BONE = '#ece7db';
 const RED = '#ff4b2e';
 const GOLD = '#ffd9a0';
 const MUT = 'rgba(236,231,219,0.6)';
+
+// ---------- locale strings ----------
+
+type Strings = {
+  opening: string;
+  tags: string[];
+  verdict: [string, string]; // line 1 bone, line 2 red
+  montageHead: [string, string]; // bone, gold accent
+  cutNames: string[];
+  loopHead: [string, string]; // bone, red accent
+  prompt: string;
+  audit: {t: string; at: number; done?: boolean}[];
+  outcomeChip: string;
+  tagline: [string, string]; // bone, red accent
+  bottomLine: string;
+};
+
+const EN: Strings = {
+  opening: 'You asked AI for a landing page.',
+  tags: ['Inter', 'gradient text', 'three identical cards', 'emoji bullets'],
+  verdict: ["It doesn't have to", 'be this.'],
+  montageHead: ['One prompt ', 'each.'],
+  cutNames: [
+    'PURA · liquid-glass type',
+    'Sylva · a living world',
+    'VOLERA · 6,000 particles',
+    'BOREAL · scroll journey',
+    'Archive° · dome gallery',
+    'Paperworks · spring physics',
+  ],
+  loopHead: ['Then it ', 'checks its own work.'],
+  prompt:
+    'Build a foggy 3D world for my brand. ONE html file. Self-verify until perfect.',
+  audit: [
+    {t: '● building — fog == background, baked glow sprites', at: 5 * BEAT},
+    {t: '✓ screenshot 1600×900', at: 7 * BEAT},
+    {t: '✓ screenshot 820×1180', at: 9 * BEAT},
+    {t: '✓ screenshot 390×844', at: 11 * BEAT},
+    {t: '✓ audit: contrast · no blank frames · no slop', at: 13 * BEAT},
+    {t: '✔ ship-ready', at: 15 * BEAT, done: true},
+  ],
+  outcomeChip: '9 worlds · 9 prompts · one file each',
+  tagline: ['award-site motion, ', 'one prompt away'],
+  bottomLine: 'MIT · no build step · works with any coding agent',
+};
+
+const ZH: Strings = {
+  opening: '你让 AI 给你做了个落地页。',
+  tags: ['Inter 字体', '渐变大字', '三张一样的卡片', 'emoji 图标'],
+  verdict: ['其实，不必', '长这样。'],
+  montageHead: ['每一个，', '一句 prompt。'],
+  cutNames: [
+    'PURA · 液态玻璃文字',
+    'Sylva · 会呼吸的雾气世界',
+    'VOLERA · 六千粒光的变形',
+    'BOREAL · 滚动叙事长页',
+    'Archive° · 穹顶画廊',
+    'Paperworks · 弹簧物理海报墙',
+  ],
+  loopHead: ['然后，它', '检查自己的作品。'],
+  prompt:
+    '用 motion-pages skill：给我的品牌建一个雾气 3D 世界。单个 HTML 文件。自我验证，直到完美。',
+  audit: [
+    {t: '● 构建中 — 雾色 == 背景色，烘焙辉光粒子', at: 5 * BEAT},
+    {t: '✓ 截图 1600×900', at: 7 * BEAT},
+    {t: '✓ 截图 820×1180', at: 9 * BEAT},
+    {t: '✓ 截图 390×844（手机排版）', at: 11 * BEAT},
+    {t: '✓ 审计：对比度 · 无空白帧 · 无 AI 味', at: 13 * BEAT},
+    {t: '✔ 可以发布', at: 15 * BEAT, done: true},
+  ],
+  outcomeChip: '9 个世界 · 9 条 prompt · 每个只有一个文件',
+  tagline: ['获奖级网站动效，', '一句 prompt 之遥'],
+  bottomLine: 'MIT 开源 · 零构建 · 任何编码 agent 都能用',
+};
+
+type Loc = {
+  s: Strings;
+  serif: string; // display font family
+  ui: string; // chip/tag font family (mono first, CJK fallback)
+  zh: boolean;
+};
+
+const makeLoc = (zh: boolean): Loc => ({
+  s: zh ? ZH : EN,
+  serif: zh ? serifSC.fontFamily : playfair.fontFamily,
+  ui: zh ? `${mono.fontFamily}, ${sansSC.fontFamily}` : mono.fontFamily,
+  zh,
+});
+
+// CJK has no true italic — accent with color/weight only.
+const accentStyle = (zh: boolean, color: string): React.CSSProperties =>
+  zh ? {color, fontWeight: 900} : {fontStyle: 'italic', color};
 
 // ---------- shared helpers ----------
 
@@ -91,20 +187,23 @@ const Pop: React.FC<{
   );
 };
 
-const serifBig: React.CSSProperties = {
-  fontFamily: playfair.fontFamily,
+const serifBig = (loc: Loc): React.CSSProperties => ({
+  fontFamily: loc.serif,
   fontWeight: 700,
   fontSize: 116,
-  lineHeight: 1.08,
+  lineHeight: 1.14,
   color: BONE,
   textAlign: 'center',
   textShadow: '0 4px 60px rgba(0,0,0,0.6)',
-};
+});
 
-const NameChip: React.FC<{children: React.ReactNode}> = ({children}) => (
+const NameChip: React.FC<{loc: Loc; children: React.ReactNode}> = ({
+  loc,
+  children,
+}) => (
   <div
     style={{
-      fontFamily: mono.fontFamily,
+      fontFamily: loc.ui,
       fontSize: 26,
       letterSpacing: '0.08em',
       color: BONE,
@@ -121,14 +220,14 @@ const NameChip: React.FC<{children: React.ReactNode}> = ({children}) => (
 
 // ---------- 1. the problem ----------
 
-const SLOP_TAGS: {t: string; x: number; y: number; at: number}[] = [
-  {t: 'Inter', x: 560, y: 180, at: 4 * BEAT},
-  {t: 'gradient text', x: 1250, y: 330, at: 5 * BEAT},
-  {t: 'three identical cards', x: 700, y: 820, at: 6 * BEAT},
-  {t: 'emoji bullets', x: 1300, y: 700, at: 7 * BEAT},
+const TAG_POS: {x: number; y: number; at: number}[] = [
+  {x: 560, y: 180, at: 4 * BEAT},
+  {x: 1250, y: 330, at: 5 * BEAT},
+  {x: 700, y: 820, at: 6 * BEAT},
+  {x: 1300, y: 700, at: 7 * BEAT},
 ];
 
-const Problem: React.FC = () => {
+const Problem: React.FC<{loc: Loc}> = ({loc}) => {
   const frame = useCurrentFrame();
   const CUT = 9 * BEAT; // slop → black verdict
   const push = interpolate(frame, [2 * BEAT, CUT], [1.0, 1.09], {
@@ -143,13 +242,13 @@ const Problem: React.FC = () => {
           <Pop>
             <div
               style={{
-                fontFamily: mono.fontFamily,
+                fontFamily: loc.ui,
                 fontSize: 40,
                 letterSpacing: '0.1em',
                 color: MUT,
               }}
             >
-              You asked AI for a landing page.
+              {loc.s.opening}
             </div>
           </Pop>
         </AbsoluteFill>
@@ -167,15 +266,15 @@ const Problem: React.FC = () => {
             }}
           />
         </AbsoluteFill>
-        {SLOP_TAGS.map((tag) => (
+        {loc.s.tags.map((t, i) => (
           <Pop
-            key={tag.t}
-            delay={tag.at - 2 * BEAT}
-            style={{position: 'absolute', left: tag.x, top: tag.y}}
+            key={t}
+            delay={TAG_POS[i].at - 2 * BEAT}
+            style={{position: 'absolute', left: TAG_POS[i].x, top: TAG_POS[i].y}}
           >
             <div
               style={{
-                fontFamily: mono.fontFamily,
+                fontFamily: loc.ui,
                 fontSize: 30,
                 fontWeight: 700,
                 color: RED,
@@ -186,7 +285,7 @@ const Problem: React.FC = () => {
                 transform: 'rotate(-2deg)',
               }}
             >
-              ✕ {tag.t}
+              ✕ {t}
             </div>
           </Pop>
         ))}
@@ -197,10 +296,10 @@ const Problem: React.FC = () => {
           style={{background: INK, alignItems: 'center', justifyContent: 'center'}}
         >
           <Pop>
-            <div style={serifBig}>
-              It doesn't have to
+            <div style={serifBig(loc)}>
+              {loc.s.verdict[0]}
               <br />
-              <span style={{fontStyle: 'italic', color: RED}}>be this.</span>
+              <span style={accentStyle(loc.zh, RED)}>{loc.s.verdict[1]}</span>
             </div>
           </Pop>
         </AbsoluteFill>
@@ -211,20 +310,20 @@ const Problem: React.FC = () => {
 
 // ---------- 2. the worlds (footage is the star) ----------
 
-const CUTS: {src: string; startFrom: number; name: string}[] = [
-  {src: 'clips/pura.mp4', startFrom: 60, name: 'PURA · liquid-glass type'},
-  {src: 'clips/sylva.mp4', startFrom: 90, name: 'Sylva · a living world'},
-  {src: 'clips/volera.mp4', startFrom: 120, name: 'VOLERA · 6,000 particles'},
-  {src: 'clips/boreal.mp4', startFrom: 110, name: 'BOREAL · scroll journey'},
-  {src: 'clips/dome.mp4', startFrom: 100, name: 'Archive° · dome gallery'},
-  {src: 'clips/paper.mp4', startFrom: 80, name: 'Paperworks · spring physics'},
+const CUT_SRC: {src: string; startFrom: number}[] = [
+  {src: 'clips/pura.mp4', startFrom: 60},
+  {src: 'clips/sylva.mp4', startFrom: 90},
+  {src: 'clips/volera.mp4', startFrom: 120},
+  {src: 'clips/boreal.mp4', startFrom: 110},
+  {src: 'clips/dome.mp4', startFrom: 100},
+  {src: 'clips/paper.mp4', startFrom: 80},
 ];
 const CUT_LEN = 4 * BEAT;
 
-const Montage: React.FC = () => (
+const Montage: React.FC<{loc: Loc}> = ({loc}) => (
   <AbsoluteFill style={{background: INK}}>
-    {CUTS.map((c, i) => (
-      <Sequence key={c.name} from={i * CUT_LEN} durationInFrames={CUT_LEN}>
+    {CUT_SRC.map((c, i) => (
+      <Sequence key={c.src} from={i * CUT_LEN} durationInFrames={CUT_LEN}>
         <Punch
           src={c.src}
           startFrom={c.startFrom}
@@ -233,13 +332,11 @@ const Montage: React.FC = () => (
         />
         {/* headline only on the first cut, then the footage speaks */}
         {i === 0 ? (
-          <AbsoluteFill
-            style={{alignItems: 'center', justifyContent: 'center'}}
-          >
+          <AbsoluteFill style={{alignItems: 'center', justifyContent: 'center'}}>
             <Pop>
               <div
                 style={{
-                  ...serifBig,
+                  ...serifBig(loc),
                   fontSize: 126,
                   background: 'rgba(10,13,23,0.88)',
                   borderRadius: 26,
@@ -247,14 +344,15 @@ const Montage: React.FC = () => (
                   boxShadow: '0 30px 90px rgba(10,13,23,0.5)',
                 }}
               >
-                One prompt <span style={{fontStyle: 'italic', color: GOLD}}>each.</span>
+                {loc.s.montageHead[0]}
+                <span style={accentStyle(loc.zh, GOLD)}>{loc.s.montageHead[1]}</span>
               </div>
             </Pop>
           </AbsoluteFill>
         ) : null}
         <div style={{position: 'absolute', left: 70, bottom: 60}}>
           <Pop delay={4}>
-            <NameChip>{c.name}</NameChip>
+            <NameChip loc={loc}>{loc.s.cutNames[i]}</NameChip>
           </Pop>
         </div>
       </Sequence>
@@ -264,28 +362,16 @@ const Montage: React.FC = () => (
 
 // ---------- 3. the loop (the part nobody else has) ----------
 
-const PROMPT_TEXT =
-  'Build a foggy 3D world for my brand. ONE html file. Self-verify until perfect.';
-
-const AUDIT_LINES: {t: string; at: number; done?: boolean}[] = [
-  {t: '● building — fog == background, baked glow sprites', at: 5 * BEAT},
-  {t: '✓ screenshot 1600×900', at: 7 * BEAT},
-  {t: '✓ screenshot 820×1180', at: 9 * BEAT},
-  {t: '✓ screenshot 390×844', at: 11 * BEAT},
-  {t: '✓ audit: contrast · no blank frames · no slop', at: 13 * BEAT},
-  {t: '✔ ship-ready', at: 15 * BEAT, done: true},
-];
-
 const SHOTS: {label: string; w: number; h: number; rot: number; at: number}[] = [
   {label: '1600×900', w: 560, h: 315, rot: -3, at: 7 * BEAT},
   {label: '820×1180', w: 300, h: 432, rot: 2.5, at: 9 * BEAT},
   {label: '390×844', w: 210, h: 454, rot: -2, at: 11 * BEAT},
 ];
 
-const Loop: React.FC = () => {
+const Loop: React.FC<{loc: Loc}> = ({loc}) => {
   const frame = useCurrentFrame();
   const typed = Math.round(
-    interpolate(frame, [BEAT, 4 * BEAT], [0, PROMPT_TEXT.length], {
+    interpolate(frame, [BEAT, 4 * BEAT], [0, loc.s.prompt.length], {
       extrapolateLeft: 'clamp',
       extrapolateRight: 'clamp',
     })
@@ -294,8 +380,9 @@ const Loop: React.FC = () => {
   return (
     <AbsoluteFill style={{background: INK, padding: '64px 90px'}}>
       <Pop>
-        <div style={{...serifBig, fontSize: 84, textAlign: 'left'}}>
-          Then it <span style={{fontStyle: 'italic', color: RED}}>checks its own work.</span>
+        <div style={{...serifBig(loc), fontSize: 84, textAlign: 'left'}}>
+          {loc.s.loopHead[0]}
+          <span style={accentStyle(loc.zh, RED)}>{loc.s.loopHead[1]}</span>
         </div>
       </Pop>
       <div style={{display: 'flex', gap: 50, flex: 1, marginTop: 44}}>
@@ -328,7 +415,7 @@ const Loop: React.FC = () => {
               ))}
               <div
                 style={{
-                  fontFamily: mono.fontFamily,
+                  fontFamily: loc.ui,
                   color: MUT,
                   fontSize: 21,
                   marginLeft: 12,
@@ -340,7 +427,7 @@ const Loop: React.FC = () => {
             <div
               style={{
                 padding: '26px 32px',
-                fontFamily: mono.fontFamily,
+                fontFamily: loc.ui,
                 fontSize: 28,
                 lineHeight: 1.75,
                 color: BONE,
@@ -348,24 +435,26 @@ const Loop: React.FC = () => {
             >
               <div style={{whiteSpace: 'pre-wrap'}}>
                 <span style={{color: MUT}}>&gt; </span>
-                {PROMPT_TEXT.slice(0, typed)}
-                {typed < PROMPT_TEXT.length && cursorOn ? (
+                {loc.s.prompt.slice(0, typed)}
+                {typed < loc.s.prompt.length && cursorOn ? (
                   <span style={{background: BONE, color: INK}}>&nbsp;</span>
                 ) : null}
               </div>
-              {AUDIT_LINES.filter((l) => frame >= l.at).map((l) => (
-                <Pop key={l.t} delay={l.at}>
-                  <div
-                    style={{
-                      color: l.done ? GOLD : l.t.startsWith('✓') ? BONE : MUT,
-                      fontWeight: l.done ? 700 : 400,
-                      fontSize: l.done ? 36 : 28,
-                    }}
-                  >
-                    {l.t}
-                  </div>
-                </Pop>
-              ))}
+              {loc.s.audit
+                .filter((l) => frame >= l.at)
+                .map((l) => (
+                  <Pop key={l.t} delay={l.at}>
+                    <div
+                      style={{
+                        color: l.done ? GOLD : l.t.startsWith('✓') ? BONE : MUT,
+                        fontWeight: l.done ? 700 : 400,
+                        fontSize: l.done ? 36 : 28,
+                      }}
+                    >
+                      {l.t}
+                    </div>
+                  </Pop>
+                ))}
             </div>
           </div>
         </Pop>
@@ -399,7 +488,7 @@ const Loop: React.FC = () => {
                 </div>
                 <div
                   style={{
-                    fontFamily: mono.fontFamily,
+                    fontFamily: loc.ui,
                     fontSize: 20,
                     color: MUT,
                     textAlign: 'center',
@@ -419,14 +508,14 @@ const Loop: React.FC = () => {
 
 // ---------- 4. outcome: the field ----------
 
-const Outcome: React.FC = () => (
+const Outcome: React.FC<{loc: Loc}> = ({loc}) => (
   <AbsoluteFill style={{background: INK}}>
     <Punch src="clips/showcase.mp4" startFrom={70} duration={OUTCOME} panX={-20} />
     <AbsoluteFill
       style={{alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 70}}
     >
       <Pop delay={4}>
-        <NameChip>9 worlds · 9 prompts · one file each</NameChip>
+        <NameChip loc={loc}>{loc.s.outcomeChip}</NameChip>
       </Pop>
     </AbsoluteFill>
   </AbsoluteFill>
@@ -434,7 +523,7 @@ const Outcome: React.FC = () => (
 
 // ---------- 5. brand close ----------
 
-const Close: React.FC = () => {
+const Close: React.FC<{loc: Loc}> = ({loc}) => {
   const frame = useCurrentFrame();
   const glow = 0.5 + 0.5 * Math.sin(frame / 9);
   return (
@@ -462,28 +551,29 @@ const Close: React.FC = () => {
       <Pop delay={5}>
         <div
           style={{
-            fontFamily: playfair.fontFamily,
-            fontStyle: 'italic',
+            fontFamily: loc.serif,
+            ...(loc.zh ? {} : {fontStyle: 'italic'}),
             fontSize: 52,
             color: BONE,
           }}
         >
-          award-site motion, <span style={{color: RED}}>one prompt away</span>
+          {loc.s.tagline[0]}
+          <span style={accentStyle(loc.zh, RED)}>{loc.s.tagline[1]}</span>
         </div>
       </Pop>
       <Pop delay={11} style={{display: 'flex', gap: 24, marginTop: 14}}>
-        <NameChip>motion-pages.pages.dev</NameChip>
-        <NameChip>github.com/jiangyurong609/motion-pages</NameChip>
+        <NameChip loc={loc}>motion-pages.pages.dev</NameChip>
+        <NameChip loc={loc}>github.com/jiangyurong609/motion-pages</NameChip>
       </Pop>
       <Pop delay={17}>
         <div
           style={{
-            fontFamily: mono.fontFamily,
+            fontFamily: loc.ui,
             fontSize: 27,
             color: GOLD,
           }}
         >
-          MIT · no build step · works with any coding agent
+          {loc.s.bottomLine}
         </div>
       </Pop>
     </AbsoluteFill>
@@ -503,8 +593,9 @@ const starts = (() => {
   return out;
 })();
 
-export const Launch: React.FC = () => {
+export const Launch: React.FC<{zh?: boolean}> = ({zh = false}) => {
   const frame = useCurrentFrame();
+  const loc = makeLoc(zh);
   // quiet under the problem, full send from the montage smash cut onward
   const musicVolume = interpolate(
     frame,
@@ -516,19 +607,19 @@ export const Launch: React.FC = () => {
     <AbsoluteFill style={{background: INK}}>
       <Audio src={staticFile('audio/voxel-revolution.mp3')} volume={musicVolume} />
       <Sequence durationInFrames={PROBLEM}>
-        <Problem />
+        <Problem loc={loc} />
       </Sequence>
       <Sequence from={starts[1]} durationInFrames={MONTAGE}>
-        <Montage />
+        <Montage loc={loc} />
       </Sequence>
       <Sequence from={starts[2]} durationInFrames={LOOP}>
-        <Loop />
+        <Loop loc={loc} />
       </Sequence>
       <Sequence from={starts[3]} durationInFrames={OUTCOME}>
-        <Outcome />
+        <Outcome loc={loc} />
       </Sequence>
       <Sequence from={starts[4]} durationInFrames={CTA}>
-        <Close />
+        <Close loc={loc} />
       </Sequence>
     </AbsoluteFill>
   );

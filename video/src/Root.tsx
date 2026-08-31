@@ -14,6 +14,15 @@ export const Root: React.FC = () => {
         height={1080}
       />
       <Composition
+        id="LaunchZh"
+        component={Launch}
+        durationInFrames={LAUNCH_DURATION}
+        fps={FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{zh: true}}
+      />
+      <Composition
         id="Tutorial"
         component={Tutorial}
         durationInFrames={TUTORIAL_DURATION}
