@@ -113,8 +113,6 @@ body.still .rev{opacity:1;translate:0 0;transition:none}
 .card.wide .plate{aspect-ratio:21/9}
 .plate img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 1s var(--e-out),opacity .5s var(--e-out)}
 .card:hover .plate img{transform:scale(1.035)}
-.plate .num{position:absolute;top:12px;left:14px;z-index:2;font:600 12px/1 var(--mono);color:var(--bone);
- letter-spacing:.1em;background:rgba(5,7,13,.66);padding:8px 12px;border-radius:999px;backdrop-filter:blur(4px)}
 .plate .run{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:0;cursor:pointer;
  background:rgba(5,7,13,.34);opacity:0;transition:.35s var(--e-out)}
 .card:hover .plate .run{opacity:1}
@@ -239,21 +237,21 @@ footer i{font-style:normal;color:var(--red)}
 <div class="hero" id="top">
   <canvas id="gl"></canvas>
   <div class="shade" aria-hidden="true"></div>
-  <div class="no enter d1">an open-source skill for Claude Code<br/>catalogue Nº 001–009 · MIT</div>
+  <div class="no enter d1">an open-source skill for Claude Code · MIT</div>
   <div class="stack">
     <div class="kick enter d1">Award-site motion</div>
     <h1 class="enter d2">MOTION<span class="l2">PAGES</span></h1>
     <div class="tag enter d3">one prompt away</div>
   </div>
   <div class="fold enter d4">
-    <p class="kicker">Every plate in this catalogue was built — and <b>screenshot-verified</b> — by the
-      agent this skill teaches. The field behind these words is plate <b>Nº 000</b>.</p>
+    <p class="kicker">Every plate below was built and <b>screenshot-verified</b> by the agent
+      this skill teaches. This field is plate <b>000</b>.</p>
     <div class="btnrow">
       <button class="btn red" data-copy="install">⧉ Copy install</button>
       <a class="btn" href="#index">Browse the index ↓</a>
     </div>
   </div>
-  <div class="hint enter d4"><b>Move the cursor</b>the field parts — click, it re-forms</div>
+  <div class="hint enter d4"><b>Move the cursor</b>the field parts. Click to re-form.</div>
 </div>
 
 <div class="marquee" aria-hidden="true">
@@ -261,30 +259,30 @@ footer i{font-style:normal;color:var(--red)}
 </div>
 
 <div class="proof">
-  <div class="cell"><b>One file</b><p><em>No build, no deps.</em> Every page ships as a single self-contained HTML file — open it, it runs.</p></div>
+  <div class="cell"><b>One file</b><p><em>No build, no deps.</em> Every page ships as a single self-contained HTML file. Open it, it runs.</p></div>
   <div class="cell"><b>Agent-verified</b><p>The agent screenshots <em>desktop, tablet and phone</em> and iterates until its own review passes.</p></div>
   <div class="cell"><b>9 archetypes</b><p>Nine finished worlds below, each with the <em>full build-spec prompt</em> that produces it.</p></div>
   <div class="cell"><b>Audit gate</b><p>A headless pixel audit hunts <em>blank frames, dead motion, low contrast and AI-slop tells</em>.</p></div>
-  <div class="cell"><b>Any agent</b><p>Built for Claude Code — but <em>SKILL.md pastes into any coding agent's</em> context.</p></div>
+  <div class="cell"><b>Any agent</b><p>Built for Claude Code, and <em>SKILL.md pastes into any coding agent's</em> context.</p></div>
 </div>
 
 <main>
 <section id="index">
-  <div class="shead rev"><span class="no">§ 1 — the index</span><span class="no" id="count"></span></div>
+  <div class="shead rev"><span class="no">The index</span><span class="no" id="count"></span></div>
   <h2 class="rev">Nine worlds. <em>Run them here.</em></h2>
   <p class="ssub rev">Each entry is a finished single-file page. <b>RUN</b> plays it inside its plate.
-    <b>COPY THE PROMPT</b> hands you the full build spec — layer stack, palette, geometry, shader
-    math, timings, and the self-verify loop — round-trip tested against the skill.</p>
+    <b>COPY THE PROMPT</b> hands you the full build spec: layer stack, palette, geometry, shader
+    math, timings, and the self-verify loop, round-trip tested against the skill.</p>
   <div class="filters rev" id="filters"></div>
   <div id="rows"></div>
   <div style="height:70px"></div>
 </section>
 
 <section id="bench">
-  <div class="shead rev"><span class="no">§ 2 — the composing bench</span><span class="no">fig. 10</span></div>
+  <div class="shead rev"><span class="no">The composing bench</span></div>
   <h2 class="rev">Type a brand. <em>Get a world.</em></h2>
-  <p class="ssub rev">This is the input box. The plate on the right is live — it rebuilds as you type.
-    When it feels like yours, copy the prompt: it carries your <b>name, palette, and archetype</b> into Claude Code.</p>
+  <p class="ssub rev">This is the input box. The plate on the right is live: it rebuilds as you type.
+    When it feels like yours, copy the prompt. It carries your <b>name, palette, and archetype</b> into Claude Code.</p>
   <div class="bench rev">
     <div class="bcontrols">
       <label class="blab" for="pgBrand">Brand name</label>
@@ -305,20 +303,20 @@ footer i{font-style:normal;color:var(--red)}
     </div>
     <div class="bview">
       <div class="frame"><iframe id="pgFrame" title="Your world, live" allow="autoplay"></iframe></div>
-      <div class="fig">fig. 10 — parametrized world; every configuration is a shareable URL</div>
+      <div class="fig">Every configuration is a shareable URL</div>
     </div>
   </div>
 </section>
 
 <section id="clone">
-  <div class="shead rev"><span class="no">§ 3 — field methods</span></div>
+  <div class="shead rev"></div>
   <h2 class="rev">Study anything. <em>Copy nothing.</em></h2>
   <div class="duo rev">
     <div class="cell">
       <h3>Clone the <em>feel</em> of a site</h3>
       <p>Paste a URL into the prompt. The agent browses the reference, storyboards it at five scroll
         depths, greps its bundles for tech signals, maps what it sees to this skill's recipes — then
-        rebuilds that motion language as original code for your brand. It studies patterns; it never
+        rebuilds that motion language as original code for your brand. It studies patterns. It never
         copies code, assets, or content.</p>
       <div class="codeblk">Using the motion-pages skill: clone the feel of
 &lt;URL&gt; for my brand &lt;NAME + one-line pitch&gt; —
@@ -331,7 +329,7 @@ Self-verify until perfect.<button class="copychip" data-copy="study">⧉ Copy</b
     <div class="cell">
       <h3>The review every page <em>must pass</em></h3>
       <p>Rendering correctly is not being designed well. Before anything ships, the skill makes the
-        agent re-read its own screenshots against this checklist — it is why the plates above look
+        agent re-read its own screenshots against this checklist. It is why the plates above look
         the way they do:</p>
       <ul class="checklist">
         <li>5-second value scan — what, for whom, what do I get</li>
@@ -351,13 +349,13 @@ Self-verify until perfect.<button class="copychip" data-copy="study">⧉ Copy</b
 </section>
 
 <section id="install">
-  <div class="shead rev"><span class="no">§ 4 — colophon &amp; install</span></div>
+  <div class="shead rev"></div>
   <h2 class="rev">Two commands, <em>then just ask.</em></h2>
   <div class="install rev">
     <div class="steps">
-      <div class="step"><p><b>Install the skill</b> into Claude Code with the commands on the right — one clone, one copy.</p></div>
+      <div class="step"><p><b>Install the skill</b> into Claude Code with the commands on the right: one clone, one copy.</p></div>
       <div class="step"><p><b>Copy any prompt</b> from the index, compose one at the bench, or hand a reference URL to the field method.</p></div>
-      <div class="step"><p><b>Watch it verify itself</b> — the agent screenshots desktop, tablet, and phone, and iterates until the page passes the review.</p></div>
+      <div class="step"><p><b>Watch it verify itself</b>: the agent screenshots desktop, tablet, and phone, and iterates until the page passes the review.</p></div>
     </div>
     <div class="codeblk"><span class="cmt"># install</span>
 git clone https://github.com/jiangyurong609/motion-pages.git
@@ -371,8 +369,8 @@ cp -r motion-pages/motion-pages ~/.claude/skills/
 </main>
 
 <footer>
-  <span>motion-pages<i>*</i> — MIT, free forever · plates are original-code
-    studies of public award-site motion patterns · fictional brands throughout</span>
+  <span>motion-pages<i>*</i> is MIT and free forever. The plates are original-code
+    studies of public award-site motion patterns; brands are fictional.</span>
   <span><a href="https://github.com/jiangyurong609/motion-pages">github</a> ·
     <a href="llms.txt">llms.txt for AI agents</a> ·
     <a href="https://motion-pages.pages.dev">motion-pages.pages.dev</a></span>
@@ -418,16 +416,16 @@ const EXAMPLES=[
   desc:"Scroll flies the camera over foggy terrain while six thousand points rebuild themselves three times."},
  {id:"pura-liquid-hero",n:"06",title:"PURA — <em>liquid-glass type</em>",img:"assets/pura-still.png",cat:"Shader",
   specs:"raw webgl · analytic ripples · chromatic lens · no three.js",
-  desc:"The whole editorial page is liquid — cursor ripples and a glass lens warp giant serif letterforms."},
+  desc:"The whole editorial page is liquid: cursor ripples and a glass lens warp giant serif letterforms."},
  {id:"paperworks-posterwall",n:"07",title:"Paperworks* — <em>poster wall</em>",img:"assets/paper-still.png",cat:"Interaction",
   specs:"pure dom · spring physics · infinite drag · no webgl",
-  desc:"An endless wall of printed posters that flex like paper — the bend comes from drag lag, not velocity."},
+  desc:"An endless wall of printed posters that flex like paper. The bend comes from drag lag, not velocity."},
  {id:"tempo-easing",n:"08",title:"TEMPO — <em>the easing grammar</em>",img:"assets/tempo-still.png",cat:"Interaction",
   specs:"pure dom · five curves, five jobs · replayable · zero requests",
   desc:"A working cheat-sheet: entrances land soft, exits let go, loops never ease. Every card replays its verb; the CTA copies the curve set."},
  {id:"fernline-hero",n:"09",title:"Fernline — <em>applied to a brand</em>",img:"assets/fernline-still.png",cat:"Brand",
   specs:"conversion hero · demo modal · stat chips · three.js",
-  desc:"The same world re-themed for a real product — proof the recipes survive contact with actual copy and routes."},
+  desc:"The same world re-themed for a real product: proof the recipes survive contact with actual copy and routes."},
 ];
 const CATS=["All","Hero","Product","Gallery","Journey","Shader","Interaction","Brand","Particles"];
 let activeCat="All",activePlate=null;
@@ -449,11 +447,10 @@ function render(){
     r.innerHTML=`
       <div class="plate" data-live="examples/${ex.id}.html">
         <img loading="lazy" src="${ex.img}" alt=""/>
-        <span class="num">Nº ${ex.n}</span>
         <button class="run"><span>▶ Run plate ${ex.n}</span></button>
       </div>
       <div class="meta">
-        <div class="cat">${ex.cat}</div>
+        <div class="cat">${ex.n} · ${ex.cat}</div>
         <h3>${ex.title}</h3>
         <div class="specs">${ex.specs}</div>
         <p>${ex.desc}</p>
