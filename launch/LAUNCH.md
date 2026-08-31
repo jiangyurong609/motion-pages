@@ -1,12 +1,23 @@
 # Launch plan — motion-pages
 
-Ship order: X/小红书 teaser → Product Hunt → Show HN → directories → community PRs.
+Ship order: warm-up posts (X/小红书, Aug 30–31) → Product Hunt (Sep 1) →
+Show HN (different day) → LinkedIn + Reddit → directories → community PRs.
 Everything links to the showcase: https://motion-pages.pages.dev
 
 **Paste-ready copy lives in the per-channel files:**
 [product-hunt.md](product-hunt.md) · [show-hn.md](show-hn.md) ·
-[x-thread.md](x-thread.md) · [xiaohongshu.md](xiaohongshu.md) ·
-[directories.md](directories.md). This file is the strategy overview.
+[x-thread.md](x-thread.md) (warm-ups + thread) · [xiaohongshu.md](xiaohongshu.md) ·
+[reddit.md](reddit.md) · [linkedin.md](linkedin.md) ·
+[directories.md](directories.md). Message discipline: [positioning.md](positioning.md).
+This file is the strategy overview.
+
+## Warm-up window (Aug 30–31, before PH)
+
+- **Aug 30:** X post A — redesign before/after story (`assets/redesign-before-after.png`).
+  Same story on 小红书 (改版对比 post in xiaohongshu.md).
+- **Aug 31:** X post B (taste-skill audit) or C (positioning) — pick one, save the
+  other for launch-day quote-RTs. File the awesome-claude-code issue (eligible Aug 31).
+- Launch day: thread from x-thread.md, quote-RT the warm-ups so the story chains.
 
 ## Product Hunt
 
