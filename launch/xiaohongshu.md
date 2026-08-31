@@ -4,9 +4,16 @@
 
 ## 预热 post（8/30–31，改版故事，图：launch/assets/redesign-before-after.png）
 
-**✓ 已发布 8/30（账号 Yodaa，审核中）** — 标题用了 20 字内版本
-「被吐槽AI味太重，我把官网重做了一遍」，3 图（前后对比 / 新首页 / 9 demo），
-话题 #独立开发 已挂。**待办：审核通过后评论区补链接**（showcase + GitHub）。
+**✓ 已发布 8/30，已过审上线**（账号 Yodaa）— 标题「被吐槽AI味太重，我把官网重做了一遍」，
+3 图（前后对比 / 新首页 / 9 demo），话题 #独立开发。
+
+**✓ 视频版也已发布 8/30（审核中）** — 标题「一句prompt生成获奖级网站动效」，
+launch-16x9-zh.mp4（38s），封面选了 BOREAL 雾中穹顶帧（默认首帧全黑，别用）。
+
+**待办（手机 App 上 10 秒）：给两条笔记各补一条置顶评论：**
+> 链接来了：
+> 在线 demo：motion-pages.pages.dev
+> GitHub：github.com/jiangyurong609/motion-pages（MIT 开源）
 
 **标题：** 被吐槽"AI 味太重"后，我把官网重做了一遍
 
