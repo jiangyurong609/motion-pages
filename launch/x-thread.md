@@ -9,6 +9,9 @@ Two parts: **warm-up posts** (Aug 30–31, standalone, build-in-public voice) an
 
 ### A — The redesign story (image: `assets/redesign-before-after.png`) [~272]
 
+**✓ POSTED Aug 30** ("screenshot-studied" trimmed to "studied" to fit 280):
+https://x.com/jiangyurong609/status/2094269215884894242 — quote-RT this from the launch thread.
+
 I shipped my project's showcase and realized it looked like a docs page, not a
 motion showcase.
 
