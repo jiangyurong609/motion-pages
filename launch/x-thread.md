@@ -63,6 +63,16 @@ https://motion-pages.pages.dev/examples/tempo-easing
 
 ## Launch-day thread (6 tweets, morning of PH launch)
 
+**✓ POSTED Sep 1 (evening)** — 7 tweets (6 planned + backstory quote-RT of post A):
+1. https://x.com/jiangyurong609/status/2094979762154594348 (hook + PURA clip)
+2. https://x.com/jiangyurong609/status/2094980289722560519 (gallery + demo.gif)
+3. https://x.com/jiangyurong609/status/2094980596955258986 (glow trick + glow-compare)
+4. https://x.com/jiangyurong609/status/2094980724441178588 (self-check loop + boreal-sweep)
+5. https://x.com/jiangyurong609/status/2094980849137828342 (audit gate + real terminal shot)
+6. https://x.com/jiangyurong609/status/2094980971011727650 (CTA, repo + demos links)
+7. https://x.com/jiangyurong609/status/2094981371320295597 (quote-RT of warm-up post A)
+
+
 ### 1 — Hook (video: pura-liquid-hero.html, 10–15s screen recording) [~200]
 
 AI-generated landing pages don't have to look AI-generated.
