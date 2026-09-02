@@ -1,5 +1,51 @@
 # 小红书 — paste-ready
 
+## 「一句 prompt」系列（9/1 起，隔天一更，垂直 9:16 · 22s · Remotion `Xhs-*` 合成）
+
+首发两条反响不错 → 转成栏目连载。每期一个 demo：3s 成品钩子 → 打 prompt →
+自检卡 → 成品大字幕 → 「关注看下一期」留钩。视频在 `video/out/xhs-ep*.mp4`，
+片尾预告下一期，所以要按顺序发。**每期正文都直接带链接**（motion-pages.pages.dev +
+GitHub 仓库，明文），发完 10 分钟内再补一条置顶评论重复链接（正文链接不可点，评论区好复制）。
+
+### 第 1 期 · VOLERA（`out/xhs-ep1-volera.mp4`）
+- **标题（≤20 字）：** 6000个粒子，一句prompt捏出来的
+- **正文：** 光标一碰，鸟群四散；点一下，重组成月门。
+  这不是 AE，是浏览器里 6000 个实时粒子——而且整页只有一个 HTML 文件。
+  我把「怎么让 AI 写出这种页面」的配方做成了开源 skill，把视频里那句 prompt
+  贴进 Claude Code 就能给自己的品牌捏一个。它还会自己截图三个尺寸检查，
+  不满意自己改。
+  在线 demo：motion-pages.pages.dev
+  GitHub：github.com/jiangyurong609/motion-pages（MIT 开源）
+  关注看下一期：液态玻璃文字 🫧
+- **话题：** #vibecoding #AI编程 #threejs #前端 #独立开发
+- **封面：** 用「智能推荐封面」选鹤群展翅帧（金色粒子横贯画面那帧）
+
+### 第 2 期 · PURA（`out/xhs-ep2-pura.mp4`）
+- **标题：** 这行字是液态玻璃做的，还能搅动
+- **正文：** shader 实时折射，光标搅得动的标题文字。一句 prompt，单个 HTML
+  文件，零构建。配方开源 MIT。
+  在线 demo：motion-pages.pages.dev
+  GitHub：github.com/jiangyurong609/motion-pages
+  下一期：往下滚，穿过一整片雾 🌫
+- **话题：** 同上
+- **封面：** purity 液态字变形帧
+
+### 第 3 期 · BOREAL（`out/xhs-ep3-boreal.mp4`）
+- **标题：** 往下滚，穿过一整片雾
+- **正文：** 滚轮就是镜头轨道：雾中穹顶 → 粒子居民。雾色 == 背景色，几何体
+  融进大气——这是获奖站最常用的一招，配方在开源 skill 里。
+  在线 demo：motion-pages.pages.dev
+  GitHub：github.com/jiangyurong609/motion-pages
+- **话题：** 同上
+- **封面：** 粒子居民特写帧
+
+### 后续期数（素材待录）：dome-gallery（360° 穹顶画廊）→ paperworks（弹簧
+海报墙）→ tempo（动效语法课，最适合涨粉的知识型内容）→ fernline / sona /
+sylva。跑完 9 期后做一期合集（「9 个获奖级动效，每个一句 prompt」）。
+
+---
+
+
 发布时机：PH 上线同一天或前一天晚上（引流）。
 
 ## 预热 post（8/30–31，改版故事，图：launch/assets/redesign-before-after.png）
