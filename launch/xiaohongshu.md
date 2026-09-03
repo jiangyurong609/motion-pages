@@ -7,7 +7,7 @@
 片尾预告下一期，所以要按顺序发。**每期正文都直接带链接**（motion-pages.pages.dev +
 GitHub 仓库，明文），发完 10 分钟内再补一条置顶评论重复链接（正文链接不可点，评论区好复制）。
 
-### 第 1 期 · VOLERA（`out/xhs-ep1-volera.mp4`）✓ 已发布 9/1（审核中，鹤群封面）
+### 第 1 期 · VOLERA（`out/xhs-ep1-volera.mp4`）✓ 已发布，已过审（9/2 晚：458 浏览 / 17 赞 / 14 收藏 / 2 转发）
 - **标题（≤20 字）：** 6000个粒子，一句prompt捏出来的
 - **正文：** 光标一碰，鸟群四散；点一下，重组成月门。
   这不是 AE，是浏览器里 6000 个实时粒子——而且整页只有一个 HTML 文件。
@@ -20,13 +20,15 @@ GitHub 仓库，明文），发完 10 分钟内再补一条置顶评论重复链
 - **话题：** #vibecoding #AI编程 #threejs #前端 #独立开发
 - **封面：** 用「智能推荐封面」选鹤群展翅帧（金色粒子横贯画面那帧）
 
-### 第 2 期 · PURA（`out/xhs-ep2-pura.mp4`）
+### 第 2 期 · PURA（`out/xhs-ep2-pura.mp4`）✓ 已发布 9/2（审核中，purity 液态字封面）
 - **标题：** 这行字是液态玻璃做的，还能搅动
-- **正文：** shader 实时折射，光标搅得动的标题文字。一句 prompt，单个 HTML
-  文件，零构建。配方开源 MIT。
+- **正文（实发版）：** 光标伸进去搅一下，标题的字真的会流动——shader 实时折射，
+  不是视频特效。整页只有一个 HTML 文件，零构建。配方做成了开源 skill，把视频里
+  那句 prompt 贴进 Claude Code，就能给自己的标题也来一行液态玻璃字。发布前它还会
+  自己截图三个尺寸检查，不满意自己改。
   在线 demo：motion-pages.pages.dev
-  GitHub：github.com/jiangyurong609/motion-pages
-  下一期：往下滚，穿过一整片雾 🌫
+  GitHub：github.com/jiangyurong609/motion-pages（MIT 开源）
+  这是「一句 prompt」系列第 2 期，关注看下一期：往下滚，穿过一整片雾 🌫
 - **话题：** 同上
 - **封面：** purity 液态字变形帧
 
