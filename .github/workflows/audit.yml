@@ -1,0 +1,35 @@
+name: audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'motion-pages/**'
+      - 'scripts/**'
+      - 'SKILL.md'
+      - '.github/workflows/audit.yml'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    name: design audit — all bundled demos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: skill copies in sync
+        run: |
+          diff -q SKILL.md motion-pages/SKILL.md
+          diff -q scripts/audit.mjs motion-pages/scripts/audit.mjs
+          diff -q scripts/picker.js motion-pages/scripts/picker.js
+      - name: audit every example (3 viewports × ~22 rules each)
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: |
+          set -e
+          for f in motion-pages/examples/*.html; do
+            echo "── $f"
+            node scripts/audit.mjs "$f" --json > /dev/null
+          done

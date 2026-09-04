@@ -1,5 +1,9 @@
 # motion-pages — a Claude Code skill for award-site motion
 
+[![audit](https://github.com/jiangyurong609/motion-pages/actions/workflows/audit.yml/badge.svg)](https://github.com/jiangyurong609/motion-pages/actions/workflows/audit.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![showcase](https://img.shields.io/badge/showcase-motion--pages.pages.dev-ff4b2e)](https://motion-pages.pages.dev)
+
 Immersive Three.js worlds, liquid-glass shader typography, springy poster walls —
 single-file pages, screenshot-verified.
 
@@ -52,6 +56,15 @@ webapp on day 1.
 | ![PURA liquid hero](assets/pura-still.png) | ![Paperworks poster wall](assets/paper-still.png) |
 
 ## Install
+
+In Claude Code, two commands:
+
+```
+/plugin marketplace add jiangyurong609/motion-pages
+/plugin install motion-pages@motion-pages
+```
+
+Or copy the skill in manually (works for forks and offline machines):
 
 ```bash
 git clone https://github.com/jiangyurong609/motion-pages.git
@@ -201,6 +214,12 @@ CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   --screenshot=out.png --virtual-time-budget=8000 \
   "file://$PWD/motion-pages/examples/sylva-replica.html?still"
 ```
+
+## Contributing
+
+New archetypes welcome — a recipe section in SKILL.md + a single-file demo + a
+build-spec prompt + a passing audit, as a set. See
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits
 

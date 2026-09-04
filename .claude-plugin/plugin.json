@@ -1,0 +1,13 @@
+{
+  "name": "motion-pages",
+  "version": "0.1.0",
+  "description": "Award-site motion pages from one prompt — Three.js worlds, liquid-glass shader typography, springy poster walls. Single-file, screenshot-verified.",
+  "author": {
+    "name": "Yurong Jiang",
+    "url": "https://github.com/jiangyurong609"
+  },
+  "homepage": "https://motion-pages.pages.dev",
+  "repository": "https://github.com/jiangyurong609/motion-pages",
+  "license": "MIT",
+  "skills": "./"
+}
