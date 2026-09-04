@@ -41,7 +41,7 @@ const sans = sansSC.fontFamily;
 
 // ---------- per-episode content ----------
 
-export type EpKey = 'volera' | 'pura' | 'boreal';
+export type EpKey = 'volera' | 'pura' | 'boreal' | 'dome';
 
 type Ep = {
   num: number;
@@ -83,6 +83,16 @@ export const EPS: Record<EpKey, Ep> = {
       '用 motion-pages skill：滚动叙事长页，雾中穹顶，滚轮推着镜头走。单个 HTML 文件，自我验证到完美。',
     feats: ['滚轮就是镜头轨道', '雾色 == 背景色，几何体融进大气', '整页只有一个 HTML 文件'],
     next: '360° 穹顶画廊',
+  },
+  dome: {
+    num: 4,
+    clip: 'clips/xhs/dome.mp4',
+    name: 'ARCHIVE° · 穹顶画廊',
+    hook: ['360° 穹顶画廊，', '点谁就飞到谁面前'],
+    prompt:
+      '用 motion-pages skill：360° 穹顶画廊，作品卡贴在穹顶内侧，拖拽环视，点击一张，镜头飞到它面前。单个 HTML 文件，自我验证到完美。',
+    feats: ['点一下，镜头飞过去', '每张卡片都是一个展位', '整页只有一个 HTML 文件'],
+    next: '弹簧物理海报墙',
   },
 };
 

@@ -54,11 +54,44 @@ def boreal(pg):
     sweep_mouse(pg, 2, cy=900, ry=300)
 
 
+def _drag(pg, x0, y0, x1, y1, seconds, steps=45):
+    pg.mouse.move(x0, y0)
+    pg.mouse.down()
+    for i in range(1, steps + 1):
+        pg.mouse.move(x0 + (x1 - x0) * i / steps, y0 + (y1 - y0) * i / steps)
+        pg.wait_for_timeout(int(seconds * 1000 / steps))
+    pg.mouse.up()
+
+
+def dome(pg):
+    # orbit right (inertia carries), orbit back, Start = camera flies to a
+    # card, hold the focus, back out, keep orbiting. Drag-step waits stretch
+    # ~2x under video recording, so the fly-in is wall-clock-synced (below)
+    # instead of trusting nominal timings.
+    _drag(pg, 280, 950, 820, 900, 2.0)
+    pg.wait_for_timeout(600)
+    _drag(pg, 820, 950, 240, 1000, 1.8)
+    pg.wait_for_timeout(400)
+    dome.sync = time.time()  # clip is trimmed so this lands at t≈9.3s
+    pg.locator('#start').click()
+    pg.wait_for_timeout(3000)
+    pg.locator('#back').click()
+    pg.wait_for_timeout(1500)
+    _drag(pg, 300, 900, 860, 950, 2.5)
+    pg.wait_for_timeout(800)
+    _drag(pg, 860, 950, 300, 900, 2.5)
+    pg.wait_for_timeout(1200)
+
+
 CLIPS = [
     ('volera', 'examples/volera-morph.html', volera),
     ('pura', 'examples/pura-liquid-hero.html', pura),
     ('boreal', 'examples/boreal-journey.html', boreal),
+    ('dome', 'examples/dome-gallery.html', dome),
 ]
+
+if len(sys.argv) > 1:
+    CLIPS = [c for c in CLIPS if c[0] in sys.argv[1:]]
 
 try:
     with sync_playwright() as p:
@@ -69,14 +102,19 @@ try:
                 record_video_dir=OUT,
                 record_video_size={'width': W, 'height': H})
             pg = ctx.new_page()
+            t0 = time.time()  # ≈ when the video starts
             pg.goto(f'http://localhost:{PORT}/{path}', wait_until='networkidle')
             pg.wait_for_timeout(4000)   # entrances settle before footage starts
             action(pg)
             webm = pg.video.path()
             ctx.close()
+            # actions may stamp a wall-clock sync point (action.sync) that the
+            # trim aligns to clip t=9.3s; otherwise trim a fixed 1s of head
+            sync = getattr(action, 'sync', None)
+            ss = max(0.0, sync - t0 - 9.3) if sync else 1.0
             mp4 = os.path.join(OUT, f'{name}.mp4')
             subprocess.run([
-                'ffmpeg', '-y', '-loglevel', 'error', '-ss', '1.0', '-i', webm,
+                'ffmpeg', '-y', '-loglevel', 'error', '-ss', str(ss), '-i', webm,
                 '-t', '15', '-an', '-c:v', 'libx264', '-preset', 'fast',
                 '-crf', '20', '-pix_fmt', 'yuv420p', '-r', '30',
                 '-vf', f'scale={W}:{H}', mp4], check=True)
