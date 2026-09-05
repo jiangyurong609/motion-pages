@@ -83,11 +83,33 @@ def dome(pg):
     pg.wait_for_timeout(1200)
 
 
+def paper(pg):
+    # springy poster wall: a fast fling (posters bend with velocity), a slow
+    # pull, a fling back; then tap one poster → detail modal (sync point),
+    # tap to close, keep flinging so the wobble reads to the end.
+    _drag(pg, 800, 1100, 260, 700, 0.9, steps=30)
+    pg.wait_for_timeout(1400)
+    _drag(pg, 300, 700, 780, 1150, 2.2)
+    pg.wait_for_timeout(500)
+    _drag(pg, 780, 1150, 340, 800, 0.8, steps=30)
+    pg.wait_for_timeout(1500)
+    paper.sync = time.time()  # clip is trimmed so the modal lands at t≈9.3s
+    pg.mouse.click(540, 960)
+    pg.wait_for_timeout(2600)
+    pg.mouse.click(540, 1700)  # anywhere closes the modal
+    pg.wait_for_timeout(700)
+    _drag(pg, 260, 1200, 820, 640, 1.0, steps=30)
+    pg.wait_for_timeout(1400)
+    _drag(pg, 820, 700, 300, 1150, 1.6)
+    pg.wait_for_timeout(2000)
+
+
 CLIPS = [
     ('volera', 'examples/volera-morph.html', volera),
     ('pura', 'examples/pura-liquid-hero.html', pura),
     ('boreal', 'examples/boreal-journey.html', boreal),
     ('dome', 'examples/dome-gallery.html', dome),
+    ('paper', 'examples/paperworks-posterwall.html', paper),
 ]
 
 if len(sys.argv) > 1:

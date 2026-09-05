@@ -41,7 +41,7 @@ const sans = sansSC.fontFamily;
 
 // ---------- per-episode content ----------
 
-export type EpKey = 'volera' | 'pura' | 'boreal' | 'dome';
+export type EpKey = 'volera' | 'pura' | 'boreal' | 'dome' | 'paper';
 
 type Ep = {
   num: number;
@@ -93,6 +93,16 @@ export const EPS: Record<EpKey, Ep> = {
       '用 motion-pages skill：360° 穹顶画廊，作品卡贴在穹顶内侧，拖拽环视，点击一张，镜头飞到它面前。单个 HTML 文件，自我验证到完美。',
     feats: ['点一下，镜头飞过去', '每张卡片都是一个展位', '整页只有一个 HTML 文件'],
     next: '弹簧物理海报墙',
+  },
+  paper: {
+    num: 5,
+    clip: 'clips/xhs/paper.mp4',
+    name: 'PAPERWORKS · 弹簧海报墙',
+    hook: ['甩一下，', '整墙海报跟着晃'],
+    prompt:
+      '用 motion-pages skill：无限拖拽海报墙，每张海报像纸一样随速度弯曲回弹，点开看大图。纯 DOM/CSS 不用库，单个 HTML 文件，自我验证到完美。',
+    feats: ['速度越快，纸弯得越狠', '不用任何库，纯 CSS 3D', '整页只有一个 HTML 文件'],
+    next: '动效语法课：缓动怎么选',
   },
 };
 
