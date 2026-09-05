@@ -23,7 +23,19 @@ jobs:
         run: |
           diff -q SKILL.md motion-pages/SKILL.md
           diff -q scripts/audit.mjs motion-pages/scripts/audit.mjs
+          diff -q scripts/study.mjs motion-pages/scripts/study.mjs
           diff -q scripts/picker.js motion-pages/scripts/picker.js
+      - name: study tool recognises its own archetypes
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: |
+          set -e
+          node scripts/study.mjs motion-pages/examples/dome-gallery.html --out=/tmp/study-dome > /dev/null
+          grep -q "dome media gallery" /tmp/study-dome/spec.md
+          node scripts/study.mjs motion-pages/examples/boreal-journey.html --out=/tmp/study-boreal > /dev/null
+          grep -q "scroll-driven camera journey" /tmp/study-boreal/spec.md
+          node scripts/study.mjs motion-pages/examples/paperworks-posterwall.html --out=/tmp/study-paper > /dev/null
+          grep -q "springy poster wall" /tmp/study-paper/spec.md
       - name: audit every example (3 viewports × ~22 rules each)
         env:
           CHROME_BIN: /usr/bin/google-chrome

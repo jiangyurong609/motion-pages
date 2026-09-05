@@ -30,3 +30,9 @@ Install as a Claude Code skill (`cp -r motion-pages ~/.claude/skills/`), or past
 SKILL.md into any coding agent's context, then prompt e.g. "Build a 3D product
 hero like AETHER — fresnel-glass case, sonar rings, orbital arcs. Self-verify
 until perfect."
+
+## Tooling (zero-dependency, Node ≥22 + Chrome)
+
+- [scripts/study.mjs — "clone the feel of this URL": storyboard, motion probes, palette/type, tech signals → build-spec prompt](https://raw.githubusercontent.com/jiangyurong609/motion-pages/main/scripts/study.mjs)
+- [scripts/audit.mjs — headless design lint, ~22 rules × 3 viewports, exit 1 on blockers](https://raw.githubusercontent.com/jiangyurong609/motion-pages/main/scripts/audit.mjs)
+- [scripts/picker.js — DevTools element picker → precise context block for the agent](https://raw.githubusercontent.com/jiangyurong609/motion-pages/main/scripts/picker.js)

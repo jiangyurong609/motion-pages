@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- **`scripts/study.mjs`** — "clone the feel of this URL", measured: storyboard at five
+  scroll depths (desktop + phone), pixel-diff probes for idle / pointer / drag /
+  hover / scroll / wheel reactivity, palette from rendered pixels, type from computed
+  styles, bundle grep with chunk following, recipe mapping with confidence, and a
+  build-spec prompt. Pierces closed shadow roots for canvas geometry. CI checks it
+  recognises three of the bundled archetypes.
+- SKILL.md §Study-a-reference now starts with the tool; `study <url>` joins the
+  command vocabulary.
+
 ## 0.1.0 — 2026-09-04
 
 First tagged release — everything since launch (2026-09-01).

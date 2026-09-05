@@ -414,6 +414,24 @@ the reference's code, assets, images, fonts-by-file, copy text, or branding: the
 deliverable is a study of its patterns applied to the user's content. Say so in the
 result.
 
+**Step 0 — run the study tool first; it does steps 1–3 in ~40 s:**
+
+```bash
+node scripts/study.mjs https://reference.site        # → study/<host>/spec.md + storyboard PNGs
+```
+
+It storyboards the page at 0/25/50/75/100 % scroll on desktop and phone, measures what
+reacts to what (idle drift, pointer sweep, drag + inertia, hover, scroll, wheel — by
+pixel-diffing frames), pulls the palette from rendered pixels and the type from computed
+styles, greps the script bundles (following Vite/webpack chunks) for three/gsap/lenis/
+shader/postprocessing signals, and maps all of it to the recipes in this file with a
+confidence per match. `spec.md` ends with a **build-spec prompt** — edit the brand
+placeholder and that prompt IS the intake. Read the storyboard PNGs yourself before
+building: the tool measures, you judge. Sites that seal their DOM in a closed shadow
+root (some award sites do, as anti-scraping) still get canvas geometry and motion
+probes over the protocol, but type/copy must be read from the screenshots.
+Manual fallbacks when you have no Node/Chrome:
+
 1. **Capture what it looks like.** Headless screenshots at desktop + phone width; for
    scroll-driven sites use CDP (see §Self-verify) to shoot 0/25/50/75/100% scroll —
    the storyboard IS the spec. If you have browser control, also record: what happens
@@ -564,8 +582,15 @@ revision round; check all of them:
 
 ## Runtime tooling (scripts/ — the executable half of the review passes)
 
-Two zero-dependency tools ship next to this file (Node ≥22 + any Chrome):
+Three zero-dependency tools ship next to this file (Node ≥22 + any Chrome):
 
+- **`node scripts/study.mjs <url>`** — the §Study-a-reference workflow made
+  executable: storyboard at five scroll depths (desktop + phone), pixel-diff probes
+  for idle / pointer / drag / hover / scroll / wheel reactivity, palette + type
+  extraction, bundle grep for tech signals, recipe mapping with confidence, and a
+  build-spec prompt at the bottom of `study/<host>/spec.md`. **Run it before the
+  intake whenever a reference URL is in play**; the human reads the storyboard, the
+  agent reads the spec.
 - **`node scripts/audit.mjs page.html`** — headless design lint: ~22 rules across
   desktop/tablet/phone covering the AI-slop lint, easing grammar, reduced-motion,
   the stagger-delay trap, console errors, blank-frame/canvas-alive pixel checks,
@@ -584,6 +609,9 @@ Two zero-dependency tools ship next to this file (Node ≥22 + any Chrome):
 **Command vocabulary** — when the user says one of these words, it maps to a
 specific pass, not a vibe:
 
+- **`study <url>`** / "clone the feel of <url>" → run `scripts/study.mjs`, read
+  the storyboard + spec, confirm the recipe mapping with the user (one line), then
+  build from the spec's prompt themed to their brand.
 - **`audit`** → run `scripts/audit.mjs`, fix every FAIL, then walk the
   §Design-review pass and report both.
 - **`variants` / "3 directions"** → §Intake rule: three genuinely distinct

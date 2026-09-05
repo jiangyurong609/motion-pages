@@ -129,10 +129,12 @@ personalized one in the [Playground](https://motion-pages.pages.dev/#playground)
 - **Motion beyond Three.js**: raw-WebGL liquid-glass ripple typography (analytic
   ripples, no FBO sim — survives old GPUs) and pure-DOM springy poster walls (bend
   from drag *lag*, per-poster spring stiffness) — same architecture, no 3D library.
-- **Study-a-reference workflow**: given a URL — storyboard it at several scroll
-  depths, grep its script bundles for tech signals, map what you see to the recipe
-  catalog, rebuild the motion language as original code for the user's brand (never
-  copying the reference's code, assets, or content).
+- **Study-a-reference workflow**: given a URL — `scripts/study.mjs` storyboards it at
+  five scroll depths, pixel-diffs what reacts to pointer / drag / scroll / wheel,
+  extracts palette + type, greps its script bundles for tech signals, maps it all to
+  the recipe catalog and writes a build-spec prompt; the agent rebuilds the motion
+  language as original code for the user's brand (never copying the reference's
+  code, assets, or content).
 - **Forcing params for verification**: any state only user input can reach gets a
   query param that pins it (`?still`, `?p=0.5`, `?focus=40`) so every keyframe and
   interaction is a plain headless screenshot.
@@ -144,9 +146,20 @@ personalized one in the [Playground](https://motion-pages.pages.dev/#playground)
 Zero-dependency (Node ≥22 + Chrome), lives in [`scripts/`](scripts/):
 
 ```bash
-node scripts/audit.mjs mypage.html         # design lint: ~22 rules × 3 viewports
-node scripts/audit.mjs mypage.html --json  # exit 1 on blockers → CI pre-deploy gate
+node scripts/study.mjs https://site.you.love   # "clone the feel of this URL" → study/<host>/spec.md
+node scripts/audit.mjs mypage.html             # design lint: ~22 rules × 3 viewports
+node scripts/audit.mjs mypage.html --json      # exit 1 on blockers → CI pre-deploy gate
 ```
+
+The study turns a reference URL into a measured spec instead of a guess: a storyboard
+at 0/25/50/75/100 % scroll on desktop and phone, pixel-diff probes that tell whether
+the world drifts on its own, follows the cursor, drags with inertia, or is scrubbed by
+scroll or wheel; the palette from rendered pixels; display and body type from
+computed styles; a grep of the script bundles (chunks followed) for three / gsap /
+lenis / shaders / postprocessing; and a mapping onto the skill's archetypes with a
+confidence per match. It ends with a build-spec prompt you paste into the agent
+after swapping in your brand. It even copes with award sites that seal their DOM in
+a closed shadow root — the canvas and motion are still measured over the protocol.
 
 The audit makes the skill's review passes executable: AI-slop tells (Inter display
 type, blue-purple gradient text, default `ease .2s`…), easing grammar, reduced-motion
