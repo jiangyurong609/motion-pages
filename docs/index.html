@@ -145,14 +145,21 @@ body.still .rev{opacity:1;translate:0 0;transition:none}
 .hues{display:flex;gap:10px}
 .hue{width:30px;height:30px;border-radius:50%;cursor:pointer;border:1px solid var(--line);position:relative;transition:.2s var(--e-out)}
 .hue.on{outline:2px solid var(--bone);outline-offset:3px}
-.modes{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:4px;overflow:hidden}
-.modes button{display:flex;justify-content:space-between;align-items:center;background:var(--bg);border:0;cursor:pointer;
- padding:13px 14px;font:700 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--bone);
- border-bottom:1px solid var(--line2);transition:.2s var(--e-out)}
-.modes button:last-child{border-bottom:0}
+.modes{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--line2);gap:1px}
+.modes button{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--bg);border:0;cursor:pointer;
+ padding:12px 12px;font:700 10.5px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--bone);text-align:left;
+ transition:.2s var(--e-out)}
 .modes button:hover{background:var(--panel)}
 .modes button.on{background:var(--bone);color:#120603}
-.modes button.on::after{content:"●";color:var(--red)}
+.modes button i{font:600 8.5px/1 var(--mono);letter-spacing:.1em;color:var(--red);font-style:normal;flex:0 0 auto}
+.modes button.on i{color:#8a1d0a}
+.hexrow{display:flex;gap:10px;align-items:center;margin-top:10px}
+.hexrow .bin{flex:1;text-transform:uppercase}
+.swatch{width:42px;height:42px;border-radius:4px;border:1px solid var(--line);flex:0 0 auto}
+.tone{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.tone button{flex:1;padding:11px;border:0;background:var(--bg);color:var(--bone);cursor:pointer;font:700 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;transition:.2s var(--e-out)}
+.tone button+button{border-left:1px solid var(--line2)}
+.tone button.on{background:var(--bone);color:#120603}
 .bench .btn{width:100%;justify-content:center;margin-top:18px}
 .bnote{font:400 11.5px/1.7 var(--mono);color:var(--mut);margin-top:14px}
 .bview{position:relative}
@@ -281,8 +288,9 @@ footer i{font-style:normal;color:var(--red)}
 <section id="bench">
   <div class="shead rev"><span class="no">The composing bench</span></div>
   <h2 class="rev">Type a brand. <em>Get a world.</em></h2>
-  <p class="ssub rev">This is the input box. The plate on the right is live: it rebuilds as you type.
-    When it feels like yours, copy the prompt. It carries your <b>name, palette, and archetype</b> into Claude Code.</p>
+  <p class="ssub rev">Pick any of the nine archetypes, name your brand, set the palette. Three archetypes rebuild live as you type;
+    the rest show their reference plate. Either way the prompt carries your <b>name, palette, tone and archetype</b> into Claude Code —
+    the full build-spec, re-themed. Every card above has a <b>Remix</b> link that lands here.</p>
   <div class="bench rev">
     <div class="bcontrols">
       <label class="blab" for="pgBrand">Brand name</label>
@@ -291,19 +299,18 @@ footer i{font-style:normal;color:var(--red)}
       <input class="bin" id="pgTag" maxlength="64" value="Crafted for pure clarity" autocomplete="off"/>
       <label class="blab">Ink</label>
       <div class="hues" id="pgHues"></div>
+      <div class="hexrow"><input class="bin" id="pgHex" maxlength="7" placeholder="#hex from your brand" autocomplete="off" aria-label="Brand hex color"/><div class="swatch" id="pgSwatch"></div></div>
+      <label class="blab">Tone</label>
+      <div class="tone" id="pgTone"><button data-tone="dark" class="on">Dark world</button><button data-tone="light">Light paper</button></div>
       <label class="blab">Archetype</label>
-      <div class="modes" id="pgModes">
-        <button class="on" data-mode="halo">Glass product</button>
-        <button data-mode="morph">Particle morph</button>
-        <button data-mode="liquid">Liquid glass</button>
-      </div>
+      <div class="modes" id="pgModes"></div>
       <button class="btn red" id="pgCopy">⧉ Copy this world's prompt</button>
       <a class="btn" id="pgOpen" href="playground.html" target="_blank" rel="noopener" style="margin-top:10px">Open fullscreen ↗</a>
-      <p class="bnote">The preview is the real page — cursor parallax, ripples, swirl all work.</p>
+      <p class="bnote" id="pgNote">The preview is the real page — cursor parallax, ripples, swirl all work.</p>
     </div>
     <div class="bview">
       <div class="frame"><iframe id="pgFrame" title="Your world, live" allow="autoplay"></iframe></div>
-      <div class="fig">Every configuration is a shareable URL</div>
+      <div class="fig" id="pgFig">Every configuration is a shareable URL — this one is in the address bar</div>
     </div>
   </div>
 </section>
@@ -324,7 +331,11 @@ browse it, storyboard it at several scroll depths,
 identify its motion patterns, then rebuild that
 motion language as an original single-file page
 with my brand's palette and copy.
-Self-verify until perfect.<button class="copychip" data-copy="study">⧉ Copy</button></div>
+Self-verify until perfect.
+
+<span class="cmt"># or measure it first — storyboard, motion probes,
+# palette, tech signals → a build-spec prompt:</span>
+node scripts/study.mjs &lt;URL&gt;<button class="copychip" data-copy="study">⧉ Copy</button></div>
     </div>
     <div class="cell">
       <h3>The review every page <em>must pass</em></h3>
@@ -434,6 +445,8 @@ const EXAMPLES=[
   desc:"The same world re-themed for a real product: proof the recipes survive contact with actual copy and routes."},
 ];
 const CATS=["All","Hero","Product","Gallery","Journey","Shader","Interaction","Brand","Particles"];
+// archetypes the bench can re-theme (everything but the replica study and the grammar lesson)
+const REMIXABLE=new Set(["sona-product-hero","volera-morph","pura-liquid-hero","fernline-hero","dome-gallery","boreal-journey","paperworks-posterwall","halde-trail","kiln-horizontal"]);
 let activeCat="All",activePlate=null;
 const rows=document.getElementById("rows"),filters=document.getElementById("filters");
 CATS.forEach(c=>{
@@ -462,6 +475,7 @@ function render(){
         <p>${ex.desc}</p>
         <div class="rlinks">
           <button class="tlink red" data-prompt="${ex.id}">⧉ Copy the prompt</button>
+          ${REMIXABLE.has(ex.id)?`<button class="tlink" data-remix="${ex.id}">↻ Remix for my brand</button>`:""}
           <a class="tlink" href="examples/${ex.id}.html" target="_blank" rel="noopener">Open ↗</a>
           <a class="tlink" href="https://github.com/jiangyurong609/motion-pages/blob/main/motion-pages/examples/${ex.id}.html" target="_blank" rel="noopener">View source</a>
         </div>
@@ -506,6 +520,9 @@ document.addEventListener("click",e=>{
       .catch(()=>copyText(STUDY,"Prompt copied"));return;}
   if(e.target.closest("[data-copy=install]"))copyText(INSTALL,"Install commands copied");
   if(e.target.closest("[data-copy=study]"))copyText(STUDY,"Study prompt copied — add your URL");
+  const rm=e.target.closest("[data-remix]");
+  if(rm){pgSetArch(rm.dataset.remix);document.getElementById("bench").scrollIntoView({behavior:"smooth",block:"start"});
+    setTimeout(()=>document.getElementById("pgBrand").focus({preventScroll:true}),700);}
 });
 
 // ---------- live stars
@@ -517,47 +534,128 @@ fetch("https://api.github.com/repos/jiangyurong609/motion-pages")
  .catch(()=>{});
 
 // ---------- bench (playground)
+// Nine re-themable archetypes. Three have a live parametrized build (playground.html modes);
+// the others preview their reference plate and get a THEME block prepended to the full build-spec.
+const ARCHS=[
+ {id:"sona-product-hero",label:"Glass product",live:"halo",tone:"dark",fake:"SONA·1"},
+ {id:"volera-morph",label:"Particle morph",live:"morph",tone:"dark",fake:"VOLERA"},
+ {id:"pura-liquid-hero",label:"Liquid glass",live:"liquid",tone:"light",fake:"PURA"},
+ {id:"fernline-hero",label:"Foggy hero",tone:"dark",fake:"Fernline"},
+ {id:"dome-gallery",label:"Dome gallery",tone:"dark",fake:"Archive°"},
+ {id:"boreal-journey",label:"Scroll journey",tone:"light",fake:"BOREAL"},
+ {id:"paperworks-posterwall",label:"Poster wall",tone:"light",fake:"Paperworks*"},
+ {id:"halde-trail",label:"Image trail",tone:"light",fake:"HALDE"},
+ {id:"kiln-horizontal",label:"Horizontal story",tone:"dark",fake:"KILN"},
+];
 const HUES=[222,268,158,12,42,330];
-const pg={brand:"AURORA",tag:"Crafted for pure clarity",hue:222,mode:"halo"};
+const pg={brand:"AURORA",tag:"Crafted for pure clarity",hue:222,tone:"dark",arch:"sona-product-hero",hex:""};
+// restore a shared configuration from the hash: #bench?arch=…&brand=…&tag=…&hue=…&tone=…
+{const m=location.hash.match(/^#bench\?(.*)$/);
+ if(m){const q=new URLSearchParams(m[1]);
+  if(q.get("arch")&&ARCHS.some(a=>a.id===q.get("arch")))pg.arch=q.get("arch");
+  if(q.get("brand"))pg.brand=q.get("brand").slice(0,18);
+  if(q.get("tag"))pg.tag=q.get("tag").slice(0,64);
+  if(q.get("hue"))pg.hue=Math.max(0,Math.min(360,parseInt(q.get("hue"))||222));
+  if(["dark","light"].includes(q.get("tone")))pg.tone=q.get("tone");
+  document.getElementById("pgBrand").value=pg.brand;document.getElementById("pgTag").value=pg.tag;}}
+const arch=()=>ARCHS.find(a=>a.id===pg.arch);
 const huesEl=document.getElementById("pgHues");
 for(const h of HUES){
   const b=document.createElement("button");
   b.className="hue"+(h===pg.hue?" on":"");
   b.style.background=`hsl(${h},75%,52%)`;b.setAttribute("aria-label","hue "+h);
-  b.addEventListener("click",()=>{pg.hue=h;
-    huesEl.querySelectorAll(".hue").forEach(x=>x.classList.toggle("on",x===b));pgUpdate();});
+  b.addEventListener("click",()=>{pg.hue=h;pg.hex="";document.getElementById("pgHex").value="";pgHues();pgUpdate();});
   huesEl.appendChild(b);
 }
-document.getElementById("pgModes").addEventListener("click",e=>{
-  const b=e.target.closest("[data-mode]");if(!b)return;
-  pg.mode=b.dataset.mode;
-  document.querySelectorAll("#pgModes button").forEach(x=>x.classList.toggle("on",x===b));
-  pgUpdate();
+function pgHues(){huesEl.querySelectorAll(".hue").forEach((x,i)=>x.classList.toggle("on",HUES[i]===pg.hue&&!pg.hex));
+  document.getElementById("pgSwatch").style.background=pg.hex||`hsl(${pg.hue},75%,52%)`;}
+// paste a brand hex → derive its hue (the world stays hue-driven; the exact hex rides along in the prompt)
+document.getElementById("pgHex").addEventListener("input",e=>{
+  const v=e.target.value.trim().replace(/^([0-9a-f]{6})$/i,"#$1");
+  const m=v.match(/^#([0-9a-f]{6})$/i);
+  if(!m){if(!v){pg.hex="";pgHues();pgUpdate();}return;}
+  const n=parseInt(m[1],16),r=(n>>16)/255,g=((n>>8)&255)/255,b=(n&255)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b);
+  let h=0;if(mx!==mn){const d=mx-mn;h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h=Math.round(((h*60)+360)%360);}
+  pg.hue=h;pg.hex="#"+m[1].toLowerCase();pgHues();clearTimeout(pgTimer);pgTimer=setTimeout(pgUpdate,300);
 });
+document.getElementById("pgTone").addEventListener("click",e=>{
+  const b=e.target.closest("[data-tone]");if(!b)return;pg.tone=b.dataset.tone;pgToneUI();pgUpdate();
+});
+function pgToneUI(){document.querySelectorAll("#pgTone button").forEach(x=>x.classList.toggle("on",x.dataset.tone===pg.tone));}
+const modesEl=document.getElementById("pgModes");
+for(const a of ARCHS){
+  const b=document.createElement("button");b.dataset.arch=a.id;
+  b.innerHTML=`<span>${a.label}</span>${a.live?"<i>LIVE</i>":""}`;
+  modesEl.appendChild(b);
+}
+modesEl.addEventListener("click",e=>{const b=e.target.closest("[data-arch]");if(b)pgSetArch(b.dataset.arch);});
+function pgSetArch(id){
+  const a=ARCHS.find(x=>x.id===id);if(!a)return;
+  pg.arch=id;pg.tone=a.tone;pgToneUI();
+  modesEl.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.dataset.arch===id));
+  pgUpdate();
+}
 let pgTimer;
 for(const [id,key,def] of [["pgBrand","brand","AURORA"],["pgTag","tag","Crafted for pure clarity"]])
   document.getElementById(id).addEventListener("input",e=>{
     pg[key]=e.target.value||def;
     clearTimeout(pgTimer);pgTimer=setTimeout(pgUpdate,450);
   });
-function pgSrc(){return `playground.html?brand=${encodeURIComponent(pg.brand)}&tag=${encodeURIComponent(pg.tag)}&hue=${pg.hue}&mode=${pg.mode}`;}
-function pgUpdate(){document.getElementById("pgFrame").src=pgSrc();document.getElementById("pgOpen").href=pgSrc();}
+function pgSrc(){const a=arch();
+  return a.live?`playground.html?brand=${encodeURIComponent(pg.brand)}&tag=${encodeURIComponent(pg.tag)}&hue=${pg.hue}&mode=${a.live}`
+               :`examples/${a.id}.html`;}
+function pgUpdate(){
+  const a=arch(),src=pgSrc(),frame=document.getElementById("pgFrame");
+  if(frame.dataset.src!==src){frame.src=src;frame.dataset.src=src;}
+  document.getElementById("pgOpen").href=src;
+  document.getElementById("pgNote").textContent=a.live
+    ?"The preview is the real page — cursor parallax, ripples, swirl all work. It rebuilds as you type."
+    :`Reference plate (${a.fake}). The prompt re-themes it: your name replaces ${a.fake}, your palette replaces its inks.`;
+  history.replaceState(null,"",`#bench?arch=${pg.arch}&brand=${encodeURIComponent(pg.brand)}&tag=${encodeURIComponent(pg.tag)}&hue=${pg.hue}&tone=${pg.tone}`);
+}
+pgHues();pgToneUI();
+modesEl.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.dataset.arch===pg.arch));
 pgUpdate();
 const PGRECIPE={
  halo:`a glass product stage: a fresnel-edge glass capsule (custom ShaderMaterial, additive, never transmission) with glowing emissive buds and a point light inside, a breathing baked halo-ring plane and soft nebula glow behind it, three thin expanding sonar rings (RingGeometry 1.94-2.0, opacity (1-ph)^2*0.4, staggered phases), tilted elliptical orbit lines with traveling glow dots, a two-layer soft-sprite starfield, and mouse-orbit camera parallax with idle drift`,
  morph:`a particle morph hero: one 3,600-point cloud (soft radial-gradient sprite, additive) morphing on a 7s cycle between a torus, a dome, and a sphere shell with per-particle stagger and sin(ss*PI) mid-flight scatter, a baked halo-ring plane behind it, cursor swirl (tangential push falling off with distance), starfield, and mouse-orbit parallax`,
  liquid:`a liquid-glass editorial hero: paint the page (giant serif brand wordmark, italic serif tagline, glossy accent orb, faint topographic arcs on ivory #f4efe8) on an offscreen 1920x1080 canvas, then distort it with a raw-WebGL fragment shader — a pool of 24 analytic ripples (sin(band*44)*exp(-band^2*260)*exp(-age*1.6), spawned throttled ~70ms on pointermove, 3-burst on click), a liquid-glass lens pulling uvs toward the cursor, chromatic aberration (R/G/B displacement x1.06/1.0/0.94), wet crest highlights (~0.24), cover-fit in-shader`,
 };
+function paletteLine(){
+  const acc=pg.hex?`${pg.hex} (brand hex, hue ${pg.hue})`:`hsl(${pg.hue}, 85%, 60%)`;
+  return pg.tone==="dark"
+    ?`Palette: derive everything from the brand accent ${acc} — page background hsl(${pg.hue}, 45%, 5%), fog color == background color, mute the hue hard for the world and keep the accent for glows, pulses and the CTA.`
+    :`Palette: light paper world — background a warm off-white tinted toward hue ${pg.hue} (≈ hsl(${pg.hue}, 30%, 95%)), ink text, and ${acc} as the single accent for glows, italics and the CTA. Keep contrast ≥ 4.5:1 over the world.`;
+}
 document.getElementById("pgCopy").addEventListener("click",()=>{
-  copyText(
-`Using the motion-pages skill: build ${PGRECIPE[pg.mode]}.
+  const a=arch();
+  if(a.live){
+    copyText(
+`Using the motion-pages skill: build ${PGRECIPE[a.live]}.
 
 Brand: "${pg.brand}". Tagline: "${pg.tag}".
-Palette: derive everything from base hue ${pg.hue} — accent hsl(${pg.hue}, 85%, 60%), page background hsl(${pg.hue}, 45%, 5%)${pg.mode==="liquid"?" (liquid mode: keep the ivory paper background, tint only the orb and accents)":""}, fog color == background color.
+${paletteLine()}${a.live==="liquid"&&pg.tone==="dark"?" (liquid mode: if the paper must go dark, invert the offscreen painting — pale type on ink — and keep the wet highlights white)":""}
 Overlay: crisp DOM only — brand mark top-left, headline from the tagline bottom-left with the last two words in the accent, a corner credit chip. Ghost wordmark of the brand behind the scene, sized to fit the viewport.
 Ship it as ONE self-contained HTML file (vendored three.module.js local-first with CDN fallback where three.js is used), responsive to phone, touch = idle drift, prefers-reduced-motion and ?still mode included.
 Then self-verify: headless screenshots at 1600x900, 820x1180, and a 500px-wide phone pass, plus ?still determinism — iterate until the composition matches the spec.`,
-  "Your world's prompt copied");
+    "Your world's prompt copied");
+    return;
+  }
+  // reference archetype: THEME block + the full build-spec of the plate
+  fetch(`prompts/${a.id}.txt`).then(r=>r.ok?r.text():Promise.reject()).then(spec=>{
+    copyText(
+`Using the motion-pages skill, build the "${a.label}" archetype below for MY brand — same motion language, my identity.
+
+THEME (apply before the spec; wherever the spec says "${a.fake}" or names its fictional brand, use mine):
+- Brand: "${pg.brand}". Tagline / headline seed: "${pg.tag}". Copy must stay truthful to this brand — no invented stats or claims.
+- ${paletteLine()}
+- Tone: ${pg.tone==="dark"?"dark world":"light paper"}${pg.tone!==a.tone?` (the reference is ${a.tone} — re-balance the atmosphere layers, scrims and text colors for ${pg.tone}, then re-check contrast in the audit)`:""}.
+- Keep the spec's mechanics, easing set, forcing params (?still / ?p= / ?focus=) and self-verify loop exactly.
+
+SPEC
+${spec.trim()}`,
+    `${a.label} prompt copied, themed to ${pg.brand}`);
+  }).catch(()=>copyText(STUDY,"Prompt copied"));
 });
 </script>
 

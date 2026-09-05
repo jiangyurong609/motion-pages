@@ -13,10 +13,12 @@ single-file pages, screenshot-verified.
 On the showcase you can:
 
 - **▶ Run every demo inline** — each gallery card plays its world right in the grid;
-- **🎛 Use the Playground** — type a brand name + tagline, pick a palette hue and an
-  archetype (glass product / particle morph / liquid glass), and watch a live world
-  rebuild as you type — then copy a prompt that carries your exact brand, palette,
-  and archetype into Claude Code;
+- **🎛 Use the Bench** — type a brand name + tagline, paste your brand hex (or pick
+  a hue), choose dark or light, and pick any of nine archetypes: three rebuild live
+  as you type, the rest show their reference plate. Copy the prompt and it is the
+  plate's full build-spec with a THEME block for your brand on top. Every card has a
+  "↻ Remix for my brand" link that lands in the bench pre-selected, and every
+  configuration is a shareable URL;
 - **⧉ Copy full build-spec prompts** — not one-liners: each example's prompt pins the
   layer stack, palette values, geometry parameters, shader math, timings, responsive
   rules, and the self-verify recipe (they live in [`docs/prompts/`](docs/prompts/));
@@ -81,8 +83,8 @@ Then in Claude Code, prompts like these will route through the skill:
 - "Add a butterfly that lands on the branch and flies away on mouse-over"
 
 Or skip prompt-writing entirely: grab a **full build-spec prompt** from the
-[showcase gallery](https://motion-pages.pages.dev/#examples) or generate a
-personalized one in the [Playground](https://motion-pages.pages.dev/#playground).
+[showcase gallery](https://motion-pages.pages.dev/#index) or generate a
+personalized one in the [Bench](https://motion-pages.pages.dev/#bench).
 
 ## What the skill encodes
 

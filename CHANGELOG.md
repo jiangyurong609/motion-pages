@@ -16,6 +16,12 @@
   canvas photographs, idle autopilot, click burst) and **KILN — horizontal scroll-snap
   story** (`kiln-horizontal.html`: the wheel drives a sideways rail of five chapters
   with three-speed parallax from local progress, soft snapping, `?p=` forcing param).
+- **Showcase bench upgrade**: all nine re-themable archetypes selectable (three rebuild
+  live, the rest preview their reference plate), a brand-hex input that derives the
+  hue, a dark/light tone switch, a "↻ Remix for my brand" link on every card that
+  lands in the bench pre-selected, and the copied prompt is now the plate's full
+  build-spec with a THEME block (brand, tagline, palette, tone) prepended. Every
+  configuration is a shareable `#bench?…` URL that restores on load.
 - Audit: canvases outside the viewport no longer trip `tech/canvas-alive`; text on an
   element with its own opaque background is contrast-checked against that background
   (pill buttons stopped reporting false 1.0:1).
