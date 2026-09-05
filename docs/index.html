@@ -255,13 +255,13 @@ footer i{font-style:normal;color:var(--red)}
 </div>
 
 <div class="marquee" aria-hidden="true">
-  <span class="track" id="mq">FOGGY WORLDS <i>·</i> GLASS STAGES <i>·</i> DOME GALLERIES <i>·</i> SCROLL JOURNEYS <i>·</i> LIQUID TYPE <i>·</i> PARTICLE MORPHS <i>·</i> POSTER WALLS <i>·</i> LIVING CREATURES <i>·</i> EASING GRAMMAR <i>·</i> </span>
+  <span class="track" id="mq">FOGGY WORLDS <i>·</i> GLASS STAGES <i>·</i> DOME GALLERIES <i>·</i> SCROLL JOURNEYS <i>·</i> LIQUID TYPE <i>·</i> PARTICLE MORPHS <i>·</i> POSTER WALLS <i>·</i> IMAGE TRAILS <i>·</i> SIDEWAYS STORIES <i>·</i> LIVING CREATURES <i>·</i> EASING GRAMMAR <i>·</i> </span>
 </div>
 
 <div class="proof">
   <div class="cell"><b>One file</b><p><em>No build, no deps.</em> Every page ships as a single self-contained HTML file. Open it, it runs.</p></div>
   <div class="cell"><b>Agent-verified</b><p>The agent screenshots <em>desktop, tablet and phone</em> and iterates until its own review passes.</p></div>
-  <div class="cell"><b>9 archetypes</b><p>Nine finished worlds below, each with the <em>full build-spec prompt</em> that produces it.</p></div>
+  <div class="cell"><b>11 archetypes</b><p>Eleven finished worlds below, each with the <em>full build-spec prompt</em> that produces it.</p></div>
   <div class="cell"><b>Measured, not guessed</b><p>Hand it a URL you love: <em>the study tool storyboards it, probes what moves, and writes the spec</em>. A pixel audit then hunts blank frames, dead motion and AI-slop tells.</p></div>
   <div class="cell"><b>Any agent</b><p>Built for Claude Code, and <em>SKILL.md pastes into any coding agent's</em> context.</p></div>
 </div>
@@ -269,7 +269,7 @@ footer i{font-style:normal;color:var(--red)}
 <main>
 <section id="index">
   <div class="shead rev"><span class="no">The index</span><span class="no" id="count"></span></div>
-  <h2 class="rev">Nine worlds. <em>Run them here.</em></h2>
+  <h2 class="rev">Eleven worlds. <em>Run them here.</em></h2>
   <p class="ssub rev">Each entry is a finished single-file page. <b>RUN</b> plays it inside its plate.
     <b>COPY THE PROMPT</b> hands you the full build spec: layer stack, palette, geometry, shader
     math, timings, and the self-verify loop, round-trip tested against the skill.</p>
@@ -420,10 +420,16 @@ const EXAMPLES=[
  {id:"paperworks-posterwall",n:"07",title:"Paperworks* — <em>poster wall</em>",img:"assets/paper-still.png",cat:"Interaction",
   specs:"pure dom · spring physics · infinite drag · no webgl",
   desc:"An endless wall of printed posters that flex like paper. The bend comes from drag lag, not velocity."},
- {id:"tempo-easing",n:"08",title:"TEMPO — <em>the easing grammar</em>",img:"assets/tempo-still.png",cat:"Interaction",
+ {id:"halde-trail",n:"08",title:"HALDE — <em>cursor image trail</em>",img:"assets/halde-still.png",cat:"Interaction",
+  specs:"pure dom · pooled prints · spawn by distance · exit along the path",
+  desc:"A field studio's archive surfaces wherever you point: prints land soft, then peel away in the direction you were moving. Click for a burst."},
+ {id:"kiln-horizontal",n:"09",title:"KILN — <em>horizontal story</em>",img:"assets/kiln-still.png",cat:"Journey",
+  specs:"pure dom · wheel → sideways rail · 3-speed parallax · soft snap",
+  desc:"Five chapters from clay to table, read sideways. Numeral, vessel and copy travel at different speeds; the rail settles on a chapter when you stop."},
+ {id:"tempo-easing",n:"10",title:"TEMPO — <em>the easing grammar</em>",img:"assets/tempo-still.png",cat:"Interaction",
   specs:"pure dom · five curves, five jobs · replayable · zero requests",
   desc:"A working cheat-sheet: entrances land soft, exits let go, loops never ease. Every card replays its verb; the CTA copies the curve set."},
- {id:"fernline-hero",n:"09",title:"Fernline — <em>applied to a brand</em>",img:"assets/fernline-still.png",cat:"Brand",
+ {id:"fernline-hero",n:"11",title:"Fernline — <em>applied to a brand</em>",img:"assets/fernline-still.png",cat:"Brand",
   specs:"conversion hero · demo modal · stat chips · three.js",
   desc:"The same world re-themed for a real product: proof the recipes survive contact with actual copy and routes."},
 ];

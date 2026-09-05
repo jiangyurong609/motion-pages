@@ -333,10 +333,12 @@ const INSPECT_JS = String.raw`(() => {
   out.title = document.title;
   out.hasViewportMeta = !!document.querySelector('meta[name=viewport]');
   out.hasDescription = !!document.querySelector('meta[name=description]');
+  // only canvases actually inside the viewport — an off-screen canvas (a horizontal
+  // rail's later chapters, a lazy stage) is not a "flat fill", it just isn't visible
   out.canvas = [...document.querySelectorAll('canvas')].map((c) => {
     const r = c.getBoundingClientRect();
     return {x: r.x, y: r.y, w: r.width, h: r.height};
-  });
+  }).filter((r) => r.x + r.w > 0 && r.x < innerWidth && r.y + r.h > 0 && r.y < innerHeight);
 
   // text rects for contrast sampling (largest few)
   out.textRects = [];
@@ -348,9 +350,13 @@ const INSPECT_JS = String.raw`(() => {
     const s = getComputedStyle(el);
     const m = s.color.match(/\d+/g);
     if (!m) continue;
+    // an element painting its own opaque background (pill button, chip) is judged
+    // against THAT, not against the page around it
+    const bgm = s.backgroundColor.match(/[\d.]+/g);
+    const ownBg = bgm && (bgm.length === 3 || parseFloat(bgm[3]) >= 0.9) ? bgm.slice(0, 3).map(Number) : null;
     out.textRects.push({sel: sel(el), x: r.x, y: r.y, w: r.width, h: r.height,
       color: m.slice(0, 3).map(Number), size: parseFloat(s.fontSize),
-      shadow: s.textShadow !== 'none'});
+      shadow: s.textShadow !== 'none', ownBg});
   }
   out.textRects = out.textRects
     .sort((a, b) => b.size - a.size).slice(0, 12);
@@ -431,6 +437,11 @@ function evaluateRules(vp, d, png, stillDiff, consoleErrors) {
     const weak = [];
     for (const t of d.textRects) {
       if (t.w < 20 || t.h < 8) continue;
+      if (t.ownBg) {
+        const c = contrast(relLum(...t.color), relLum(...t.ownBg));
+        if (c < (t.size >= 24 ? 2.2 : 3.0)) weak.push(`${t.sel} (${c.toFixed(1)}:1 @${Math.round(t.size)}px, own bg)`);
+        continue;
+      }
       const pad = 6;
       const bands = [
         {x: t.x - pad, y: t.y - pad, w: t.w + 2 * pad, h: pad},

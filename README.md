@@ -121,7 +121,8 @@ personalized one in the [Playground](https://motion-pages.pages.dev/#playground)
   toggle), dome media gallery (density rules, seeded canvas thumbnails, drag-vs-click
   disambiguation, raycast fly-to-focus), scroll-driven camera rails (smoothed scrub,
   clearing-vs-terrain rule, caption scrims), multi-target particle morphs (stagger +
-  mid-flight scatter), cursor mask reveals, paper poster walls, gesture control.
+  mid-flight scatter), cursor mask reveals, paper poster walls, cursor-trail image
+  reveals, horizontal scroll-snap stories, gesture control.
 - **The fake-bloom kit**: baked canvas glow sprites (never bare square `Points`), a
   halo-ring gradient texture that IS the bloom, fresnel-edge glass shaders instead of
   `transmission`, sparkle sub-clouds, film grain — award-site light with no
@@ -165,7 +166,7 @@ The audit makes the skill's review passes executable: AI-slop tells (Inter displ
 type, blue-purple gradient text, default `ease .2s`…), easing grammar, reduced-motion
 handling, the stagger-delay hover-lag trap, console errors, blank-frame and
 canvas-alive pixel checks, rendered text contrast, phone overflow, tap targets,
-`?still=1` determinism, a11y names. All nine bundled demos pass it.
+`?still=1` determinism, a11y names. All eleven bundled demos pass it.
 
 [`scripts/picker.js`](scripts/picker.js) is the live loop: paste it into the DevTools
 console on your page, click an element, and a precise context block (selector +
@@ -208,6 +209,16 @@ skill answers with 3 genuinely distinct variants and waits for your pick.
   — **springy draggable poster wall** (no WebGL at all): an infinite wrapped grid of
   canvas-painted posters that flex like paper — spring tilts driven by drag lag,
   momentum, click-to-enlarge modal.
+- [`motion-pages/examples/halde-trail.html`](motion-pages/examples/halde-trail.html)
+  — **cursor-trail image reveal** (pure DOM): a field studio's archive surfaces
+  wherever the pointer goes — pooled print nodes spawn by distance travelled, land
+  soft, then peel away along the pointer's own direction; seeded canvas duotones,
+  click burst, idle autopilot, headline that multiplies through the prints.
+- [`motion-pages/examples/kiln-horizontal.html`](motion-pages/examples/kiln-horizontal.html)
+  — **horizontal scroll-snap story** (pure DOM): the wheel drives a sideways rail of
+  five chapters (clay → wheel → glaze → kiln → table) with three-speed parallax from
+  each chapter's local progress, soft snapping, dots + arrow keys, and canvas-lathed
+  vessels. Try `?p=0.5` to pin the hand-off between chapters.
 - [`motion-pages/examples/volera-morph.html`](motion-pages/examples/volera-morph.html)
   — **particle shape morph** (the standalone archetype): 6k seeded glow particles
   dissolve between a soaring crane (parametric wing sweeps), a quantized V-formation

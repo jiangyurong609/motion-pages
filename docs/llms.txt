@@ -21,6 +21,8 @@
 - [BOREAL — scroll-scrubbed camera rail, particle shape morphs](https://jiangyurong609.github.io/motion-pages/examples/boreal-journey.html)
 - [PURA — liquid-glass ripple typography, raw WebGL, no three.js](https://jiangyurong609.github.io/motion-pages/examples/pura-liquid-hero.html)
 - [Paperworks* — springy draggable poster wall, pure DOM](https://jiangyurong609.github.io/motion-pages/examples/paperworks-posterwall.html)
+- [HALDE — cursor-trail image reveal: prints surface under the pointer, pure DOM](https://jiangyurong609.github.io/motion-pages/examples/halde-trail.html)
+- [KILN — horizontal scroll-snap story: wheel drives a sideways rail, 3-speed parallax, pure DOM](https://jiangyurong609.github.io/motion-pages/examples/kiln-horizontal.html)
 - [VOLERA — particle shape morph: crane → V-flock → moon gate](https://jiangyurong609.github.io/motion-pages/examples/volera-morph.html)
 - [TEMPO — the easing grammar as an interactive one-file reference](https://jiangyurong609.github.io/motion-pages/examples/tempo-easing.html)
 

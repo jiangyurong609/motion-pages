@@ -275,6 +275,13 @@ const INSPECT_JS = String.raw`(() => {
   out.snap = getComputedStyle(document.documentElement).scrollSnapType !== 'none' || getComputedStyle(document.body).scrollSnapType !== 'none';
   out.horizontalOverflow = [...document.querySelectorAll('*')].some((el) => { const s = getComputedStyle(el);
     return /auto|scroll/.test(s.overflowX) && el.scrollWidth > el.clientWidth + 100 && el.clientWidth > innerWidth * 0.7; });
+  // a translated rail wider than 2.5 viewports = horizontal storytelling driven by transform
+  out.wideRail = all.some((el) => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el);
+    return r.width >= innerWidth * 2.5 && r.height >= innerHeight * 0.6 && s.transform !== 'none'; });
+  // pointer-spawned DOM layers: many absolutely positioned image-bearing boxes stacked with distinct z-indexes
+  const stacked = all.filter((el) => { const s = getComputedStyle(el); return s.position === 'absolute' && s.zIndex !== 'auto' &&
+    (s.backgroundImage !== 'none' || el.querySelector('img, canvas, [style*="background-image"]')) && el.getBoundingClientRect().width > 60; });
+  out.stackedImages = stacked.length; out.stackedZ = new Set(stacked.map((el) => getComputedStyle(el).zIndex)).size;
 
   // runtime globals = strongest tech evidence
   const g = window;
@@ -580,10 +587,12 @@ function interpret(desk, phone, tech) {
   else if (fx.dragAny && !fx.fullscreenWorld && !fx.webgl) add('§springy poster wall (flat variant) — draggable DOM canvas with momentum', 'the layout itself moves under drag, no WebGL', 'medium');
   else if (fx.domScene3d || fx.paper3d) add('§springy poster wall / 3D card tilt', `${Math.max(d.transformed3d, d.perspectiveChildren)} elements under perspective transforms — tilt/parallax cards`, 'medium');
   if (fx.masks && fx.pointer && !fx.webgl) add('§cursor mask reveal', 'clip-path/mask layers plus pointer-reactive frames without WebGL', 'medium');
+  if (!fx.webgl && fx.pointer && d.stackedImages >= 6 && d.stackedZ >= 4) add('§cursor-trail image reveal', `${d.stackedImages} absolutely-positioned image boxes on ${d.stackedZ} z-levels that appear/move with the pointer — images following the cursor`, 'high');
+  if (d.wideRail && desk.scrollable) add('§horizontal scroll-snap story', 'a transform-driven rail ≥2.5 viewports wide on a vertically scrolling page — the wheel runs sideways', 'high');
   if (fx.scrollTriggered && !fx.scrollWorld) add('§scroll-triggered reveals + staggered entrance (DOM overlay kit)', 'ScrollTrigger / IntersectionObserver usage — sections animate in as they enter', 'high');
   if (fx.splitText) add('§split-text headline choreography (DOM overlay kit)', 'headline is split into per-char/word spans — staggered type entrance', 'medium');
   if (fx.smoothScroll) add('smooth-scroll (lenis-style lerp) — reproduce with a scroll lerp, keep native scrollbar', 'lenis/locomotive detected', 'high');
-  if (fx.horizontal) add('horizontal scroll section (pin + translateX)', 'a wide overflow container drives a sideways track', 'medium');
+  if (fx.horizontal && !d.wideRail) add('§horizontal scroll-snap story (overflow variant)', 'a wide overflow container drives a sideways track', 'medium');
   if (fx.video && !fx.webgl) add('video-backed hero (cover video + DOM overlay)', 'autoplay cover video is the hero world', 'high');
   if (fx.customCursor) add('custom cursor / cursor light (§fluid UI layer)', 'native cursor hidden or a cursor element present', 'medium');
   if (!recipes.length && fx.domMotion) add('§motion beyond Three.js — DOM/CSS kit + easing grammar', 'no canvas world; motion is CSS keyframes/transitions and JS-driven DOM', 'medium');

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HALDE — field studio · every frame you pass through</title>
+<meta name="description" content="Cursor-trail image reveal: prints surface under the pointer and drift away along its path — pure DOM, seeded canvas art, no libraries."/>
+<style>
+:root{
+  --paper:#f1ece2;--ink:#17140f;--mut:#6f665a;--red:#c8401f;
+  --in:cubic-bezier(.16,1,.3,1);   /* entrance: lands soft */
+  --out:cubic-bezier(.4,0,1,1);    /* exit: lets go */
+  --ui:cubic-bezier(.22,1,.36,1);
+  --serif:"Fraunces","Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);overflow:hidden;font:400 16px/1.5 var(--serif);cursor:crosshair}
+/* atmosphere: paper is never one flat color */
+.atmo{position:fixed;inset:0;z-index:0;pointer-events:none;
+ background:
+  radial-gradient(60% 50% at 20% 15%,rgba(255,255,255,.7),transparent 70%),
+  radial-gradient(50% 60% at 85% 85%,rgba(200,64,31,.10),transparent 70%),
+  linear-gradient(180deg,#f4f0e7 0%,#efe9dd 100%)}
+.grain{position:fixed;inset:0;z-index:6;pointer-events:none;opacity:.07;mix-blend-mode:multiply;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* the trail layer */
+#trail{position:fixed;inset:0;z-index:2;pointer-events:none}
+.print{position:absolute;left:0;top:0;width:220px;height:290px;padding:8px 8px 26px;background:#fbf8f2;
+ box-shadow:0 30px 60px -24px rgba(23,20,15,.55),0 2px 6px rgba(23,20,15,.12);
+ opacity:0;will-change:transform,opacity;transform-origin:50% 55%;
+ --x:0px;--y:0px;--r:0deg;--s:.6;--dx:0px;--dy:0px;
+ transform:translate(var(--x),var(--y)) translate(-50%,-50%) rotate(var(--r)) scale(var(--s))}
+.print .img{width:100%;height:100%;background-size:cover;background-position:center}
+.print .cap{position:absolute;left:10px;right:10px;bottom:7px;font:500 10px/1 var(--mono);letter-spacing:.14em;
+ text-transform:uppercase;color:var(--mut);display:flex;justify-content:space-between}
+.print.in{opacity:1;--s:1;transition:opacity .16s var(--in),transform .42s var(--in)}
+.print.out{opacity:0;--s:.92;
+ transform:translate(calc(var(--x) + var(--dx)),calc(var(--y) + var(--dy))) translate(-50%,-50%) rotate(var(--r)) scale(var(--s));
+ transition:opacity .55s var(--out),transform .7s var(--out)}
+/* overlay: the editorial page the trail runs under/over */
+#ui{position:fixed;inset:0;z-index:3;pointer-events:none}
+#ui a,#ui button{pointer-events:auto}
+nav{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:26px 40px}
+.brand{display:inline-block;padding:8px 0;font:600 18px/1 var(--serif);letter-spacing:.32em;text-decoration:none;color:var(--ink);transition:letter-spacing .5s var(--ui)}
+.brand:hover,.brand:focus-visible{letter-spacing:.4em;outline:none}
+.brand i{color:var(--red);font-style:normal}
+.links{display:flex;gap:28px;font:500 11.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase}
+.links a{color:var(--mut);text-decoration:none;transition:color .35s var(--ui)}
+.links a:hover,.links a:focus-visible{color:var(--ink);outline:none}
+.cta{padding:12px 20px;border-radius:999px;background:var(--ink);color:var(--paper);font:600 12px/1 var(--mono);
+ letter-spacing:.06em;text-decoration:none;transition:transform .45s var(--ui),background .45s var(--ui)}
+.cta:hover,.cta:focus-visible{transform:translateY(-2px) rotate(-1.5deg);background:var(--red);outline:none}
+.hero{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:0 6vw}
+.eyebrow{font:500 11px/1 var(--mono);letter-spacing:.3em;text-transform:uppercase;color:var(--mut);margin-bottom:26px}
+h1{font:300 clamp(46px,8.6vw,138px)/.94 var(--serif);letter-spacing:-.035em;text-wrap:balance;
+ mix-blend-mode:multiply}
+h1 em{font-style:italic;font-weight:300;color:var(--red)}
+.sub{margin-top:30px;max-width:44ch;font-size:clamp(15px,1.25vw,19px);line-height:1.5;color:#3f382f}
+.foot{position:absolute;left:40px;right:40px;bottom:26px;display:flex;justify-content:space-between;align-items:flex-end;
+ font:500 11px/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.hint{padding:11px 16px;border-radius:999px;background:rgba(241,236,226,.86);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+ transition:opacity .6s var(--ui)}
+.counter b{display:block;font:300 34px/1 var(--serif);letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums}
+.foot .right{text-align:right}
+/* entrance */
+.rev{opacity:0;transform:translateY(14px);animation:rev .9s var(--in) forwards}
+@keyframes rev{to{opacity:1;transform:none}}
+.rev:nth-child(2){animation-delay:.12s}.rev:nth-child(3){animation-delay:.24s}
+@media (max-width:720px){
+  nav{padding:20px 22px}.links{display:none}.foot{left:22px;right:22px;bottom:20px}
+  .print{width:150px;height:198px;padding:6px 6px 20px}.print .cap{font-size:9px;left:8px;right:8px}
+  .counter b{font-size:26px}.hint{font-size:11px;letter-spacing:.1em;padding:10px 14px}
+}
+@media (prefers-reduced-motion: reduce){.rev{animation:none;opacity:1;transform:none}.print,.print.in,.print.out{transition:none}}
+</style>
+</head>
+<body>
+<div class="atmo"></div>
+<div id="trail" aria-hidden="true"></div>
+<div id="ui">
+  <nav>
+    <a class="brand" href="#top" aria-label="HALDE home">HALDE<i>.</i></a>
+    <div class="links"><a href="#studio">Studio</a><a href="#journal">Journal</a><a href="#prints">Prints</a></div>
+    <a class="cta" href="https://github.com/jiangyurong609/motion-pages">★ Get this skill</a>
+  </nav>
+  <div class="hero">
+    <div>
+      <div class="eyebrow rev">Field studio · Analog &amp; digital · Est. 2019</div>
+      <h1 class="rev">Every frame<br/>you <em>pass through</em></h1>
+      <p class="sub rev">Nine years of coastlines, kitchens and strangers, surfacing wherever you look. Move slowly — the archive keeps up.</p>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="hint" id="hint">Move the cursor — the archive follows · click for a burst</div>
+    <div class="counter right"><b id="count">000</b>frames surfaced</div>
+  </div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<script>
+const qs=new URLSearchParams(location.search);
+const STILL=qs.has("still")||matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ---------- seeded "photographs": duotone compositions painted on canvas, zero requests
+let seed=91;const rand=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
+const TONES=[["#1d2a3a","#c9b79c"],["#3b2a22","#e5c9a5"],["#243b2e","#d9d2b8"],["#4a1f16","#e8b89a"],
+ ["#2b2b33","#cfc6b6"],["#5a3a17","#efd9b2"],["#1a3340","#b9c9c4"],["#402a3c","#dcc3c9"]];
+const PLACES=["Vestland","Rue Oberkampf","Skagen","Kōchi","Lofoten","Oaxaca","Fife","Hvar","Tromsø","Alentejo","Setúbal","Marrakesh"];
+function photo(i){
+  const W=220,H=256,c=document.createElement("canvas");c.width=W*2;c.height=H*2;
+  const x=c.getContext("2d");x.scale(2,2);
+  const [dk,lt]=TONES[i%TONES.length];
+  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,lt);g.addColorStop(1,dk);
+  x.fillStyle=g;x.fillRect(0,0,W,H);
+  const kind=i%4;
+  x.fillStyle=dk;
+  if(kind===0){                       // horizon + sun
+    const hz=H*(.55+rand()*.2);x.fillRect(0,hz,W,H-hz);
+    x.fillStyle=lt;x.globalAlpha=.85;x.beginPath();x.arc(W*(.3+rand()*.4),hz-40-rand()*40,26+rand()*14,0,7);x.fill();x.globalAlpha=1;
+  }else if(kind===1){                 // ridgeline
+    x.beginPath();x.moveTo(0,H);let y=H*.6;
+    for(let k=0;k<=8;k++){x.lineTo(k*W/8,y);y+=(rand()-.5)*60;}
+    x.lineTo(W,H);x.closePath();x.fill();
+    x.fillStyle=lt;x.globalAlpha=.35;x.fillRect(0,H*.28,W,2);x.globalAlpha=1;
+  }else if(kind===2){                 // doorway
+    x.fillRect(W*.3,H*.22,W*.4,H*.78);
+    x.fillStyle=lt;x.globalAlpha=.9;x.fillRect(W*.36,H*.3,W*.28,H*.5);x.globalAlpha=1;
+  }else{                              // figure on shore
+    x.fillRect(0,H*.7,W,H*.3);
+    x.beginPath();x.ellipse(W*.55,H*.66,9,26,0,0,7);x.fill();
+    x.fillStyle=lt;x.globalAlpha=.5;for(let k=0;k<5;k++)x.fillRect(0,H*(.74+k*.05),W,1);x.globalAlpha=1;
+  }
+  // vignette + film edge
+  const v=x.createRadialGradient(W/2,H/2,H*.2,W/2,H/2,H*.75);v.addColorStop(0,"rgba(0,0,0,0)");v.addColorStop(1,"rgba(0,0,0,.35)");
+  x.fillStyle=v;x.fillRect(0,0,W,H);
+  return c.toDataURL("image/png");
+}
+const N_ART=12,ART=[];for(let i=0;i<N_ART;i++)ART.push(photo(i));
+
+// ---------- the trail: a pool of prints recycled in order; newest on top
+const trail=document.getElementById("trail"),countEl=document.getElementById("count"),hint=document.getElementById("hint");
+const POOL=16,pool=[];let z=1,next=0,surfaced=0,art=0;
+for(let i=0;i<POOL;i++){
+  const p=document.createElement("div");p.className="print";
+  p.innerHTML='<div class="img"></div><div class="cap"><span></span><span></span></div>';
+  trail.appendChild(p);pool.push(p);
+}
+function spawn(x,y,vx,vy,life=720){
+  const p=pool[next];next=(next+1)%POOL;
+  clearTimeout(p._t1);clearTimeout(p._t2);
+  p.className="print";                       // reset: no transition while we re-place it
+  p.style.zIndex=String(z++);
+  p.style.setProperty("--x",x+"px");p.style.setProperty("--y",y+"px");
+  p.style.setProperty("--r",((rand()-.5)*16).toFixed(1)+"deg");
+  const sp=Math.hypot(vx,vy)||1;             // exit drifts along the pointer's own direction
+  p.style.setProperty("--dx",(vx/sp*70).toFixed(1)+"px");p.style.setProperty("--dy",(vy/sp*70-40).toFixed(1)+"px");
+  p.firstChild.style.backgroundImage=`url(${ART[art%N_ART]})`;
+  const cap=p.lastChild.children;cap[0].textContent=PLACES[art%PLACES.length];cap[1].textContent="HL-"+String(art%97+1).padStart(2,"0");
+  art++;surfaced++;countEl.textContent=String(Math.min(surfaced,999)).padStart(3,"0");
+  void p.offsetWidth;                        // commit the reset before the entrance transition
+  p.classList.add("in");
+  p._t1=setTimeout(()=>{p.classList.remove("in");p.classList.add("out");},life);
+  p._t2=setTimeout(()=>{p.className="print";},life+800);
+}
+
+// spawn every STEP px of pointer travel; velocity from the last few moves
+const STEP=matchMedia("(max-width:720px)").matches?52:64;
+let lx=null,ly=null,acc=0,vx=0,vy=0,lastMove=performance.now(),moved=0;
+function onMove(x,y){
+  if(lx!==null){const dx=x-lx,dy=y-ly;vx=vx*.6+dx*.4;vy=vy*.6+dy*.4;acc+=Math.hypot(dx,dy);moved+=Math.hypot(dx,dy);}
+  lx=x;ly=y;lastMove=performance.now();
+  if(acc>=STEP){acc=0;spawn(x,y,vx,vy);}
+  if(moved>240)hint.style.opacity="0";
+}
+if(!STILL){
+  addEventListener("pointermove",e=>onMove(e.clientX,e.clientY),{passive:true});
+  addEventListener("pointerdown",e=>{                         // a burst: five prints fan out around the click
+    if(e.target.closest("a,button"))return;
+    for(let k=0;k<5;k++){const a=k/5*Math.PI*2+rand();spawn(e.clientX+Math.cos(a)*(30+k*8),e.clientY+Math.sin(a)*(30+k*8),Math.cos(a),Math.sin(a),1400);}
+  });
+  // idle autopilot: after 2.6 s without input a phantom cursor drifts a figure-eight — the page is never dead
+  let t0=performance.now();
+  (function idle(){
+    requestAnimationFrame(idle);
+    const now=performance.now();
+    if(now-lastMove<2600)return;
+    const t=(now-t0)/1000,W=innerWidth,H=innerHeight;
+    const x=W/2+Math.sin(t*.55)*W*.34,y=H*.55+Math.sin(t*1.1)*H*.2;
+    if(lx!==null){const dx=x-lx,dy=y-ly;vx=vx*.6+dx*.4;vy=vy*.6+dy*.4;acc+=Math.hypot(dx,dy);}
+    lx=x;ly=y;
+    if(acc>=STEP*1.6){acc=0;spawn(x,y,vx,vy);}
+  })();
+}else{
+  // deterministic still: eight prints along an S-curve, fully surfaced, no transitions
+  const W=innerWidth,H=innerHeight;
+  for(let k=0;k<8;k++){
+    const t=k/7,x=W*(.12+t*.76),y=H*(.62-Math.sin(t*Math.PI)*.3+ (k%2?.06:-.04));
+    const p=pool[k];p.style.zIndex=String(k+1);p.style.transition="none";
+    p.style.setProperty("--x",x+"px");p.style.setProperty("--y",y+"px");
+    p.style.setProperty("--r",((k%2?1:-1)*(4+k)).toFixed(1)+"deg");p.style.setProperty("--s","1");
+    p.firstChild.style.backgroundImage=`url(${ART[k]})`;
+    const cap=p.lastChild.children;cap[0].textContent=PLACES[k];cap[1].textContent="HL-"+String(k+1).padStart(2,"0");
+    p.style.opacity="1";
+  }
+  countEl.textContent="008";
+}
+</script>
+</body>
+</html>

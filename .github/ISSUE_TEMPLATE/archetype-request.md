@@ -9,4 +9,5 @@ labels: archetype
 **Reference** (URL or video of a site doing it — we study patterns, never copy code)
 
 **Why it's distinct** from the bundled archetypes (foggy hero, glass product stage,
-dome gallery, scroll journey, particle morph, liquid glass, poster wall, easing grammar)
+dome gallery, scroll journey, particle morph, liquid glass, poster wall, cursor image
+trail, horizontal scroll story, easing grammar)

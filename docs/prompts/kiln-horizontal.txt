@@ -1,0 +1,20 @@
+Using the motion-pages skill, build a horizontal scroll-snap storyteller ("KILN"-class, a ceramics studio's process in five chapters) as ONE self-contained HTML file with NO WebGL and no libraries — the vertical wheel drives a sideways rail of full-viewport chapters, pure DOM. Follow this spec exactly, then self-verify until it matches.
+
+STRUCTURE
+- A 500vh invisible #track gives the document its scroll height; a fixed #view (inset 0, overflow hidden) holds a flex #rail of five 100vw × 100vh <section>s. The rail is translated by -p × (N-1) × 100vw, where p = scrollY / maxScroll, SMOOTHED each frame (p += (target - p) × .09). The body must never gain horizontal scroll width (the rail lives inside the clipped fixed view).
+- Each chapter has its own background and accent (clay umber → wheel grey → glaze teal → kiln red → table bone; the last chapter flips to dark ink text on light). A radial highlight + bottom ramp overlay per chapter so no background is a flat fill.
+
+PARALLAX (per-layer, from LOCAL progress)
+- Each chapter computes local progress lp = clamp(p × (N-1) − i, −1, 1) (−1 off right, 0 centered, 1 off left) into a CSS custom property --p. Layers move at different rates from it: the giant translucent chapter numeral (clamp(160px, 34vw, 520px), 6% white) at −18vw × --p, the artwork at −9vw × --p with a −6° × --p rotation, the copy block at +6vw × --p. Three speeds = depth.
+- Artwork: a seeded canvas vessel per chapter, lathed from a smooth radius function r(t) sampled 48 times (lump, open bowl, bottle, jar, cup with handle) with rim highlight, a left-light glaze gradient and a ground shadow ellipse; chapter-specific marks (throwing lines on the bowl, heat arcs behind the kiln jar, a handle on the cup). Zero image requests.
+
+SNAP + CONTROLS
+- Soft snap: 160ms after the last scroll input, glide scrollY to the nearest chapter with an ease-out cubic over 650ms; any user scroll cancels the glide. Dots (right edge, 32px tap targets, role=tab, aria-labels) and ← → / ↑ ↓ keys jump chapters (800ms glide). A 2px progress bar across the top scales with p; a "02 / 05" tabular counter bottom-right; a hint pill ("Scroll — the story runs sideways") fades after 40px.
+- Brand top-left, pill link top-right, both with eased hover states; all easing is a defined cubic-bezier set, never browser defaults.
+
+MODES
+- ?p=0..1 pins progress (track collapses to 100vh, body overflow hidden) so every keyframe is a plain screenshot; ?still = p .31 (the hand-off between chapters one and two, parallax visibly mid-flight). prefers-reduced-motion: no smoothing, no snap — p follows scroll instantly.
+- Phone (≤720px): single-column chapters, artwork 62vw parked above the copy, numeral tucked top-left, dots at the right edge; touch scroll drives the rail like the wheel does.
+
+SELF-VERIFY
+- Headless 1600×900 at ?p=0/.25/.5/.75/1: five distinct chapters, vessel silhouettes clearly different, numerals and copy moving at different rates between adjacent frames, no body horizontal overflow (scrollWidth == innerWidth). 390×844 ?p=.75. Then interactively: wheel down twelve notches — the rail must glide sideways and settle exactly on a chapter. Run scripts/audit.mjs (0 FAIL) and iterate.

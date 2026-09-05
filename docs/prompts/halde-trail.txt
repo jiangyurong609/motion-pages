@@ -1,0 +1,22 @@
+Using the motion-pages skill, build a cursor-trail image reveal ("HALDE"-class field-studio hero) as ONE self-contained HTML file with NO WebGL and no libraries — prints surface under the pointer and drift away along its path, pure DOM. Follow this spec exactly, then self-verify until it matches.
+
+THE PAGE
+- Warm paper (#f1ece2) that is never one flat color: two soft radial glows + a vertical ramp behind everything, film grain (multiply ~.07) on top. Crosshair cursor.
+- Editorial overlay in a fixed layer: brand top-left (letterspaced serif, one red period), mono nav links, dark pill CTA top-right; centered hero — mono eyebrow, a two-line light serif headline at clamp(46px, 8.6vw, 138px) with the second line's key phrase in red italic, a 44ch sub-paragraph. Bottom row: a hint pill on a translucent paper chip ("Move the cursor — the archive follows · click for a burst") and a tabular-numerals counter "000 frames surfaced".
+- The headline uses mix-blend-mode: multiply so prints passing behind it read THROUGH the letters instead of hiding them.
+
+THE PRINTS (seeded canvas, zero image requests)
+- 12 duotone "photographs" painted on canvas at 2x, 220×256 inside a 220×290 white print border with a mono caption row (place name left, "HL-07"-style code right). Four templates: horizon + sun, ridgeline, doorway, figure on a shore; each gets a vignette. Palette pairs are deep-dark + pale (navy/sand, umber/cream, pine/bone, oxblood/peach…).
+- A POOL of 16 print nodes recycled in order; newest print gets the highest z-index. Never create/destroy nodes.
+
+THE TRAIL (the whole feel)
+- Spawn one print every 64px of pointer travel (52px on phones), at the pointer, with a seeded rotation of ±8°. Track pointer velocity with a light low-pass (v = v*.6 + d*.4).
+- Entrance: scale .6 → 1 and opacity 0 → 1 with a soft-landing curve (cubic-bezier(.16,1,.3,1), .42s). Hold ~720ms. Exit: opacity → 0, scale → .92, and the print DRIFTS ~70px along the pointer's own direction plus 40px upward, on a let-go curve (cubic-bezier(.4,0,1,1), .55–.7s). Reset the node's classes before re-placing it and force a reflow so the entrance transition always plays.
+- Click (not on links): a burst — five prints fan out around the click at 30–62px radius and linger 1.4s.
+- Idle autopilot: after 2.6s with no input, a phantom cursor drifts a figure-eight and drips prints at a lower rate, so the page is never dead. Hint pill fades after ~240px of real travel; counter increments per print (caps 999).
+
+MODES
+- ?still and prefers-reduced-motion: no listeners, no autopilot; eight prints placed deterministically along an S-curve across the page (alternating tilt 4–11°), fully opaque, counter reads 008. Touch works via pointer events (dragging a finger draws the trail).
+
+SELF-VERIFY
+- Headless 1600×900 ?still: eight prints arc across the headline, headline legible through them, chips legible, counter 008; 390×844 ?still: prints scale to 150×198, nav links hidden, no horizontal overflow. Then interactively: sweep the mouse — prints must appear in step, tilt, and peel away along the sweep direction; click must burst. Iterate until still and feel both pass; run scripts/audit.mjs (0 FAIL).

@@ -1,6 +1,6 @@
 ---
 name: motion-pages
-description: Build production-ready immersive motion pages in the award-site mold — Three.js worlds (foggy heroes, glass product stages with sonar rings, drag-orbit dome galleries, scroll-driven camera journeys with particle morphs) AND non-Three.js motion (raw-WebGL liquid-glass ripple typography, springy draggable poster walls, cursor mask reveals, gesture control) — each a single HTML file with a crisp DOM overlay, responsive to phone/tablet, touch-aware, with a mandatory multi-viewport screenshot loop and a design-review (aesthetic + conversion) pass. Use when asked for a "3D landing page", "Three.js hero", "living/breathing homepage", a 3D product page, a 3D gallery, a scroll-story page, "liquid glass", a ripple/distortion hero, a draggable poster wall, or to apply an award-site motion effect to a brand.
+description: Build production-ready immersive motion pages in the award-site mold — Three.js worlds (foggy heroes, glass product stages with sonar rings, drag-orbit dome galleries, scroll-driven camera journeys with particle morphs) AND non-Three.js motion (raw-WebGL liquid-glass ripple typography, springy draggable poster walls, cursor-trail image reveals, horizontal scroll-snap stories, cursor mask reveals, gesture control) — each a single HTML file with a crisp DOM overlay, responsive to phone/tablet, touch-aware, with a mandatory multi-viewport screenshot loop and a design-review (aesthetic + conversion) pass. Use when asked for a "3D landing page", "Three.js hero", "living/breathing homepage", a 3D product page, a 3D gallery, a scroll-story page, "liquid glass", a ripple/distortion hero, a draggable poster wall, "images that follow the cursor", a horizontal-scrolling story, or to apply an award-site motion effect to a brand.
 ---
 
 # Motion Pages — Award-Site Immersive & Motion Recipes
@@ -19,7 +19,9 @@ task before building:
 - `examples/dome-gallery.html` — drag-orbit dome gallery + click-to-focus fly;
 - `examples/boreal-journey.html` — scroll-scrubbed camera rail + particle morphs;
 - `examples/pura-liquid-hero.html` — raw-WebGL liquid-glass ripple typography (no three.js);
-- `examples/paperworks-posterwall.html` — springy draggable poster wall (no WebGL at all).
+- `examples/paperworks-posterwall.html` — springy draggable poster wall (no WebGL at all);
+- `examples/halde-trail.html` — cursor-trail image reveal: prints surface under the pointer (pure DOM);
+- `examples/kiln-horizontal.html` — horizontal scroll-snap story: wheel drives a sideways rail (pure DOM).
 
 ## Architecture (non-negotiables)
 
@@ -266,6 +268,42 @@ DOM overlay, `?still` mode, screenshot loop).
     (>6 px travel swallows the click); click → backdrop-blur modal enlarge.
   - Floating UI over busy art needs its own surface: brand chip and hint pill get a
     translucent bg + backdrop blur, never bare text.
+- **Cursor-trail image reveal** (`halde-trail.html`, the "images follow the mouse"
+  portfolio hero) — pure DOM; the archive surfaces wherever the pointer goes:
+  - **A pool, not a stream**: ~16 print nodes recycled in order, newest gets the top
+    z-index. Never create/destroy nodes per move — GC hitches read as stutter.
+  - **Spawn by distance, not time**: one print per ~64 px of pointer travel (52 on
+    phones) so a slow hand leaves a sparse trail and a fast one a dense fan. Track
+    velocity with a low-pass (`v = v*.6 + d*.4`).
+  - **Exit along the path**: entrance is scale .6→1 on a soft-landing curve (~.4 s);
+    after ~700 ms the print lets go — fades, shrinks to .92 and DRIFTS ~70 px along the
+    pointer's own direction (+ a little lift). That directional exit is what makes it a
+    trail instead of a pile. Reset classes + force a reflow before re-placing a node so
+    the entrance transition always plays.
+  - Prints are seeded canvas duotones (horizon / ridgeline / doorway / figure) inside a
+    white print border with a mono caption row — zero requests, deterministic still.
+  - The headline sits ABOVE the trail with `mix-blend-mode:multiply` so prints read
+    through the letters; click = a five-print burst; idle autopilot (phantom cursor on
+    a figure-eight after ~2.6 s) keeps the page alive; `?still` = eight prints on a
+    fixed S-curve.
+- **Horizontal scroll-snap story** (`kiln-horizontal.html`, the sideways chapter
+  page) — pure DOM; vertical scroll drives a horizontal rail:
+  - A tall invisible `#track{height:N*100vh}` gives the document its scroll; a fixed,
+    `overflow:hidden` view holds a flex rail of `100vw` sections translated by
+    `-p*(N-1)*100vw`, `p` smoothed per frame (`p += (t-p)*.09`). The clip on the fixed
+    view is what keeps `scrollWidth == innerWidth` — the phone-overflow audit rule
+    will catch you if the rail leaks.
+  - **Parallax from LOCAL progress**: each chapter gets `--p = clamp(p*(N-1)-i,-1,1)`
+    and its layers move at different rates from it (numeral −18vw, artwork −9vw with a
+    −6° roll, copy +6vw). Three speeds = depth; one speed = a slideshow.
+  - **Soft snap**: ~160 ms after the last scroll input, glide `scrollY` to the nearest
+    chapter (ease-out cubic, ~650 ms); ANY user scroll cancels the glide. Dots +
+    arrow keys jump chapters; a 2 px top bar scales with `p`.
+  - `?p=0..1` pins progress (collapse the track, lock body scroll) so every chapter is
+    a plain screenshot; `?still` = a between-chapters value (.31) so the parallax is
+    visibly mid-flight. `prefers-reduced-motion` = no smoothing, no snap.
+  - Artwork = seeded canvas vessels lathed from a smooth radius function (48
+    samples) — a distinct silhouette per chapter so the story reads at a glance.
 - **Gesture control** (webcam demos) — MediaPipe Hands (or FaceLandmarker) mapped onto
   the SAME particle-morph machinery: pinch distance → gather/scatter blend, palm x/y →
   group rotation. Keep it an optional progressive enhancement behind a permission
@@ -663,7 +701,9 @@ load" → §scan-line reveal · "butterfly that lands and flies away on mouse-ov
 §particle shape morph · "image changes as the mouse moves over it like Lando Norris"
 → §cursor mask reveal · "liquid glass" / "ripple distortion over the headline" →
 §liquid-glass ripple typography · "draggable poster wall" / "posters that flex like
-paper" → §springy poster wall · "control it with hand gestures" → §gesture control ·
+paper" → §springy poster wall · "images follow the mouse" / "photos appear where the
+cursor goes" → §cursor-trail image reveal · "scrolls sideways" / "horizontal chapters" /
+"scroll-snap story" → §horizontal scroll-snap story · "control it with hand gestures" → §gesture control ·
 "recreate this in a single HTML file, self-verify until perfect" → the whole recipe ·
 "show me 3 directions" → §Intake (three genuinely distinct art directions, then build
 the picked one).
