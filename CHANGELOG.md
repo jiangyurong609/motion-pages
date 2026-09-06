@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.2.0 — 2026-09-05
+
+Eleven archetypes, a measured study tool, and a bench that remixes every plate for
+your brand.
+
 - **`scripts/study.mjs`** — "clone the feel of this URL", measured: storyboard at five
   scroll depths (desktop + phone), pixel-diff probes for idle / pointer / drag /
   hover / scroll / wheel reactivity, palette from rendered pixels, type from computed
