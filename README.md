@@ -22,28 +22,37 @@ On the showcase you can:
 - **⧉ Copy full build-spec prompts** — not one-liners: each example's prompt pins the
   layer stack, palette values, geometry parameters, shader math, timings, responsive
   rules, and the self-verify recipe (they live in [`docs/prompts/`](docs/prompts/));
-- **🔎 Clone the feel of any site** — a prompt template that has the agent browse a
-  reference URL, storyboard it at several scroll depths, map its motion patterns to
-  the skill's recipes, and rebuild that motion language as original code for *your*
-  brand;
+- **🔎 Clone the feel of any site** — hand it a reference URL: `scripts/study.mjs`
+  storyboards the page at several scroll depths, pixel-probes what reacts to pointer,
+  drag, scroll and wheel, extracts palette and type, maps it all to the skill's
+  recipes, and writes a build-spec prompt; the agent then rebuilds that motion
+  language as original code for *your* brand;
 - **🤖 Hand it to any agent** — [`llms.txt`](docs/llms.txt) links the full skill and
   every live example for AI agents outside Claude Code.
 
 ![motion-pages demo — scroll journey flythrough and example pages](assets/demo.gif)
 
 A [Claude Code](https://claude.com/claude-code) skill that teaches the agent to build
-**award-site-style immersive Three.js pages** as a single HTML file (+ a vendored
-three.js): the Sylva-style foggy hero (organic geometry, crisp DOM overlay UI,
-mouse-orbit parallax, pointer particles, Death-Stranding wireframe scan intro, glass
-cards, a living creature) **plus four more archetypes distilled from award-winning
-sites** — a glass product stage with sonar rings (AETHER:1-style), a drag-orbit dome
-gallery with click-to-focus camera flights (OpenPurpose-style), scroll-driven camera
-journeys with particle shape morphs (Igloo-Inc-style), and recipes for cursor mask
-reveals (Lando Norris), paper poster walls (MISC), and webcam gesture control — all
-with no build step, **responsive down to phones, touch- and reduced-motion-aware**,
-verified via a multi-viewport headless-Chrome screenshot loop **plus a design-review
-(aesthetic + conversion) pass**, so the result is ready to mount in a production
-webapp on day 1.
+**award-site-style motion pages** as a single HTML file with no build step. Eleven
+archetypes, each a recipe + a bundled demo + a full build-spec prompt:
+
+- **Three.js worlds** (+ a vendored three.js): the Sylva-style foggy hero (organic
+  geometry, crisp DOM overlay UI, mouse-orbit parallax, pointer particles,
+  Death-Stranding wireframe scan intro, glass cards, a living creature), a glass
+  product stage with sonar rings (AETHER:1-style), a drag-orbit dome gallery with
+  click-to-focus camera flights (OpenPurpose-style), a scroll-driven camera journey
+  (Igloo-Inc-style), and a standalone particle shape morph;
+- **Raw WebGL**: liquid-glass ripple typography — a fragment shader warps giant serif
+  type under the cursor;
+- **Pure DOM**: a springy draggable poster wall (MISC-style), a cursor-trail image
+  reveal, a horizontal scroll-snap story, and the easing grammar as an interactive
+  reference — plus recipes for cursor mask reveals (Lando Norris) and webcam gesture
+  control.
+
+Everything is **responsive down to phones, touch- and reduced-motion-aware**, verified
+via a multi-viewport headless-Chrome screenshot loop **plus a design-review (aesthetic
++ conversion) pass** and a zero-dependency design audit, so the result is ready to
+mount in a production webapp on day 1.
 
 | Sylva replica (bundled example) | Wireframe scan intro | Applied to a real brand |
 |---|---|---|
@@ -53,9 +62,13 @@ webapp on day 1.
 |---|---|---|
 | ![SONA product hero](assets/sona-still.png) | ![Dome gallery](assets/dome-still.png) | ![BOREAL journey](assets/boreal-still.png) |
 
-| Liquid-glass typography (raw WebGL) | Springy poster wall (pure DOM) |
-|---|---|
-| ![PURA liquid hero](assets/pura-still.png) | ![Paperworks poster wall](assets/paper-still.png) |
+| Liquid-glass typography (raw WebGL) | Springy poster wall (pure DOM) | Particle shape morph |
+|---|---|---|
+| ![PURA liquid hero](assets/pura-still.png) | ![Paperworks poster wall](assets/paper-still.png) | ![VOLERA particle morph](assets/volera-still.png) |
+
+| Cursor-trail image reveal (pure DOM) | Horizontal scroll-snap story (pure DOM) | Easing grammar, interactive |
+|---|---|---|
+| ![HALDE cursor trail](assets/halde-still.png) | ![KILN horizontal story](assets/kiln-still.png) | ![TEMPO easing grammar](assets/tempo-still.png) |
 
 ## Install
 
@@ -253,7 +266,8 @@ build-spec prompt + a passing audit, as a set. See
   the AETHER:1 earbuds concept, [OpenPurpose®](https://openpurpose.com),
   [Igloo Inc](https://igloo.inc) (Awwwards Site of the Year), the official Lando
   Norris site, MISC, and the ITOM sketch portfolio — no code or assets were taken
-  from any of them; the Fernline / SONA / Archive° / BOREAL brands are fictional.
+  from any of them; every brand in the demos (Fernline, SONA, Archive°, BOREAL,
+  PURA, Paperworks, VOLERA, HALDE, KILN, TEMPO) is fictional.
 - Built and verified with Claude Code.
 
 ## License
