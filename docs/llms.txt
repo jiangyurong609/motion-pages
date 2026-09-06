@@ -3,7 +3,7 @@
 > Open-source Claude Code skill (MIT) that teaches an AI agent to build immersive,
 > award-site-style Three.js landing pages as single self-contained HTML files —
 > foggy hero worlds, glass product stages, dome media galleries, scroll-driven
-> camera journeys with particle morphs — screenshot-verified across desktop,
+> camera journeys with particle morphs, walkable procedural game worlds — screenshot-verified across desktop,
 > tablet and phone before shipping.
 
 ## Core
@@ -24,6 +24,7 @@
 - [HALDE — cursor-trail image reveal: prints surface under the pointer, pure DOM](https://jiangyurong609.github.io/motion-pages/examples/halde-trail.html)
 - [KILN — horizontal scroll-snap story: wheel drives a sideways rail, 3-speed parallax, pure DOM](https://jiangyurong609.github.io/motion-pages/examples/kiln-horizontal.html)
 - [ALDER — scroll-scrubbed process reveal: the pinned hero raises a cabin as you scroll, then hands off to the business page, pure DOM + canvas](https://jiangyurong609.github.io/motion-pages/examples/alder-build.html)
+- [HOLLOWMERE — live game-world hero: a walkable procedural isometric world (trees, rocks, ruins, a knight — all code, zero textures), HUD chrome, a trailer shot from the same scene](https://jiangyurong609.github.io/motion-pages/examples/hollowmere-world.html)
 - [VOLERA — particle shape morph: crane → V-flock → moon gate](https://jiangyurong609.github.io/motion-pages/examples/volera-morph.html)
 - [TEMPO — the easing grammar as an interactive one-file reference](https://jiangyurong609.github.io/motion-pages/examples/tempo-easing.html)
 

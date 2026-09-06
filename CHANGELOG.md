@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **New archetype — HOLLOWMERE, live game-world hero** (`hollowmere-world.html`,
+  three.js, audit-clean, zero textures/models/images): an indie isometric RPG's landing
+  page whose hero is the game — a procedural weald (vertex-coloured terrain with a road,
+  instanced trees/ferns/grass/rocks/flagstones, ruins, a campfire with additive flames
+  and ember points, blob shadows instead of shadow maps) and a knight assembled from
+  primitives on pivots who walks where you click, lights three waystones for the HUD
+  quest, and plays the hotbar verbs (strike, guard, dodge, nightfall, rest); autopilot
+  when idle; a time-of-day scalar; the trailer is the same scene through a perspective
+  camera in three letterboxed shots; press screenshots are rendered once by the same
+  renderer. `?tod=` pins the hour, `?still` freezes. Recipe in SKILL.md, build-spec
+  prompt, showcase card, bench entry (eleven re-themable archetypes).
 - **New archetype — ALDER, scroll-scrubbed process reveal** (`alder-build.html`, pure
   DOM + one 2D canvas, audit-clean): a 500vh track with a sticky stage; scroll progress
   raises a timber cabin through survey → piers → deck → frame → shell → lights-on at

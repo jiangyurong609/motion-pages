@@ -1,6 +1,6 @@
 ---
 name: motion-pages
-description: Build production-ready immersive motion pages in the award-site mold — Three.js worlds (foggy heroes, glass product stages with sonar rings, drag-orbit dome galleries, scroll-driven camera journeys with particle morphs) AND non-Three.js motion (raw-WebGL liquid-glass ripple typography, springy draggable poster walls, cursor-trail image reveals, horizontal scroll-snap stories, scroll-scrubbed process reveals, cursor mask reveals, gesture control) — each a single HTML file with a crisp DOM overlay, responsive to phone/tablet, touch-aware, with a mandatory multi-viewport screenshot loop and a design-review (aesthetic + conversion) pass. Use when asked for a "3D landing page", "Three.js hero", "living/breathing homepage", a 3D product page, a 3D gallery, a scroll-story page, "liquid glass", a ripple/distortion hero, a draggable poster wall, "images that follow the cursor", a horizontal-scrolling story, a "scroll to build it" process explainer for a business, or to apply an award-site motion effect to a brand.
+description: Build production-ready immersive motion pages in the award-site mold — Three.js worlds (foggy heroes, glass product stages with sonar rings, drag-orbit dome galleries, scroll-driven camera journeys with particle morphs, walkable procedural game worlds with HUD chrome) AND non-Three.js motion (raw-WebGL liquid-glass ripple typography, springy draggable poster walls, cursor-trail image reveals, horizontal scroll-snap stories, scroll-scrubbed process reveals, cursor mask reveals, gesture control) — each a single HTML file with a crisp DOM overlay, responsive to phone/tablet, touch-aware, with a mandatory multi-viewport screenshot loop and a design-review (aesthetic + conversion) pass. Use when asked for a "3D landing page", "Three.js hero", "living/breathing homepage", a 3D product page, a 3D gallery, a scroll-story page, "liquid glass", a ripple/distortion hero, a draggable poster wall, "images that follow the cursor", a horizontal-scrolling story, a "scroll to build it" process explainer for a business, a game landing page whose hero is a playable procedural world, or to apply an award-site motion effect to a brand.
 ---
 
 # Motion Pages — Award-Site Immersive & Motion Recipes
@@ -23,6 +23,7 @@ task before building:
 - `examples/halde-trail.html` — cursor-trail image reveal: prints surface under the pointer (pure DOM);
 - `examples/kiln-horizontal.html` — horizontal scroll-snap story: wheel drives a sideways rail (pure DOM).
 - `examples/alder-build.html` — scroll-scrubbed process reveal: the hero builds what the business sells as you scroll, then hands off to the page (pure DOM + canvas).
+- `examples/hollowmere-world.html` — live game-world hero: a walkable procedural isometric world with the game's HUD as chrome, a trailer shot from the same scene (three.js, zero assets).
 
 ## Architecture (non-negotiables)
 
@@ -230,6 +231,53 @@ What actually makes the reference sites glow:
   layers (helmet/visor variants) and drive `clip-path:circle(r at x y)` (or a WebGL
   uv-discard mask) from the pointer; snap layer choice to pointer zones so elements
   change the instant the cursor crosses them.
+- **Live game-world hero** (`hollowmere-world.html`, the "landing page IS level one"
+  pattern — an indie isometric ARPG whose site opens on a walkable procedural world with
+  the game's HUD as chrome; the reference had procedural trees/rocks/monuments/characters
+  and a whole game under 2 MB before art and music) — Three.js, one scene, zero assets:
+  - **Orthographic isometric camera**: `normalize(1,1.32,1)×48` looking at a focus that
+    lerps 35 % toward the player (+ a little pointer parallax); half-height ~7.4 units,
+    9.5 on portrait. No shadow maps — an InstancedMesh of baked radial-gradient discs
+    under every tree, rock, pillar and the character reads as shadow at 1/50 the cost.
+  - **Everything repeated is instanced, everything is a primitive**: ground = displaced
+    plane with VERTEX COLOURS (grass↔moss by noise, dirt/stone along a road polyline via
+    distance-to-segment); trees = instanced tapered trunk + four instanced icosahedron
+    canopy blobs (per-instance HSL, 1.15× squash), some bare with branch cylinders;
+    ferns = tilted 5-cones; grass = 2,600 tiny 3-cones; rocks = ONE jittered icosahedron
+    with non-uniform per-instance scale; ruins = tilted boxes + a half-torus arch + a
+    fallen cylinder; campfire = dodecahedron ring + log cylinders + two crossed additive
+    flame planes (canvas gradient) + embers as `Points` whose positions are a function of
+    `t` (`sizeAttenuation:false` or they vanish under the ortho camera).
+  - **The character is ~15 primitives on pivots**: leg pivots at the hips, arm pivots at
+    the shoulders carrying sword/shield, a cloak plane hinged at the neck; walk cycle =
+    `sin(t×9.5)` on the pivots scaled by a walk blend that ramps in/out, plus a bob.
+    ⚠️ Metalness ≈ .75 with no environment map renders BLACK — use metalness .3,
+    roughness .5 and a light steel colour.
+  - **Play, not just look**: click/tap → raycast onto the y=0 plane → clamp to the
+    clearing → the character turns (shortest-angle lerp) and walks; a pulsing ring marks
+    the target. Three "waystones" light when reached and drive a quest counter in the
+    HUD; 3/3 toasts a wishlist link. Hotbar + keys map to real verbs (strike swing,
+    guard pose, dodge dash with a stamina dent, nightfall, rest). **Autopilot**: after
+    5 s without input the character walks the quest himself — the hero is never still,
+    the quest completes for a passive viewer, and `tech/canvas-alive` passes.
+  - **Time of day** as one scalar `tod`: sun/hemisphere colours, exposure and fire/lamp
+    intensities lerp from a daylight weight + a dusk gaussian; night must still read
+    (sun ≥ .55, hemi ≥ .75, exposure ≥ .88). Set each light's base from `tod` then
+    flicker it multiplicatively from `t` — never `light.intensity *= …` across frames.
+  - **The trailer is the same scene**: swap to a PerspectiveCamera for three 4 s shots
+    (low orbit at the fire → dolly to the arch → crane up to a serif title card),
+    letterbox bars, HUD fades, Esc/Exit returns. Screenshots for the press section are
+    rendered ONCE by the same renderer from other cameras at other hours into 2D
+    canvases (`renderer.setSize(w,h,false)` → render → `ctx.drawImage(renderer.domElement)`
+    → restore). No second pipeline, no images.
+  - HUD = DOM: glass panels with a gold hairline, an inset second hairline and four
+    corner dots; a circular minimap drawn on a 2D canvas from the same object lists;
+    a vitality orb; inline-SVG hotbar icons with keycaps. Text over the world needs an
+    opaque backing (chip/pill) or the contrast audit samples the grass; invisible
+    overlays (toast, cinematic title) need `visibility:hidden`, not just opacity 0.
+  - `?still` = t frozen, tod .47, first waystone lit, character at the fire, no
+    autopilot; `?tod=` pins the hour for screenshots; portrait shrinks the walk radius
+    so the character never leaves the frame.
 
 ## Motion beyond Three.js (same architecture, no 3D library)
 

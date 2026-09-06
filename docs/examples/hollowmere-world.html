@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HOLLOWMERE — an isometric pilgrimage</title>
+<meta name="description" content="A game landing page whose hero is the game: a procedural isometric world in Three.js (trees, rocks, ruins, campfire, a knight you click to move), HUD chrome, a trailer shot from the same scene, and a wishlist close. Zero textures, zero image assets."/>
+<style>
+:root{--e:cubic-bezier(.22,1,.36,1);--ei:cubic-bezier(.4,0,1,1);--em:cubic-bezier(.65,0,.35,1);--el:cubic-bezier(.34,1.56,.64,1);
+ --ink:#0b0e0a;--ink2:#131811;--bone:#e9e2cf;--mut:#a7a293;--gold:#c9a961;--gold2:#8e7538;--moss:#6f8a4c;--ember:#e0762e;
+ --serif:"Cormorant Garamond","Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+ --mono:"IBM Plex Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--bone);font:400 16px/1.6 var(--serif);overflow-x:hidden}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+kbd{font:500 11px/1 var(--mono);letter-spacing:.06em}
+
+/* ---------- hero: the world + HUD ---------- */
+#hero{position:relative;padding:0;height:100vh;height:100svh;min-height:560px;overflow:hidden;background:#243019}
+#gl{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:manipulation}
+.vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 100% at 50% 50%,transparent 52%,rgba(6,9,5,.55) 100%)}
+.scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(6,9,5,.55),transparent 28%),linear-gradient(0deg,rgba(6,9,5,.7),transparent 34%)}
+.bars{position:absolute;left:0;right:0;height:0;background:var(--ink);pointer-events:none;transition:height 1.1s var(--em)}
+.bars.t{top:0}.bars.b{bottom:0}
+body.cine .bars{height:11vh}
+#ui{position:absolute;inset:0;pointer-events:none;z-index:2}
+#ui>*{pointer-events:auto}
+.enter{opacity:0;translate:0 14px;transition:opacity .9s var(--e),translate .9s var(--e)}
+body.ready .enter{opacity:1;translate:0 0}
+.d1{transition-delay:.15s}.d2{transition-delay:.3s}.d3{transition-delay:.45s}.d4{transition-delay:.6s}
+body.settled .enter{transition-delay:0s}
+body.cine #ui>*:not(.cineui){opacity:0;translate:0 10px;transition:opacity .5s var(--ei),translate .5s var(--ei);pointer-events:none}
+
+.panel{position:relative;padding:16px 20px;background:rgba(10,13,8,.62);border:1px solid rgba(201,169,97,.42);
+ backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.panel::before{content:"";position:absolute;inset:3px;border:1px solid rgba(201,169,97,.16);pointer-events:none}
+.panel::after{content:"";position:absolute;inset:-4px;pointer-events:none;background:
+ radial-gradient(circle,var(--gold) 0 2.2px,transparent 3px) 0 0/8px 8px no-repeat,
+ radial-gradient(circle,var(--gold) 0 2.2px,transparent 3px) 100% 0/8px 8px no-repeat,
+ radial-gradient(circle,var(--gold) 0 2.2px,transparent 3px) 0 100%/8px 8px no-repeat,
+ radial-gradient(circle,var(--gold) 0 2.2px,transparent 3px) 100% 100%/8px 8px no-repeat}
+.eyebrow{font:500 11px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+
+.brand{position:absolute;top:26px;left:30px;color:var(--bone);text-decoration:none}
+.brand b{display:block;font:500 24px/1 var(--serif);letter-spacing:.32em}
+.brand:hover b{color:var(--gold)}
+.brand b{transition:color .35s var(--e)}
+.brand small{display:block;margin-top:6px;font:500 11px/1 var(--mono);letter-spacing:.24em;color:var(--gold)}
+nav.top{position:absolute;top:24px;inset-inline:0;margin-inline:auto;width:fit-content;display:flex;gap:6px;padding:6px;
+ background:rgba(10,13,8,.5);border:1px solid rgba(201,169,97,.28);border-radius:999px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+nav.top a{padding:9px 16px;border-radius:999px;font:500 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;text-decoration:none;color:var(--bone);transition:background .35s var(--e),color .35s var(--e)}
+nav.top a:hover{background:rgba(201,169,97,.16);color:#fff}
+nav.top a.hot{background:var(--gold);color:var(--ink)}
+nav.top a.hot:hover{background:#dcbf7c}
+.clock{position:absolute;top:32px;right:30px;font:500 11px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--bone);text-align:right}
+.clock i{font-style:normal;color:var(--gold)}
+.quest{position:absolute;top:96px;left:30px;width:300px}
+.quest h2{margin:8px 0 6px;font:500 26px/1.1 var(--serif);color:#fff}
+.quest p{font-size:14px;line-height:1.45;color:var(--mut)}
+.quest .obj{margin-top:12px;display:flex;align-items:center;gap:10px;font:500 12px/1 var(--mono);letter-spacing:.08em;color:var(--bone)}
+.quest .obj b{color:var(--gold);font-weight:500}
+.quest .pips{display:flex;gap:5px}
+.quest .pips i{width:18px;height:4px;background:rgba(201,169,97,.25);transition:background .6s var(--e)}
+.quest .pips i.on{background:var(--gold)}
+.map{position:absolute;top:74px;right:30px;width:150px;text-align:center}
+.map canvas{display:block;width:150px;height:150px;border-radius:50%;border:1px solid rgba(201,169,97,.5);box-shadow:0 0 0 4px rgba(10,13,8,.6),0 0 0 5px rgba(201,169,97,.2)}
+.map span{display:inline-block;margin-top:10px;padding:7px 10px;background-color:rgba(10,13,8,.9);border:1px solid rgba(201,169,97,.3);font:500 11px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+
+.char{position:absolute;left:30px;bottom:30px}
+.char b{display:block;font:500 22px/1.1 var(--serif);color:#fff;margin-top:6px}
+.char span{display:block;margin-top:6px;font:500 11px/1 var(--mono);letter-spacing:.14em;color:var(--bone)}
+.bar{position:absolute;left:30px;bottom:16px;width:220px;display:none}
+.hud{position:absolute;inset-inline:0;margin-inline:auto;width:fit-content;bottom:28px;display:flex;align-items:flex-end;gap:18px}
+.orb{width:92px;height:92px;border-radius:50%;position:relative;display:grid;place-items:center;text-align:center;
+ background:radial-gradient(circle at 50% 30%,#c8402a 0,#7a1d16 55%,#3a0d0b 100%);
+ box-shadow:inset 0 -10px 24px rgba(0,0,0,.55),inset 0 6px 14px rgba(255,180,150,.28),0 0 0 3px rgba(10,13,8,.8),0 0 0 4px var(--gold2),0 0 30px rgba(224,118,46,.25)}
+.orb b{font:500 30px/1 var(--serif);color:#fff;letter-spacing:.04em}
+.orb small{display:block;font:500 11px/1 var(--mono);letter-spacing:.18em;color:rgba(255,255,255,.75);margin-top:3px}
+.orb::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:1px solid rgba(201,169,97,.35);animation:orbring 4s linear infinite}
+@keyframes orbring{0%{scale:1;opacity:.6}50%{scale:1.06;opacity:.15}100%{scale:1;opacity:.6}}
+.slots{position:relative;display:flex;gap:10px}
+.slot{width:64px;transition:opacity .45s var(--e);display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+.slot i{width:56px;height:56px;display:grid;place-items:center;background:linear-gradient(180deg,#1d2418,#0d110b);
+ border:1px solid rgba(201,169,97,.55);box-shadow:inset 0 0 0 3px rgba(10,13,8,.9),inset 0 0 0 4px rgba(201,169,97,.2);
+ transition:translate .45s var(--e),border-color .45s var(--e),box-shadow .45s var(--e)}
+.slot svg{width:30px;height:30px;fill:none;stroke:var(--bone);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.slot span{font:500 11px/1 var(--mono);letter-spacing:.1em;color:var(--bone)}
+.slot kbd{position:absolute;top:-8px;right:0;padding:3px 5px;background:var(--ink);border:1px solid rgba(201,169,97,.5);color:var(--gold)}
+.slot:hover i,.slot.hit i{translate:0 -4px;border-color:var(--gold);box-shadow:inset 0 0 0 3px rgba(10,13,8,.9),inset 0 0 0 4px rgba(201,169,97,.55),0 0 22px rgba(201,169,97,.35)}
+.slot.hit i{transition:none}
+.stam{width:100%;height:3px;margin-top:2px;background:rgba(233,226,207,.16)}
+.stam i{display:block;height:100%;width:100%;background:var(--gold);transform-origin:left}
+.keys{position:absolute;inset-inline:0;margin-inline:auto;width:fit-content;bottom:8px;font:500 11px/1 var(--mono);letter-spacing:.12em;color:var(--mut);white-space:nowrap}
+.keys kbd{color:var(--bone)}
+.cta{position:absolute;right:30px;bottom:30px;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border:1px solid var(--gold);background:linear-gradient(180deg,#d9b96f,#b8934a);
+ color:var(--ink);font:600 12px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;text-decoration:none;
+ background-color:#c9a961;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);transition:translate .45s var(--e),filter .45s var(--e)}
+.btn:hover{translate:0 -3px;filter:brightness(1.08)}
+.btn.ghost{background:rgba(10,13,8,.92);color:var(--bone);border-color:rgba(201,169,97,.5)}
+.btn.ghost:hover{background:rgba(201,169,97,.14)}
+.hint{position:absolute;left:50%;top:60%;translate:-50% 0;padding:10px 16px;border-radius:999px;background:rgba(10,13,8,.6);border:1px solid rgba(201,169,97,.35);
+ font:500 11px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--bone);transition:opacity .6s var(--ei);pointer-events:none!important}
+.hint.off{opacity:0}
+.cineui{position:absolute;inset:0;pointer-events:none!important;opacity:0;visibility:hidden;transition:opacity .8s var(--e),visibility 0s .8s}
+body.cine .cineui{opacity:1;visibility:visible;transition-delay:0s}
+.cineui .title{position:absolute;left:50%;top:50%;translate:-50% -50%;text-align:center;opacity:0;transition:opacity 1.2s var(--e)}
+.cineui .title::before{content:"";position:absolute;inset:-60% -30%;z-index:-1;background:radial-gradient(ellipse at center,rgba(6,9,5,.8),transparent 68%)}
+body.cine.card .cineui .title{opacity:1}
+.cineui .title b{display:block;font:500 clamp(38px,7vw,88px)/1 var(--serif);letter-spacing:.34em;color:#fff;text-shadow:0 4px 40px rgba(0,0,0,.6)}
+.cineui .title span{display:inline-block;margin-top:18px;padding:10px 18px;background-color:rgba(10,13,8,.9);border:1px solid rgba(201,169,97,.4);font:500 12px/1 var(--mono);letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
+.cineui .exit{position:absolute;right:30px;top:calc(11vh + 18px);pointer-events:auto;padding:10px 16px;border:1px solid rgba(201,169,97,.5);font:500 11px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--bone);transition:background .35s var(--e)}
+.cineui .exit:hover{background:rgba(201,169,97,.16)}
+.toast{position:absolute;left:50%;top:22%;translate:-50% 0;max-width:420px;text-align:center;opacity:0;visibility:hidden;transition:opacity .8s var(--e),translate .8s var(--e),visibility 0s .8s;pointer-events:none!important}
+.toast.panel{background:rgba(10,13,8,.92)}
+.toast.on{opacity:1;visibility:visible;transition-delay:0s;translate:-50% -8px;pointer-events:auto!important}
+.toast h3{font:500 30px/1.1 var(--serif);color:#fff;margin:8px 0 6px}
+.toast p{font-size:15px;color:var(--mut)}
+.toast a{color:var(--gold);transition:color .35s var(--e)}
+.toast a:hover{color:#fff}
+
+/* ---------- the page below ---------- */
+main{position:relative;z-index:3;background:var(--ink)}
+section{padding:110px 6vw}
+.wrap{max-width:1180px;margin:0 auto}
+.rev{opacity:0;translate:0 18px;transition:opacity .9s var(--e),translate .9s var(--e)}
+.rev.in{opacity:1;translate:0 0}
+.state{display:grid;grid-template-columns:1.2fr .8fr;gap:60px;align-items:end}
+.state h2{margin-top:14px;font:400 clamp(36px,4.6vw,66px)/1.05 var(--serif);color:#fff}
+.state h2 em{font-style:italic;color:var(--gold)}
+.state p{margin-top:22px;max-width:520px;font-size:18px;color:var(--mut)}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(201,169,97,.25);border:1px solid rgba(201,169,97,.25)}
+.chips div{padding:22px 20px;background:var(--ink2)}
+.chips b{display:block;font:400 34px/1 var(--serif);color:#fff}
+.chips span{display:block;margin-top:8px;font:500 11px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.shots{background:var(--ink2);border-top:1px solid rgba(201,169,97,.15);border-bottom:1px solid rgba(201,169,97,.15)}
+.shots h2,.trailer h2,.list h2{font:400 clamp(30px,3.6vw,50px)/1.1 var(--serif);color:#fff;margin-top:12px}
+.shots h2 em,.trailer h2 em{font-style:italic;color:var(--gold)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:44px}
+figure.shot{position:relative;background:var(--ink);border:1px solid rgba(201,169,97,.3);padding:6px;transition:translate .5s var(--e),border-color .5s var(--e)}
+figure.shot:hover{translate:0 -6px;border-color:var(--gold)}
+figure.shot canvas{display:block;width:100%;aspect-ratio:16/10;background:#0b0e0a}
+figure.shot figcaption{padding:14px 10px 10px}
+figure.shot b{display:block;font:500 20px/1.2 var(--serif);color:#fff}
+figure.shot span{display:block;margin-top:6px;font:500 11px/1.5 var(--mono);letter-spacing:.06em;color:var(--mut)}
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:70px}
+.feat h3{font:500 24px/1.2 var(--serif);color:#fff;margin-top:10px}
+.feat p{margin-top:10px;font-size:16px;color:var(--mut)}
+.feat code{font:500 12.5px/1.5 var(--mono);color:var(--gold)}
+.trailer .frame{position:relative;margin-top:40px;border:1px solid rgba(201,169,97,.4);padding:8px;background:var(--ink2)}
+.trailer .screen{position:relative;aspect-ratio:16/9;overflow:hidden;background:#0b0e0a}
+.trailer .screen canvas{position:absolute;inset:0;width:100%;height:100%}
+.trailer .play{position:absolute;inset:0;width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(180deg,rgba(11,14,10,.15),rgba(11,14,10,.55))}
+.trailer .disc{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(201,169,97,.6);
+ background:linear-gradient(180deg,rgba(233,226,207,.22),rgba(233,226,207,.06));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+ transition:scale .5s var(--el),background .5s var(--e)}
+.trailer .play:hover .disc{scale:1.08;background:linear-gradient(180deg,rgba(201,169,97,.5),rgba(201,169,97,.2))}
+.trailer .disc::before{content:"";width:0;height:0;border-left:22px solid #fff;border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:6px}
+.trailer .disc::after{content:"";position:absolute;width:96px;height:96px;border-radius:50%;border:1px solid rgba(201,169,97,.5);animation:ring 2.6s linear infinite}
+@keyframes ring{0%{scale:.9;opacity:.7}100%{scale:1.45;opacity:0}}
+.trailer .meta{display:flex;justify-content:space-between;gap:20px;padding:14px 6px 4px;font:500 11px/1.6 var(--mono);letter-spacing:.1em;color:var(--mut)}
+.trailer .meta a{color:var(--gold)}
+.list{background:linear-gradient(180deg,#1a2214,#0f150c);border-top:1px solid rgba(201,169,97,.2)}
+.list .row{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.list p{margin-top:16px;font-size:17px;color:var(--mut);max-width:460px}
+.list ul{margin-top:22px;list-style:none;display:flex;flex-direction:column;gap:8px;font:500 12.5px/1.5 var(--mono);letter-spacing:.06em;color:var(--bone)}
+.list li::before{content:"◆";color:var(--gold);margin-right:10px;font-size:9px;vertical-align:2px}
+form.wl{display:grid;gap:12px;padding:30px}
+form.wl label{font:500 11px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+form.wl input,form.wl select{width:100%;padding:14px 16px;background:rgba(11,14,10,.7);border:1px solid rgba(201,169,97,.35);color:#fff;font:400 16px/1.2 var(--serif);transition:border-color .35s var(--e)}
+form.wl input:focus,form.wl select:focus{border-color:var(--gold);outline:none}
+form.wl button{margin-top:6px;justify-content:center}
+form.wl small{font:500 11px/1.5 var(--mono);color:var(--mut);letter-spacing:.04em}
+footer{padding:36px 6vw;display:flex;justify-content:space-between;gap:20px;font:500 11px/1.6 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);border-top:1px solid rgba(201,169,97,.15)}
+footer a{text-decoration:none;color:var(--bone);transition:color .35s var(--e)}
+footer a:hover{color:var(--gold)}
+.ptoast{position:fixed;left:50%;bottom:26px;translate:-50% 20px;padding:12px 18px;background:var(--gold);color:var(--ink);font:600 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;opacity:0;transition:opacity .5s var(--e),translate .5s var(--e);z-index:9;pointer-events:none}
+.ptoast.on{opacity:1;translate:-50% 0}
+
+@media (max-width:1180px){.grid3,.feat{grid-template-columns:1fr 1fr}.map{display:none}}
+@media (max-width:760px){
+ section{padding:80px 6vw}
+ .state,.list .row{grid-template-columns:1fr;gap:30px}
+ .chips{grid-template-columns:1fr}
+ .grid3,.feat{grid-template-columns:1fr}
+ nav.top{display:none}
+ .brand{left:6vw;top:22px}
+ .clock{right:6vw;top:26px}.clock .dd{display:none}.brand b{font-size:18px}
+ .quest{left:6vw;right:6vw;width:auto;top:82px;padding:12px 14px}
+ .quest p{display:none}
+ .quest h2{font-size:21px}
+ .char,.keys{display:none}
+ .hud{left:6vw;right:6vw;width:auto;bottom:96px;gap:10px;justify-content:space-between}
+ .orb{width:70px;height:70px}.orb b{font-size:22px}.orb small{display:none}
+ .slots{gap:5px}.slot{width:46px}.slot i{width:44px;height:44px}.slot svg{width:22px;height:22px}.slot span{display:none}.slot kbd{display:none}
+ .cta{left:6vw;right:6vw;bottom:26px;flex-direction:row;align-items:stretch}
+ .cta .btn{flex:1;justify-content:center;padding:13px 8px;font-size:11px;white-space:nowrap}
+ .hint{top:56%}
+ .cineui .exit{right:6vw}
+ footer{flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){
+ .enter,.rev{transition:none;opacity:1;translate:0 0}
+ .orb::after,.trailer .disc::after{animation:none}
+ html{scroll-behavior:auto}
+}
+body.still .enter,body.still .rev{transition:none;opacity:1;translate:0 0}
+body.still .orb::after,body.still .trailer .disc::after{animation:none}
+body.still .hint{transition:none}
+</style>
+</head>
+<body>
+
+<section id="hero" aria-label="Hollowmere — the living world">
+  <canvas id="gl" aria-label="The Hollowmere weald — click to walk the wayfarer"></canvas>
+  <div class="vig" aria-hidden="true"></div>
+  <div class="scrim" aria-hidden="true"></div>
+  <div class="bars t" aria-hidden="true"></div><div class="bars b" aria-hidden="true"></div>
+  <div id="ui">
+    <a class="brand enter" href="#"><b>HOLLOWMERE</b><small>AN ISOMETRIC PILGRIMAGE</small></a>
+    <nav class="top enter d1" aria-label="Primary"><a href="#weald">The weald</a><a href="#trailer">Trailer</a><a href="#press">Press kit</a><a class="hot" href="#wishlist">Wishlist</a></nav>
+    <div class="clock enter d1" id="clock"><span class="dd">DAY <i>1</i> · </span><i>12:00</i> · DAYLIGHT</div>
+
+    <div class="quest panel enter d2" id="quest">
+      <div class="eyebrow">Main quest</div>
+      <h2>A lantern for the ferryman</h2>
+      <p>Walk the old road. Light the three waystones so the ferry can find the shore.</p>
+      <div class="obj"><b id="qn">0 / 3</b><span class="pips" id="pips"><i></i><i></i><i></i></span><span>waystones lit</span></div>
+    </div>
+
+    <div class="map enter d3"><canvas id="map" width="300" height="300" aria-label="Minimap of the weald"></canvas><span>The sunken weald</span></div>
+
+    <div class="char enter d3"><div class="eyebrow">The wayfarer</div><b>Knight of the fallen sun</b><span>LEVEL 1 · IRON LONGSWORD</span></div>
+
+    <div class="hud enter d3">
+      <div class="orb" role="status" aria-label="Vitality 100 of 100"><div><b>100</b><small>VITALITY</small></div></div>
+      <div class="slots" role="toolbar" aria-label="Abilities">
+        <button class="slot" data-act="strike" aria-label="Strike (J)"><i><svg viewBox="0 0 24 24"><path d="M4 20 15 9m0 0 4-5 1 1-5 4M6 14l4 4M3 21l3-3"/></svg></i><span>Strike</span><kbd>J</kbd></button>
+        <button class="slot" data-act="guard" aria-label="Guard (K)"><i><svg viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6l-7-3Zm0 5v9"/></svg></i><span>Guard</span><kbd>K</kbd></button>
+        <button class="slot" data-act="dodge" aria-label="Dodge (Space)"><i><svg viewBox="0 0 24 24"><path d="M3 12h11m0 0-4-4m4 4-4 4M17 6v12M21 8v8"/></svg></i><span>Dodge</span><kbd>␣</kbd></button>
+        <button class="slot" data-act="night" aria-label="Nightfall (L)"><i><svg viewBox="0 0 24 24"><path d="M15 3a8 8 0 1 0 6 12 7 7 0 0 1-6-12ZM5 5l1 1M4 12H2"/></svg></i><span>Nightfall</span><kbd>L</kbd></button>
+        <button class="slot" data-act="rest" aria-label="Rest at the fire (R)"><i><svg viewBox="0 0 24 24"><path d="M12 3c2 3 4 5 4 9a4 4 0 0 1-8 0c0-2 1-3 1-3s1 2 2 2c0-3 0-5 1-8ZM5 21h14M7 21l2-3M17 21l-2-3"/></svg></i><span>Rest</span><kbd>R</kbd></button>
+        <div class="stam" aria-hidden="true" style="position:absolute;left:0;right:0;bottom:-8px"><i id="stam"></i></div>
+      </div>
+    </div>
+    <div class="keys enter d4"><kbd>CLICK</kbd> move &nbsp;·&nbsp; <kbd>J</kbd> strike &nbsp;·&nbsp; <kbd>K</kbd> guard &nbsp;·&nbsp; <kbd>SPACE</kbd> dodge &nbsp;·&nbsp; <kbd>L</kbd> nightfall &nbsp;·&nbsp; <kbd>R</kbd> rest</div>
+
+    <div class="cta enter d4"><a class="btn" href="#wishlist">Wishlist on Steam</a><button class="btn ghost" data-cine>Watch the trailer</button></div>
+    <div class="hint" id="hint">Click the ground to walk</div>
+    <div class="toast panel" id="toast"><div class="eyebrow">Quest complete</div><h3>The ferry can see the shore.</h3><p>The pilgrimage continues at launch. <a href="#wishlist">Wishlist to walk the rest.</a></p></div>
+    <div class="cineui"><div class="title"><b>HOLLOWMERE</b><span>Wishlist now · rendered live from this page</span></div><button class="exit" data-exit>Exit trailer</button></div>
+  </div>
+</section>
+
+<main>
+  <section id="weald">
+    <div class="wrap state">
+      <div class="rev">
+        <div class="eyebrow">The game</div>
+        <h2>A quiet action-RPG about carrying <em>light</em> through a drowned forest.</h2>
+        <p>You are the last knight of a sun nobody remembers. Walk the old road, light what the water put out, and keep the ferryman waiting a little longer.</p>
+      </div>
+      <div class="chips rev">
+        <div><b>0</b><span>textures in the world above</span></div>
+        <div><b>1</b><span>HTML file, three.js only</span></div>
+        <div><b>~40 KB</b><span>of world code — trees, rocks, ruins, the knight</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="shots" id="press">
+    <div class="wrap">
+      <div class="rev"><div class="eyebrow">Screenshots</div><h2>Shot on this page, <em>a second ago.</em></h2></div>
+      <div class="grid3">
+        <figure class="shot rev"><canvas id="shot0" width="640" height="400" aria-label="Screenshot: the campfire at dusk"></canvas><figcaption><b>The campfire</b><span>Dusk · low perspective camera · the same scene, re-lit</span></figcaption></figure>
+        <figure class="shot rev"><canvas id="shot1" width="640" height="400" aria-label="Screenshot: the drowned arch"></canvas><figcaption><b>The drowned arch</b><span>Day · the ruins are five boxes and half a torus</span></figcaption></figure>
+        <figure class="shot rev"><canvas id="shot2" width="640" height="400" aria-label="Screenshot: the weald at night"></canvas><figcaption><b>The weald by night</b><span>Night · every waystone lit · orthographic from above</span></figcaption></figure>
+      </div>
+      <div class="feat">
+        <div class="rev"><div class="eyebrow">Procedural</div><h3>Trees, rocks and ruins are code</h3><p>One instanced trunk, one instanced canopy blob, one jittered icosahedron for every rock. Seeded, so the weald is the same weald for everyone. <code>0 image requests</code></p></div>
+        <div class="rev"><div class="eyebrow">Playable hero</div><h3>The landing page is level one</h3><p>Click the ground and the wayfarer walks there. Reach a waystone and it lights. The HUD is the site's chrome — quest, minimap, vitality, hotbar — so the page feels like the game before you install it.</p></div>
+        <div class="rev"><div class="eyebrow">Trailer</div><h3>Shot from the same scene</h3><p>No second pipeline. The trailer swaps the orthographic camera for a perspective one, runs three shots, letterboxes, and lands on the title card. <code>?still</code> freezes it for screenshots.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="trailer" id="trailer">
+    <div class="wrap">
+      <div class="rev"><div class="eyebrow">Trailer</div><h2>Twelve seconds, <em>rendered live.</em></h2></div>
+      <div class="frame rev">
+        <div class="screen"><canvas id="shot3" width="960" height="540" aria-hidden="true"></canvas><button class="play" data-cine aria-label="Play the trailer"><span class="disc"></span></button></div>
+        <div class="meta"><span>HOLLOWMERE · TEASER · THREE SHOTS · LETTERBOXED</span><span>Rendered from the hero scene · <a href="#hero">back to the weald ↑</a></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="list" id="wishlist">
+    <div class="wrap row">
+      <div class="rev">
+        <div class="eyebrow">Wishlist</div>
+        <h2>Be on the shore when the ferry comes.</h2>
+        <p>Hollowmere launches on Steam, itch and the open web. Leave an address and we will send exactly two emails: the date, and the key.</p>
+        <ul><li>Playable in the browser, no install</li><li>Procedural weald — under 2 MB before music</li><li>Controller, keyboard and click-to-move</li></ul>
+      </div>
+      <form class="wl panel rev" id="wl">
+        <label for="em">Email</label><input id="em" type="email" required placeholder="ferryman@hollowmere.game"/>
+        <label for="pl">Platform</label><select id="pl"><option>Steam</option><option>itch.io</option><option>Browser</option></select>
+        <button class="btn" type="submit">Add me to the shore</button>
+        <small>Two emails, ever. Unsubscribe in one click.</small>
+      </form>
+    </div>
+  </section>
+  <footer><span>© 2026 Hollow Lantern Studio · a fictional game</span><nav aria-label="Footer"><a href="#press">Press kit</a> &nbsp;·&nbsp; <a href="#trailer">Trailer</a> &nbsp;·&nbsp; <a href="#wishlist">Wishlist</a></nav></footer>
+</main>
+<div class="ptoast" id="ptoast">You're on the shore ✓</div>
+
+<script type="module">
+const qs=new URLSearchParams(location.search);
+const REDUCED=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const STILL=qs.has("still")||REDUCED;
+const TOD_PIN=qs.has("tod")?Math.max(0,Math.min(.999,parseFloat(qs.get("tod"))||0)):null;
+if(STILL)document.body.classList.add("still","ready","settled");
+
+let THREE;
+try{THREE=await import("./vendor/three.module.js");}
+catch{THREE=await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js");}
+
+// ---------- seeded helpers
+let seed=7;const rand=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
+const rr=(a,b)=>a+rand()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const ss=(a,b,x)=>{x=clamp((x-a)/(b-a),0,1);return x*x*(3-2*x);};
+const lerp=(a,b,t)=>a+(b-a)*t;
+function vnoise(x,z){let v=0,a=1,f=.11;for(let o=0;o<3;o++){const xi=Math.floor(x*f),zi=Math.floor(z*f),xf=x*f-xi,zf=z*f-zi;
+ const h=(i,k)=>{const n=Math.sin(i*127.1+k*311.7)*43758.5453;return n-Math.floor(n);};
+ const sx=xf*xf*(3-2*xf),sz=zf*zf*(3-2*zf);
+ v+=a*((h(xi,zi)*(1-sx)+h(xi+1,zi)*sx)*(1-sz)+(h(xi,zi+1)*(1-sx)+h(xi+1,zi+1)*sx)*sz);a*=.5;f*=2.2;}return v/1.75;}
+const groundY=(x,z)=>(vnoise(x+30,z+30)-.5)*1.1*ss(3,11,Math.hypot(x,z));
+// the old road: a polyline the flagstones follow and the trees avoid
+const ROAD=[[-12,9],[-6,5],[-1,1.5],[3,-2],[7,-6],[12,-10]];
+function roadDist(x,z){let d=1e9;for(let i=0;i<ROAD.length-1;i++){const [ax,az]=ROAD[i],[bx,bz]=ROAD[i+1];const dx=bx-ax,dz=bz-az;
+ const t=clamp(((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz),0,1);d=Math.min(d,Math.hypot(x-(ax+dx*t),z-(az+dz*t)));}return d;}
+
+// ---------- renderer / cameras
+const hero=document.getElementById("hero"),canvas=document.getElementById("gl");
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+const scene=new THREE.Scene();
+const ISO=new THREE.Vector3(1,1.32,1).normalize().multiplyScalar(48);
+const cam=new THREE.OrthographicCamera(-1,1,1,-1,.1,160);
+const pcam=new THREE.PerspectiveCamera(38,1,.1,160);
+let W=1,H=1,POR=false;
+function resize(){W=hero.clientWidth;H=hero.clientHeight;POR=H>W*1.05;renderer.setSize(W,H,false);
+ const S=POR?9.5:7.4,a=W/H;cam.left=-S*a;cam.right=S*a;cam.top=S;cam.bottom=-S;cam.updateProjectionMatrix();pcam.aspect=a;pcam.updateProjectionMatrix();}
+resize();addEventListener("resize",resize);
+
+// ---------- light
+const hemi=new THREE.HemisphereLight(0xdfe9c8,0x2c3a22,1.1);scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xfff0d0,1.3);sun.position.set(-8,14,6);scene.add(sun);
+const fireLight=new THREE.PointLight(0xff9040,0,13,1.5);scene.add(fireLight);
+
+// ---------- ground with vertex colours (grass / moss / the road)
+{const g=new THREE.PlaneGeometry(44,44,88,88);g.rotateX(-Math.PI/2);
+ const p=g.attributes.position,col=new Float32Array(p.count*3),c=new THREE.Color();
+ const grass=new THREE.Color(0x5c7a38),moss=new THREE.Color(0x7d9448),dirt=new THREE.Color(0x8c7551),stone=new THREE.Color(0x9a927e);
+ for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i);p.setY(i,groundY(x,z));
+  const n=vnoise(x*1.7+90,z*1.7+40),rd=roadDist(x,z);
+  c.copy(grass).lerp(moss,ss(.35,.7,n));c.lerp(dirt,1-ss(1.1,2.1,rd));c.lerp(stone,(1-ss(.35,.9,rd))*.5);
+  c.multiplyScalar(.9+vnoise(x*9,z*9)*.2);col.set([c.r,c.g,c.b],i*3);}
+ g.setAttribute("color",new THREE.BufferAttribute(col,3));g.computeVertexNormals();
+ scene.add(new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,flatShading:true})));}
+
+// ---------- blob shadows (no shadow maps — a baked radial disc under every thing)
+function discTex(){const c=document.createElement("canvas");c.width=c.height=128;const x=c.getContext("2d");
+ const g=x.createRadialGradient(64,64,4,64,64,64);g.addColorStop(0,"rgba(0,0,0,.55)");g.addColorStop(.6,"rgba(0,0,0,.2)");g.addColorStop(1,"rgba(0,0,0,0)");
+ x.fillStyle=g;x.fillRect(0,0,128,128);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;}
+const shadowMat=new THREE.MeshBasicMaterial({map:discTex(),transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
+const shadowGeo=new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2);
+const shadows=[];const addShadow=(x,z,s)=>shadows.push([x,groundY(x,z)+.03,z,s]);
+function bakeShadows(){const m=new THREE.InstancedMesh(shadowGeo,shadowMat,shadows.length),o=new THREE.Object3D();
+ shadows.forEach(([x,y,z,s],i)=>{o.position.set(x,y,z);o.scale.set(s,1,s);o.updateMatrix();m.setMatrixAt(i,o.matrix);});m.renderOrder=1;scene.add(m);}
+
+// ---------- trees (instanced trunk + instanced canopy blobs), some bare
+const TREES=[],ROCKS=[],props={};
+{const trunkG=new THREE.CylinderGeometry(.11,.24,1.7,6),canG=new THREE.IcosahedronGeometry(1,1),brG=new THREE.CylinderGeometry(.05,.09,1.2,5);
+ const trunkM=new THREE.MeshStandardMaterial({color:0x5a4634,roughness:1,flatShading:true});
+ const canM=new THREE.MeshStandardMaterial({roughness:1,flatShading:true});
+ const list=[];let tries=0;
+ while(list.length<64&&tries++<900){const a=rand()*Math.PI*2,r=rr(8.5,19);const x=Math.cos(a)*r,z=Math.sin(a)*r;
+  if(roadDist(x,z)<2.2)continue;if(Math.hypot(x+6,z+6)<3.6)continue;if(list.some(t=>Math.hypot(t.x-x,t.z-z)<1.9))continue;
+  list.push({x,z,s:rr(.8,1.35),bare:rand()<.18,rot:rand()*6.28});}
+ const canopies=list.filter(t=>!t.bare),blobs=canopies.length*4;
+ const trunk=new THREE.InstancedMesh(trunkG,trunkM,list.length),can=new THREE.InstancedMesh(canG,canM,blobs),br=new THREE.InstancedMesh(brG,trunkM,list.filter(t=>t.bare).length*3);
+ const o=new THREE.Object3D(),c=new THREE.Color();let ci=0,bi=0;
+ list.forEach((t,i)=>{const y=groundY(t.x,t.z);o.position.set(t.x,y+.8*t.s,t.z);o.rotation.set(0,t.rot,0);o.scale.set(t.s,t.s*(t.bare?1.8:1),t.s);o.updateMatrix();trunk.setMatrixAt(i,o.matrix);
+  addShadow(t.x,t.z,t.bare?1.6:2.6*t.s);TREES.push(t);
+  if(t.bare){for(let k=0;k<3;k++){o.position.set(t.x,y+2.3+k*.3,t.z);o.rotation.set(rr(-.9,-.5),t.rot+k*2.1,0);o.scale.set(1,1,1);o.updateMatrix();br.setMatrixAt(bi++,o.matrix);}return;}
+  const hue=rr(.22,.3),lit=rr(.28,.4);
+  for(let k=0;k<4;k++){const ang=k*1.6+t.rot,rad=k?.55*t.s:0;o.position.set(t.x+Math.cos(ang)*rad,y+1.55*t.s+(k?rr(-.2,.3):.55),t.z+Math.sin(ang)*rad);
+   const s=t.s*(k?rr(.62,.85):.95);o.scale.set(s*1.15,s,s*1.15);o.rotation.set(rand(),rand(),rand());o.updateMatrix();can.setMatrixAt(ci,o.matrix);
+   c.setHSL(hue,.42,lit+(k?0:.04));can.setColorAt(ci++,c);}});
+ scene.add(trunk,can,br);
+ // ferns + grass tufts
+ const fernG=new THREE.ConeGeometry(.22,.55,5),fern=new THREE.InstancedMesh(fernG,new THREE.MeshStandardMaterial({roughness:1,flatShading:true}),520);
+ for(let i=0;i<520;i++){let x,z,n=0;do{const a=rand()*6.28,r=rr(2.5,20);x=Math.cos(a)*r;z=Math.sin(a)*r;}while(roadDist(x,z)<1.3&&n++<20);
+  o.position.set(x,groundY(x,z)+.2,z);o.rotation.set(rr(-.35,.35),rand()*6.28,rr(-.35,.35));const s=rr(.6,1.4);o.scale.set(s,s,s);o.updateMatrix();fern.setMatrixAt(i,o.matrix);
+  c.setHSL(rr(.24,.31),.5,rr(.22,.32));fern.setColorAt(i,c);}
+ const grassG=new THREE.ConeGeometry(.03,.22,3),grass=new THREE.InstancedMesh(grassG,new THREE.MeshStandardMaterial({roughness:1}),2600);
+ for(let i=0;i<2600;i++){const a=rand()*6.28,r=rr(1.2,21),x=Math.cos(a)*r,z=Math.sin(a)*r;if(roadDist(x,z)<.9){i--;continue;}
+  o.position.set(x,groundY(x,z)+.12,z);o.rotation.set(rr(-.5,.5),rand()*6.28,rr(-.5,.5));const s=rr(.7,1.5);o.scale.set(1,s,1);o.updateMatrix();grass.setMatrixAt(i,o.matrix);
+  c.setHSL(rr(.22,.3),.45,rr(.26,.37));grass.setColorAt(i,c);}
+ scene.add(fern,grass);
+ // rocks: one jittered icosahedron, non-uniform scale per instance
+ const rockG=new THREE.IcosahedronGeometry(1,0);{const p=rockG.attributes.position;for(let i=0;i<p.count;i++)p.setXYZ(i,p.getX(i)*rr(.8,1.15),p.getY(i)*rr(.7,1.1),p.getZ(i)*rr(.8,1.15));rockG.computeVertexNormals();}
+ const rock=new THREE.InstancedMesh(rockG,new THREE.MeshStandardMaterial({roughness:.95,flatShading:true}),34);
+ for(let i=0;i<34;i++){let x,z,n=0;do{const a=rand()*6.28,r=rr(4,17);x=Math.cos(a)*r;z=Math.sin(a)*r;}while((roadDist(x,z)<1.6||Math.hypot(x+6,z+6)<3.4)&&n++<30);
+  const s=rr(.25,.95);o.position.set(x,groundY(x,z)+s*.25,z);o.rotation.set(rand()*.6,rand()*6.28,rand()*.6);o.scale.set(s*rr(.9,1.5),s*rr(.6,.9),s*rr(.9,1.4));o.updateMatrix();rock.setMatrixAt(i,o.matrix);
+  c.setHSL(.1,rr(.06,.14),rr(.27,.4));rock.setColorAt(i,c);addShadow(x,z,s*2.4);ROCKS.push({x,z,s});}
+ scene.add(rock);
+ // flagstones along the road
+ const slabG=new THREE.BoxGeometry(1.1,.1,.8),slab=new THREE.InstancedMesh(slabG,new THREE.MeshStandardMaterial({roughness:1,flatShading:true}),48);let si=0;
+ for(let i=0;i<ROAD.length-1&&si<48;i++){const [ax,az]=ROAD[i],[bx,bz]=ROAD[i+1],L=Math.hypot(bx-ax,bz-az),n=Math.floor(L/1.25);
+  for(let k=0;k<n&&si<48;k++){const t=(k+.5)/n,x=lerp(ax,bx,t)+rr(-.25,.25),z=lerp(az,bz,t)+rr(-.25,.25);
+   o.position.set(x,groundY(x,z)+.02,z);o.rotation.set(0,Math.atan2(bx-ax,bz-az)+rr(-.2,.2),0);o.scale.set(rr(.8,1.1),1,rr(.8,1.1));o.updateMatrix();slab.setMatrixAt(si,o.matrix);
+   c.setHSL(.1,.12,rr(.34,.44));slab.setColorAt(si++,c);}}
+ scene.add(slab);}
+
+// ---------- ruins: pillars, an arch, an altar, a fallen column
+const stoneM=new THREE.MeshStandardMaterial({color:0x8d8a7c,roughness:.95,flatShading:true});
+const mossM=new THREE.MeshStandardMaterial({color:0x7c8560,roughness:1,flatShading:true});
+{const g=new THREE.Group();const RX=-6.2,RZ=-6.2;
+ const pillar=(x,z,h,tilt,m)=>{const p=new THREE.Mesh(new THREE.BoxGeometry(.6,h,.6),m);p.position.set(x,groundY(x,z)+h/2,z);p.rotation.set(tilt,rr(0,.2),tilt*.6);g.add(p);addShadow(x,z,1.5);};
+ pillar(RX-2.2,RZ+1.6,3.2,.04,stoneM);pillar(RX+2,RZ-2.4,2.6,-.06,mossM);pillar(RX-1.6,RZ-2.6,3.6,.02,stoneM);
+ pillar(RX-1.1,RZ+.2,2.9,0,stoneM);pillar(RX+1.1,RZ+.2,2.9,0,stoneM);
+ const arch=new THREE.Mesh(new THREE.TorusGeometry(1.1,.32,6,14,Math.PI),stoneM);arch.position.set(RX,groundY(RX,RZ)+2.9,RZ+.2);arch.rotation.y=Math.PI/2;g.add(arch);
+ const fallen=new THREE.Mesh(new THREE.CylinderGeometry(.32,.36,3.2,7),mossM);fallen.position.set(RX+2.4,groundY(RX+2.4,RZ+1.4)+.34,RZ+1.4);fallen.rotation.set(Math.PI/2,0,.5);g.add(fallen);addShadow(RX+2.4,RZ+1.4,3.4);
+ const altar=new THREE.Mesh(new THREE.BoxGeometry(2.2,.7,1.1),stoneM);altar.position.set(RX,groundY(RX,RZ-1.2)+.35,RZ-1.2);g.add(altar);addShadow(RX,RZ-1.2,3);
+ scene.add(g);props.arch=arch;}
+
+// ---------- the waystones (the mini-quest)
+const WAYS=[[6.5,-3.2],[-5.5,5.2],[3,7.6]].map(([x,z],i)=>{const y=groundY(x,z);const g=new THREE.Group();
+ const b=new THREE.Mesh(new THREE.BoxGeometry(.55,1.7,.55),stoneM);b.position.y=.85;g.add(b);
+ const cap=new THREE.Mesh(new THREE.ConeGeometry(.42,.5,4),stoneM);cap.position.y=1.95;cap.rotation.y=Math.PI/4;g.add(cap);
+ const lamp=new THREE.Mesh(new THREE.SphereGeometry(.2,10,8),new THREE.MeshBasicMaterial({color:0x2a2620}));lamp.position.y=2.4;g.add(lamp);
+ const light=new THREE.PointLight(0xffc870,0,7,1.6);light.position.y=2.4;g.add(light);
+ g.position.set(x,y,z);g.rotation.y=i*.8;scene.add(g);addShadow(x,z,1.5);
+ return {x,z,lamp,light,lit:0,g};});
+let litCount=0;
+function lightWaystone(w){if(w.lit)return;w.lit=1;litCount++;
+ document.getElementById("qn").textContent=`${litCount} / 3`;
+ document.querySelectorAll("#pips i")[litCount-1].classList.add("on");
+ if(litCount===3&&!STILL)setTimeout(()=>document.getElementById("toast").classList.add("on"),700);}
+
+// ---------- campfire: stones, logs, two crossed flame planes, embers, a flickering light
+const FIRE=new THREE.Vector3(.4,groundY(.4,1.6),1.6);
+{const g=new THREE.Group();g.position.copy(FIRE);
+ const ring=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(.22,0),stoneM,9),o=new THREE.Object3D();
+ for(let i=0;i<9;i++){const a=i/9*6.28;o.position.set(Math.cos(a)*.8,.1,Math.sin(a)*.8);o.rotation.set(rand(),rand(),rand());o.scale.setScalar(rr(.8,1.2));o.updateMatrix();ring.setMatrixAt(i,o.matrix);}g.add(ring);
+ const logM=new THREE.MeshStandardMaterial({color:0x3e2a1a,roughness:1});
+ for(let i=0;i<3;i++){const l=new THREE.Mesh(new THREE.CylinderGeometry(.09,.1,1,6),logM);l.rotation.set(Math.PI/2,0,i*2.1);l.position.y=.12+i*.05;g.add(l);}
+ const fc=document.createElement("canvas");fc.width=64;fc.height=128;const x=fc.getContext("2d");
+ const gr=x.createRadialGradient(32,96,2,32,80,60);gr.addColorStop(0,"rgba(255,240,180,1)");gr.addColorStop(.25,"rgba(255,150,50,.9)");gr.addColorStop(.6,"rgba(220,60,20,.35)");gr.addColorStop(1,"rgba(120,20,10,0)");
+ x.fillStyle=gr;x.fillRect(0,0,64,128);const ft=new THREE.CanvasTexture(fc);ft.colorSpace=THREE.SRGBColorSpace;
+ const fm=new THREE.MeshBasicMaterial({map:ft,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+ const flames=[0,Math.PI/2].map(r=>{const f=new THREE.Mesh(new THREE.PlaneGeometry(1,1.6),fm);f.position.y=.85;f.rotation.y=r;g.add(f);return f;});
+ const N=48,pos=new Float32Array(N*3),eg=new THREE.BufferGeometry();eg.setAttribute("position",new THREE.BufferAttribute(pos,3));
+ const ec=document.createElement("canvas");ec.width=ec.height=32;const ex=ec.getContext("2d");const eg2=ex.createRadialGradient(16,16,0,16,16,16);eg2.addColorStop(0,"rgba(255,220,160,1)");eg2.addColorStop(.4,"rgba(255,150,60,.6)");eg2.addColorStop(1,"rgba(255,100,30,0)");ex.fillStyle=eg2;ex.fillRect(0,0,32,32);
+ const embers=new THREE.Points(eg,new THREE.PointsMaterial({map:new THREE.CanvasTexture(ec),size:6,sizeAttenuation:false,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,color:0xffb060}));g.add(embers);
+ scene.add(g);fireLight.position.copy(FIRE).add(new THREE.Vector3(0,1.1,0));
+ props.fire={flames,pos,embers,N,seeds:Array.from({length:N},()=>[rand(),rand(),rand()])};}
+
+// ---------- the wayfarer: capsules, spheres and boxes, no rig
+const K={pos:new THREE.Vector3(1.4,0,3.4),target:null,face:-2.4,speed:2.3,walk:0,act:null,actT:0,dash:0};
+const knight=new THREE.Group();
+{const steel=new THREE.MeshStandardMaterial({color:0x9aa4ad,metalness:.3,roughness:.5,flatShading:true}),dark=new THREE.MeshStandardMaterial({color:0x2b3129,roughness:.9}),cloakM=new THREE.MeshStandardMaterial({color:0x4a5a3a,roughness:1,side:THREE.DoubleSide});
+ const cap=(r,l)=>new THREE.CapsuleGeometry(r,l,3,8);
+ const legs=[-1,1].map(s=>{const p=new THREE.Group();p.position.set(s*.13,.66,0);const m=new THREE.Mesh(cap(.09,.36),steel);m.position.y=-.3;p.add(m);const boot=new THREE.Mesh(new THREE.BoxGeometry(.18,.1,.26),dark);boot.position.set(0,-.6,.04);p.add(boot);knight.add(p);return p;});
+ const torso=new THREE.Mesh(cap(.24,.3),steel);torso.position.y=1.02;knight.add(torso);
+ const belt=new THREE.Mesh(new THREE.TorusGeometry(.26,.04,4,10),dark);belt.rotation.x=Math.PI/2;belt.position.y=.82;knight.add(belt);
+ [-1,1].forEach(s=>{const p=new THREE.Mesh(new THREE.SphereGeometry(.17,8,6),steel);p.position.set(s*.32,1.24,0);p.scale.set(1,.8,1);knight.add(p);});
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.19,10,8),steel);head.position.y=1.56;knight.add(head);
+ const visor=new THREE.Mesh(new THREE.BoxGeometry(.3,.05,.12),dark);visor.position.set(0,1.56,.15);knight.add(visor);
+ const crest=new THREE.Mesh(new THREE.BoxGeometry(.04,.22,.3),new THREE.MeshStandardMaterial({color:0xc9a961,metalness:.6,roughness:.4}));crest.position.set(0,1.78,-.02);knight.add(crest);
+ const armR=new THREE.Group();armR.position.set(.36,1.22,0);const ar=new THREE.Mesh(cap(.075,.34),steel);ar.position.y=-.26;armR.add(ar);
+ const sword=new THREE.Group();sword.position.y=-.5;const blade=new THREE.Mesh(new THREE.BoxGeometry(.055,1.05,.02),new THREE.MeshStandardMaterial({color:0xd8dce0,metalness:.4,roughness:.3}));blade.position.y=-.45;sword.add(blade);
+ const guard=new THREE.Mesh(new THREE.BoxGeometry(.26,.04,.06),new THREE.MeshStandardMaterial({color:0xc9a961,metalness:.6,roughness:.4}));sword.add(guard);armR.add(sword);knight.add(armR);
+ const armL=new THREE.Group();armL.position.set(-.36,1.22,0);const al=new THREE.Mesh(cap(.075,.34),steel);al.position.y=-.26;armL.add(al);
+ const shield=new THREE.Mesh(new THREE.SphereGeometry(.34,10,8),new THREE.MeshStandardMaterial({color:0x5f7062,metalness:.2,roughness:.55,flatShading:true}));shield.scale.set(.85,1.15,.28);shield.position.set(-.08,-.3,.16);armL.add(shield);
+ const boss=new THREE.Mesh(new THREE.TorusGeometry(.12,.025,4,12),new THREE.MeshStandardMaterial({color:0xc9a961,metalness:.6,roughness:.4}));boss.position.set(-.08,-.3,.26);armL.add(boss);knight.add(armL);
+ const cloak=new THREE.Group();cloak.position.set(0,1.36,-.16);const cl=new THREE.Mesh(new THREE.PlaneGeometry(.62,.9),cloakM);cl.position.y=-.45;cloak.add(cl);knight.add(cloak);
+ const sh=new THREE.Mesh(shadowGeo,shadowMat);sh.scale.setScalar(1.5);sh.position.y=.03;knight.add(sh);
+ knight.scale.setScalar(1.05);scene.add(knight);Object.assign(props,{legs,armR,armL,cloak});}
+const ringMk=new THREE.Mesh(new THREE.RingGeometry(.34,.44,32).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xffe9b0,transparent:true,opacity:0,depthWrite:false}));scene.add(ringMk);
+
+bakeShadows();
+
+// ---------- time of day
+let tod=TOD_PIN??(STILL?.47:.22),day=1,lastTod=tod,fireBase=1;
+const C=(h)=>new THREE.Color(h);
+const PAL={sunD:C(0xfff0d0),sunS:C(0xffb070),sunN:C(0x8fa4d8),hemD:C(0xdfe9c8),hemN:C(0x3a4a66),gndD:C(0x2c3a22),gndN:C(0x0d1410)};
+const tmp=new THREE.Color(),tmp2=new THREE.Color();
+function applyTod(){const d=ss(.02,.14,tod)*(1-ss(.5,.66,tod)),dusk=Math.exp(-(((tod-.56)/.09)**2)),n=1-d;
+ tmp.copy(PAL.sunN).lerp(PAL.sunD,d).lerp(PAL.sunS,dusk*.8);sun.color.copy(tmp);sun.intensity=lerp(.55,1.35,d);
+ const a=tod*6.28;sun.position.set(Math.cos(a)*-10,lerp(3,14,Math.abs(Math.sin(a))),Math.sin(a)*8+4);
+ hemi.color.copy(tmp2.copy(PAL.hemN).lerp(PAL.hemD,d));hemi.groundColor.copy(tmp2.copy(PAL.gndN).lerp(PAL.gndD,d));hemi.intensity=lerp(.75,1.15,d);
+ renderer.toneMappingExposure=lerp(.88,1.05,d);
+ fireBase=lerp(4.5,.7,d);WAYS.forEach(w=>{w.light.intensity=w.lit?lerp(2.4,.6,d):0;w.lamp.material.color.setHex(w.lit?0xffd27a:0x2a2620);});
+ hero.style.background=n>.5?"#0f1611":"#243019";
+ const hh=(6+tod*24)%24,h=Math.floor(hh),m=Math.floor((hh-h)*60/10)*10;
+ document.getElementById("clock").innerHTML=`<span class="dd">DAY <i>${day}</i> · </span><i>${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}</i> · ${dusk>.4?"DUSK":d>.5?"DAYLIGHT":"NIGHT"}`;}
+
+// ---------- input: click to walk, keys, hotbar
+const ray=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),0),hit=new THREE.Vector3(),ndc=new THREE.Vector2();
+let lastInput=-99,hasPointer=false;
+function walkTo(x,z){const r=Math.hypot(x,z),R=POR?3.8:9.5;if(r>R){x*=R/r;z*=R/r;}K.target=new THREE.Vector3(x,0,z);ringMk.position.set(x,groundY(x,z)+.04,z);ringMk.material.opacity=1;document.getElementById("hint").classList.add("off");}
+canvas.addEventListener("pointerdown",e=>{if(document.body.classList.contains("cine"))return;
+ ndc.set(e.offsetX/W*2-1,-(e.offsetY/H*2-1));ray.setFromCamera(ndc,cam);if(ray.ray.intersectPlane(plane,hit)){walkTo(hit.x,hit.z);lastInput=T;}});
+function act(name){if(name==="night"){tod=tod<.5||tod>.9?.6:.2;applyTod();}
+ else if(name==="rest"){walkTo(FIRE.x+1.1,FIRE.z+1.2);}
+ else if(name==="dodge"){if(K.dash>0)return;K.dash=.32;K.stamAt=T;}
+ else{K.act=name;K.actT=T;}
+ lastInput=T;const b=document.querySelector(`.slot[data-act="${name}"]`);if(b){b.classList.add("hit");setTimeout(()=>b.classList.remove("hit"),220);}}
+document.querySelectorAll(".slot").forEach(b=>b.addEventListener("click",()=>act(b.dataset.act)));
+addEventListener("keydown",e=>{if(e.target.matches("input,select,textarea"))return;const k=e.key.toLowerCase();
+ const m={j:"strike",k:"guard"," ":"dodge",l:"night",r:"rest"}[k];if(m){e.preventDefault();act(m);}if(k==="escape")endCine();});
+if(!STILL&&matchMedia("(pointer:fine)").matches)addEventListener("pointermove",()=>{hasPointer=true;},{once:true});
+let px=0,py=0;addEventListener("pointermove",e=>{if(!hasPointer)return;px=e.clientX/innerWidth*2-1;py=e.clientY/innerHeight*2-1;});
+
+// ---------- cinematic (the trailer is the same scene, a different camera)
+let cine=null;
+function startCine(){if(cine||STILL)return;cine={t0:T};document.body.classList.add("cine");document.body.classList.remove("card");K.act=null;walkTo(FIRE.x+1.1,FIRE.z+1.2);
+ hero.scrollIntoView({behavior:REDUCED?"auto":"smooth",block:"start"});lastInput=T;}
+function endCine(){if(!cine)return;cine=null;document.body.classList.remove("cine","card");}
+document.querySelectorAll("[data-cine]").forEach(b=>b.addEventListener("click",startCine));
+document.querySelector("[data-exit]").addEventListener("click",endCine);
+const lookAt=new THREE.Vector3(),cp=new THREE.Vector3();
+function cineCam(t){// three shots, 4s each
+ const s=Math.floor(t/4),u=(t%4)/4,e=u*u*(3-2*u);
+ if(s===0){const a=lerp(-.9,.6,e);cp.set(K.pos.x+Math.cos(a)*4.4,K.pos.y+1.5-e*.4,K.pos.z+Math.sin(a)*4.4);lookAt.set(K.pos.x,K.pos.y+1.1,K.pos.z);}
+ else if(s===1){cp.set(lerp(-2.2,-4,e),lerp(2.1,1.5,e),lerp(-.2,-2.8,e));lookAt.copy(props.arch.position).setY(props.arch.position.y-.6);}
+ else{cp.set(lerp(3,10,e),lerp(2.6,12,e),lerp(6,10,e));lookAt.set(0,.4,0);if(u>.3)document.body.classList.add("card");}
+ pcam.position.copy(cp);pcam.lookAt(lookAt);return t>12.6;}
+
+// ---------- minimap (2D canvas from the same object lists)
+const mapC=document.getElementById("map"),mx=mapC.getContext("2d");
+function drawMap(){const s=300/44,cx=150,cy=150;mx.clearRect(0,0,300,300);mx.save();mx.beginPath();mx.arc(cx,cy,148,0,6.28);mx.clip();
+ mx.fillStyle="#1a2414";mx.fillRect(0,0,300,300);mx.strokeStyle="rgba(201,169,97,.35)";mx.lineWidth=6;mx.beginPath();ROAD.forEach(([x,z],i)=>i?mx.lineTo(cx+x*s,cy+z*s):mx.moveTo(cx+x*s,cy+z*s));mx.stroke();
+ mx.fillStyle="#3f5a2e";TREES.forEach(t=>{mx.beginPath();mx.arc(cx+t.x*s,cy+t.z*s,4*t.s,0,6.28);mx.fill();});
+ mx.fillStyle="#6b6a60";ROCKS.forEach(r=>{mx.beginPath();mx.arc(cx+r.x*s,cy+r.z*s,2.2*r.s+1,0,6.28);mx.fill();});
+ mx.fillStyle="#b9b3a0";mx.fillRect(cx-6.2*s-8,cy-6.2*s-8,16,16);
+ WAYS.forEach(w=>{mx.fillStyle=w.lit?"#ffd27a":"#6d5f3c";mx.beginPath();mx.moveTo(cx+w.x*s,cy+w.z*s-6);mx.lineTo(cx+w.x*s+5,cy+w.z*s+4);mx.lineTo(cx+w.x*s-5,cy+w.z*s+4);mx.fill();});
+ mx.fillStyle="#e0762e";mx.beginPath();mx.arc(cx+FIRE.x*s,cy+FIRE.z*s,4,0,6.28);mx.fill();
+ mx.save();mx.translate(cx+K.pos.x*s,cy+K.pos.z*s);mx.rotate(-K.face);mx.fillStyle="#fff";mx.beginPath();mx.moveTo(0,-8);mx.lineTo(6,6);mx.lineTo(-6,6);mx.fill();mx.restore();
+ mx.restore();mx.strokeStyle="rgba(201,169,97,.5)";mx.lineWidth=2;mx.beginPath();mx.arc(cx,cy,110,0,6.28);mx.stroke();}
+
+// ---------- frame
+const clock=new THREE.Clock();let T=STILL?3.7:0,frames=0,visible=true,mapTick=0;
+new IntersectionObserver(es=>{visible=es[0].isIntersecting;},{threshold:.02}).observe(hero);
+const heroTop=()=>hero.getBoundingClientRect().bottom>0;
+function frame(){if(!visible&&!heroTop()){return;}
+ const dt=STILL?0:Math.min(.05,clock.getDelta());if(!STILL)T=clock.elapsedTime;
+ if(!STILL&&TOD_PIN===null){tod=(tod+dt/64)%1;if(tod<lastTod)day++;lastTod=tod;}
+ if(frames%6===0)applyTod();
+ // autopilot: nobody clicked for a while → the wayfarer walks the waystones himself
+ if(!STILL&&!K.target&&T-lastInput>5&&T-(K.idleAt||0)>2.2){const w=WAYS.find(w=>!w.lit);if(w)walkTo(w.x+.9,w.z+.6);else{const a=rand()*6.28;walkTo(Math.cos(a)*4.5,Math.sin(a)*4.5);}}
+ // walk
+ if(K.target){const dx=K.target.x-K.pos.x,dz=K.target.z-K.pos.z,d=Math.hypot(dx,dz);
+  if(d<.12){K.target=null;K.idleAt=T;K.walk=Math.max(0,K.walk-dt*6);}else{const v=Math.min(d,K.speed*dt);K.pos.x+=dx/d*v;K.pos.z+=dz/d*v;
+   const want=Math.atan2(dx,dz);let df=want-K.face;df=Math.atan2(Math.sin(df),Math.cos(df));K.face+=df*Math.min(1,dt*9);K.walk=Math.min(1,K.walk+dt*5);}}
+ else K.walk=Math.max(0,K.walk-dt*6);
+ if(K.dash>0){K.dash-=dt;K.pos.x+=Math.sin(K.face)*dt*9;K.pos.z+=Math.cos(K.face)*dt*9;}
+ const r=Math.hypot(K.pos.x,K.pos.z),R=POR?4.2:10;if(r>R){K.pos.x*=R/r;K.pos.z*=R/r;}
+ K.pos.y=groundY(K.pos.x,K.pos.z);
+ knight.position.copy(K.pos);knight.rotation.y=K.face;
+ const ph=T*9.5,sw=Math.sin(ph)*.7*K.walk;
+ props.legs[0].rotation.x=sw;props.legs[1].rotation.x=-sw;
+ knight.position.y+=Math.abs(Math.sin(ph))*.05*K.walk;
+ let ar=-sw*.6+.15,al=sw*.6-.2;
+ if(K.act){const u=(T-K.actT)/(K.act==="strike"?.5:.9);if(u>=1)K.act=null;
+  else if(K.act==="strike")ar=-2.3*Math.sin(u*Math.PI);else{al=-1.5*Math.sin(Math.min(1,u*2)*Math.PI/2)*(u<.7?1:1-(u-.7)/.3);}}
+ props.armR.rotation.x=ar;props.armL.rotation.x=al;props.armL.rotation.y=K.act==="guard"?.6:0;
+ props.cloak.rotation.x=.18+K.walk*.35+Math.sin(T*2.2)*.04;
+ WAYS.forEach(w=>{if(!w.lit&&Math.hypot(w.x-K.pos.x,w.z-K.pos.z)<(POR?3.6:1.5))lightWaystone(w);w.lamp.scale.setScalar(w.lit?1+Math.sin(T*3)*.06:1);});
+ ringMk.material.opacity=K.target?.6+Math.sin(T*8)*.3:Math.max(0,ringMk.material.opacity-dt*2);ringMk.scale.setScalar(K.target?1+Math.sin(T*8)*.08:1);
+ // fire
+ const f=props.fire;f.flames.forEach((m,i)=>{m.scale.set(1+Math.sin(T*13+i)*.12,1+Math.sin(T*9.3+i*2)*.18,1);m.position.y=.85+Math.sin(T*11+i)*.05;});
+ fireLight.intensity=fireBase*(1+Math.sin(T*17)*.12+Math.sin(T*7.1)*.08);
+ for(let i=0;i<f.N;i++){const [a,b,c]=f.seeds[i],u=(T*(.35+a*.3)+b)%1;f.pos[i*3]=Math.sin(u*6+c*9)*.25*u+(c-.5)*.3;f.pos[i*3+1]=.7+u*2.4;f.pos[i*3+2]=Math.cos(u*5+a*7)*.25*u;}
+ f.embers.geometry.attributes.position.needsUpdate=true;f.embers.material.opacity=lerp(.5,1,1-ss(.3,.5,tod));
+ // stamina
+ const st=document.getElementById("stam");st.style.transform=`scaleX(${K.stamAt?Math.min(1,.55+(T-K.stamAt)*.25):1})`;
+ // camera
+ let active=cam;
+ if(cine){if(cineCam(T-cine.t0))endCine();else active=pcam;}
+ if(active===cam){const fx=K.pos.x*.35+(hasPointer?px*.9:0),fz=K.pos.z*.35+(hasPointer?py*.9:0);cam.position.set(fx+ISO.x,ISO.y,fz+ISO.z);cam.lookAt(fx,0,fz);}
+ renderer.render(scene,active);
+ if(mapTick++%8===0)drawMap();
+ if(!frames){shoot();document.body.classList.add("ready");setTimeout(()=>document.body.classList.add("settled"),1800);}
+ frames++;}
+renderer.setAnimationLoop(frame);
+
+// ---------- screenshots + trailer poster: the same renderer, other cameras, other hours
+function shoot(){const saveTod=tod,saveLit=WAYS.map(w=>w.lit),saveK=K.pos.clone(),saveF=K.face;
+ const shots=[["shot0",.56,()=>{pcam.position.set(FIRE.x+3.6,FIRE.y+1.4,FIRE.z+2.4);pcam.lookAt(FIRE.x,FIRE.y+.9,FIRE.z);}],
+  ["shot1",.25,()=>{pcam.position.set(-1.6,2.4,-1.2);pcam.lookAt(-6.2,1.9,-6.2);}],
+  ["shot2",.8,()=>{pcam.position.set(14,16,14);pcam.lookAt(0,0,0);},1],
+  ["shot3",.56,()=>{pcam.position.set(7,6.5,9);pcam.lookAt(0,.8,0);}]];
+ K.pos.set(FIRE.x+1.1,0,FIRE.z+1.2);K.pos.y=groundY(K.pos.x,K.pos.z);K.face=Math.atan2(FIRE.x-K.pos.x,FIRE.z-K.pos.z);knight.position.copy(K.pos);knight.rotation.y=K.face;
+ shots.forEach(([id,t,place,all])=>{const c=document.getElementById(id),w=c.width,h=c.height;
+  tod=t;if(all)WAYS.forEach(w=>{w.lit=1;});applyTod();
+  renderer.setSize(w,h,false);pcam.aspect=w/h;pcam.updateProjectionMatrix();place();renderer.render(scene,pcam);
+  const x=c.getContext("2d");x.fillStyle="#0b0e0a";x.fillRect(0,0,w,h);x.drawImage(renderer.domElement,0,0,w,h);
+  if(all)WAYS.forEach((w,i)=>{w.lit=saveLit[i];});});
+ tod=saveTod;K.pos.copy(saveK);K.face=saveF;applyTod();resize();}
+
+// ---------- page plumbing
+if(!STILL){const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add("in");io.unobserve(x.target);}}),{rootMargin:"0px 0px -8% 0px"});
+ document.querySelectorAll(".rev").forEach(el=>io.observe(el));}
+else document.querySelectorAll(".rev").forEach(el=>el.classList.add("in"));
+document.getElementById("wl").addEventListener("submit",e=>{e.preventDefault();const t=document.getElementById("ptoast");t.classList.add("on");setTimeout(()=>t.classList.remove("on"),2400);e.target.reset();});
+document.getElementById("toast").addEventListener("click",()=>document.getElementById("toast").classList.remove("on"));
+if(STILL){lightWaystone(WAYS[0]);document.getElementById("hint").classList.add("off");}
+if(!matchMedia("(pointer:fine)").matches)document.getElementById("hint").textContent="Tap the ground to walk";
+</script>
+</body>
+</html>
