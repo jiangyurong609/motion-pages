@@ -23,7 +23,7 @@ task before building:
 - `examples/halde-trail.html` — cursor-trail image reveal: prints surface under the pointer (pure DOM);
 - `examples/kiln-horizontal.html` — horizontal scroll-snap story: wheel drives a sideways rail (pure DOM).
 - `examples/alder-build.html` — scroll-scrubbed process reveal: the hero builds what the business sells as you scroll, then hands off to the page (pure DOM + canvas).
-- `examples/hollowmere-world.html` — live game-world hero: a walkable procedural isometric world with the game's HUD as chrome, a trailer shot from the same scene (three.js, zero assets).
+- `examples/hollowmere-world.html` — live game-world hero: a walkable procedural forest (canvas-painted textures, leaf-card canopies, wind, shadow maps, IBL) with the game's HUD as chrome and a trailer shot from the same scene (three.js, zero image assets).
 
 ## Architecture (non-negotiables)
 
@@ -234,50 +234,80 @@ What actually makes the reference sites glow:
 - **Live game-world hero** (`hollowmere-world.html`, the "landing page IS level one"
   pattern — an indie isometric ARPG whose site opens on a walkable procedural world with
   the game's HUD as chrome; the reference had procedural trees/rocks/monuments/characters
-  and a whole game under 2 MB before art and music) — Three.js, one scene, zero assets:
-  - **Orthographic isometric camera**: `normalize(1,1.32,1)×48` looking at a focus that
-    lerps 35 % toward the player (+ a little pointer parallax); half-height ~7.4 units,
-    9.5 on portrait. No shadow maps — an InstancedMesh of baked radial-gradient discs
-    under every tree, rock, pillar and the character reads as shadow at 1/50 the cost.
-  - **Everything repeated is instanced, everything is a primitive**: ground = displaced
-    plane with VERTEX COLOURS (grass↔moss by noise, dirt/stone along a road polyline via
-    distance-to-segment); trees = instanced tapered trunk + four instanced icosahedron
-    canopy blobs (per-instance HSL, 1.15× squash), some bare with branch cylinders;
-    ferns = tilted 5-cones; grass = 2,600 tiny 3-cones; rocks = ONE jittered icosahedron
-    with non-uniform per-instance scale; ruins = tilted boxes + a half-torus arch + a
-    fallen cylinder; campfire = dodecahedron ring + log cylinders + two crossed additive
-    flame planes (canvas gradient) + embers as `Points` whose positions are a function of
-    `t` (`sizeAttenuation:false` or they vanish under the ortho camera).
-  - **The character is ~15 primitives on pivots**: leg pivots at the hips, arm pivots at
-    the shoulders carrying sword/shield, a cloak plane hinged at the neck; walk cycle =
-    `sin(t×9.5)` on the pivots scaled by a walk blend that ramps in/out, plus a bob.
-    ⚠️ Metalness ≈ .75 with no environment map renders BLACK — use metalness .3,
-    roughness .5 and a light steel colour.
+  and a whole game under 2 MB before art and music) — Three.js, one scene, zero image
+  assets, and the one archetype that EARNS shadow maps:
+  - **Every texture is painted on a canvas at load** (~1 s of JS, cached by the GPU):
+    periodic value noise (`pn(x,y,P)` with a lattice modulo so tiles wrap) → fbm; ground
+    albedo 768² with grass↔moss by noise, leaf litter/dry-blade speckles, the road baked
+    in via distance-to-polyline with a noise-wobbled edge, mud around the pond; a tiled
+    bump map; bark (streaky low-frequency + dark seams) + bump; stone (noise + moss tint +
+    stroked cracks) + bump; a water NORMAL map from finite differences of noise; leaf
+    clusters (46 gradient ellipses with a midrib), grass blades (14 tapered quadratic
+    curves), a fern frond (stem + 20 leaflet pairs), flowers — all alpha-tested cards.
+  - **Foliage is cards, not blobs**: a canopy = 22–34 instanced leaf-card planes in a
+    flattened ball (`cbrt(rand)` radius so the shell is denser), random Euler rotation,
+    per-instance HSL that darkens toward the underside; `alphaTest:.5`, `DoubleSide`,
+    `castShadow` with a `customDepthMaterial` (`MeshDepthMaterial` + the same map +
+    alphaTest) or the shadow is a solid square. Grass = 5,600 instanced blade cards
+    (2,600 on portrait), ferns = 3 crossed cards, flowers = 2. **Wind** = one
+    `onBeforeCompile` that reads the instance origin, adds `sin(uTime + ip.x·.6 + ip.z·.8)`
+    displacement scaled by `uv.y²` so roots stay planted; amplitude .16 grass, .07 fern,
+    .05 leaves. Freeze `uTime` in still mode.
+  - **Shadow maps, but only one**: a single directional light, `PCFSoft`, 2048 (1024 on
+    lite), ortho frustum ±19 units that FOLLOWS the focus (`sun.position = SUNDIR +
+    target`), `bias −.0007`, `normalBias .04`. Rocks/ruins/trunks/knight cast; grass only
+    receives. Hemisphere + a painted-sky PMREM environment (`PMREMGenerator.fromScene` on
+    a vertex-coloured gradient sphere + a bright sun ball; `scene.environmentIntensity`
+    .55 by day, .18 by night) — the IBL is what makes steel (metalness .88) read as steel
+    instead of black.
+  - **Fog must start beyond the focus distance**: camera at 44 units, fog 50→84. With
+    fog at 34 the whole clearing sat a third of the way into the haze and every frame
+    looked washed; only the far rim should fade.
+  - Camera = PerspectiveCamera fov 30 (44 on portrait) at `normalize(1,1.28,1)×44`,
+    focus lerping 35 % toward the player plus pointer parallax. Leave the quadrant in
+    front of the camera treeless (`x+z > 13 → skip`) or the canopies occlude the hero.
+    Rocks = three noise-displaced icosahedra (detail 3) instanced with non-uniform
+    scale, low-value colours (HSL L .38–.62 — pale rocks read as paper). A pond = a
+    terrain depression + a `CircleGeometry` with the water normal map scrolling
+    (`offset = t·.012`), roughness .1, envMapIntensity 1.3. Pollen = 320 additive soft
+    points drifting as a function of `t`, faded by daylight. Light shafts = a DOM
+    `repeating-linear-gradient` at 112°, `mix-blend-mode:screen`, radial-masked to the
+    sun corner, drifting on a linear loop, opacity tied to daylight.
+  - **The character is ~25 primitives on pivots**: leg pivots (mail capsule + steel
+    greave + boot), a mail skirt cone, capsule torso + a breastplate sphere, pauldrons,
+    a helmet sphere with a visor bar and gold crest, arm pivots carrying a tapered
+    cylinder blade (scaled flat) with a gold crossguard and a squashed-sphere shield
+    with a torus boss, a cloak plane hinged at the neck. Walk cycle = `sin(t×9.5)` on
+    the pivots scaled by a walk blend, plus a bob; the cloak leans with speed.
   - **Play, not just look**: click/tap → raycast onto the y=0 plane → clamp to the
-    clearing → the character turns (shortest-angle lerp) and walks; a pulsing ring marks
-    the target. Three "waystones" light when reached and drive a quest counter in the
-    HUD; 3/3 toasts a wishlist link. Hotbar + keys map to real verbs (strike swing,
-    guard pose, dodge dash with a stamina dent, nightfall, rest). **Autopilot**: after
-    5 s without input the character walks the quest himself — the hero is never still,
-    the quest completes for a passive viewer, and `tech/canvas-alive` passes.
-  - **Time of day** as one scalar `tod`: sun/hemisphere colours, exposure and fire/lamp
-    intensities lerp from a daylight weight + a dusk gaussian; night must still read
-    (sun ≥ .55, hemi ≥ .75, exposure ≥ .88). Set each light's base from `tod` then
-    flicker it multiplicatively from `t` — never `light.intensity *= …` across frames.
+    clearing (and out of the pond) → the character turns (shortest-angle lerp) and
+    walks; a pulsing ring marks the target. Three "waystones" light when reached
+    (emissive lamp + PointLight) and drive a quest counter in the HUD; 3/3 toasts a
+    wishlist link. Hotbar + keys map to real verbs (strike swing, guard pose, dodge dash
+    with a stamina dent, nightfall, rest). **Autopilot**: after 5 s without input the
+    character walks the quest himself — the hero is never still and the quest completes
+    for a passive viewer.
+  - **Time of day** as one scalar `tod`: sun/hemisphere/fog colours, environment
+    intensity, exposure and fire/lamp intensities lerp from a daylight weight + a dusk
+    gaussian; night must still read (sun ≥ .9, hemi ≥ .75, exposure ≥ .95). Set each
+    light's base from `tod`, then flicker multiplicatively from `t` — never
+    `intensity *= …` across frames. The trailer pins `tod` to .5 for its 12 s.
   - **The trailer is the same scene**: swap to a PerspectiveCamera for three 4 s shots
     (low orbit at the fire → dolly to the arch → crane up to a serif title card),
-    letterbox bars, HUD fades, Esc/Exit returns. Screenshots for the press section are
-    rendered ONCE by the same renderer from other cameras at other hours into 2D
-    canvases (`renderer.setSize(w,h,false)` → render → `ctx.drawImage(renderer.domElement)`
-    → restore). No second pipeline, no images.
-  - HUD = DOM: glass panels with a gold hairline, an inset second hairline and four
-    corner dots; a circular minimap drawn on a 2D canvas from the same object lists;
-    a vitality orb; inline-SVG hotbar icons with keycaps. Text over the world needs an
-    opaque backing (chip/pill) or the contrast audit samples the grass; invisible
-    overlays (toast, cinematic title) need `visibility:hidden`, not just opacity 0.
+    letterbox bars, HUD fades, Esc/Exit returns. Press screenshots are rendered ONCE by
+    the same renderer from other cameras at other hours into 2D canvases
+    (`renderer.setSize(w,h,false)` → render → `ctx.drawImage(renderer.domElement)` →
+    restore). No second pipeline, no images.
+  - HUD = DOM: glass panels (rgba .8 over a bright world — .62 fails contrast) with a
+    gold hairline, an inset second hairline and four corner dots; a circular minimap
+    drawn on a 2D canvas from the same object lists; a vitality orb; inline-SVG hotbar
+    icons with keycaps. Text over the world needs an opaque backing (chip/pill) or the
+    contrast audit samples the grass; invisible overlays (toast, cinematic title) need
+    `visibility:hidden`, not just opacity 0.
   - `?still` = t frozen, tod .47, first waystone lit, character at the fire, no
-    autopilot; `?tod=` pins the hour for screenshots; portrait shrinks the walk radius
-    so the character never leaves the frame.
+    autopilot; `?tod=` pins the hour; `?lite` halves textures/shadow map/grass;
+    portrait shrinks the walk radius so the character never leaves the frame. 60 fps
+    on an Apple-silicon integrated GPU at DPR 2.
 
 ## Motion beyond Three.js (same architecture, no 3D library)
 

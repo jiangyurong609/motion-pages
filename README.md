@@ -70,7 +70,7 @@ mount in a production webapp on day 1.
 |---|---|---|
 | ![HALDE cursor trail](assets/halde-still.png) | ![KILN horizontal story](assets/kiln-still.png) | ![TEMPO easing grammar](assets/tempo-still.png) |
 
-| Scroll-to-build process reveal (pure DOM + canvas) | Live game-world hero (three.js, zero assets) |
+| Scroll-to-build process reveal (pure DOM + canvas) | Live game-world hero (three.js, zero image assets) |
 |---|---|
 | ![ALDER scroll-to-build reveal](assets/alder-still.png) | ![HOLLOWMERE live game world](assets/hollowmere-still.png) |
 
@@ -247,13 +247,16 @@ skill answers with 3 genuinely distinct variants and waits for your pick.
   page — stats, three projects rendered by the same scene, process, quote form. Try
   `?p=0.69` for the roof mid-drop.
 - [`motion-pages/examples/hollowmere-world.html`](motion-pages/examples/hollowmere-world.html)
-  — **live game-world hero** (three.js, zero assets): an indie isometric RPG's landing
-  page that is level one — a procedural weald (instanced trees, rocks, ferns, a road of
-  flagstones, ruins, a campfire) and a knight built from primitives that walks where you
-  click, lights three waystones for the HUD's quest, swings on J, dodges on Space; a
-  day/night cycle; the trailer is the same scene through a perspective camera in three
-  letterboxed shots, and the press screenshots are rendered by the same renderer. Try
-  `?tod=0.8` for night.
+  — **live game-world hero** (three.js, zero image assets): an indie isometric RPG's
+  landing page that is level one — a procedural weald where every texture is painted on
+  a canvas at load (ground, bark, stone, leaves, grass, water normals), canopies are
+  clouds of alpha-tested leaf cards that sway in a vertex shader, one soft shadow map,
+  a painted-sky environment so the armour reads as steel, a pond, pollen, light shafts —
+  and a knight built from primitives that walks where you click, lights three waystones
+  for the HUD's quest, swings on J, dodges on Space; a day/night cycle; the trailer is
+  the same scene through a perspective camera in three letterboxed shots, and the press
+  screenshots are rendered by the same renderer. Try `?tod=0.8` for night, `?lite` on a
+  weak GPU.
 - [`motion-pages/examples/volera-morph.html`](motion-pages/examples/volera-morph.html)
   — **particle shape morph** (the standalone archetype): 6k seeded glow particles
   dissolve between a soaring crane (parametric wing sweeps), a quantized V-formation

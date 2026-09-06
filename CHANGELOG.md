@@ -3,16 +3,20 @@
 ## Unreleased
 
 - **New archetype — HOLLOWMERE, live game-world hero** (`hollowmere-world.html`,
-  three.js, audit-clean, zero textures/models/images): an indie isometric RPG's landing
-  page whose hero is the game — a procedural weald (vertex-coloured terrain with a road,
-  instanced trees/ferns/grass/rocks/flagstones, ruins, a campfire with additive flames
-  and ember points, blob shadows instead of shadow maps) and a knight assembled from
+  three.js, audit-clean, zero image assets): an indie isometric RPG's landing page whose
+  hero is the game — a procedural weald at real-game fidelity: every texture painted on
+  a canvas at load (ground with the road baked in, bark, stone, leaf clusters, grass
+  blades, ferns, flowers, water normals), canopies as clouds of alpha-tested leaf cards,
+  5,600 grass blades swaying in a vertex shader, one PCF-soft shadow map that follows
+  the focus, a painted-sky PMREM environment (steel reads as steel), a pond, pollen,
+  DOM light shafts, fog past the focus distance — and a knight assembled from ~25
   primitives on pivots who walks where you click, lights three waystones for the HUD
   quest, and plays the hotbar verbs (strike, guard, dodge, nightfall, rest); autopilot
   when idle; a time-of-day scalar; the trailer is the same scene through a perspective
   camera in three letterboxed shots; press screenshots are rendered once by the same
-  renderer. `?tod=` pins the hour, `?still` freezes. Recipe in SKILL.md, build-spec
-  prompt, showcase card, bench entry (eleven re-themable archetypes).
+  renderer. `?tod=` pins the hour, `?still` freezes, `?lite` halves the budget. Recipe
+  in SKILL.md (the one archetype that earns shadow maps), build-spec prompt, showcase
+  card, bench entry (eleven re-themable archetypes).
 - **New archetype — ALDER, scroll-scrubbed process reveal** (`alder-build.html`, pure
   DOM + one 2D canvas, audit-clean): a 500vh track with a sticky stage; scroll progress
   raises a timber cabin through survey → piers → deck → frame → shell → lights-on at
