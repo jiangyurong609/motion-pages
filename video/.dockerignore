@@ -1,6 +1,0 @@
-node_modules
-out
-build
-.env
-*.sh
-deploy-site.mjs
