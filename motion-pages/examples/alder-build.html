@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ALDER — scroll to raise your cabin</title>
+<meta name="description" content="Scroll-scrubbed process reveal: a pinned hero raises a timber cabin stage by stage as you scroll — site, foundation, frame, shell, lights on — then hands off to the business page. Pure DOM + canvas, no libraries, no image assets."/>
+<style>
+:root{
+  --e:cubic-bezier(.22,1,.36,1);--in:cubic-bezier(.16,1,.3,1);--io:cubic-bezier(.65,0,.35,1);
+  --serif:"Fraunces","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --ink:#17201c;--bone:#f3efe6;--moss:#24483a;--ember:#e39a4a;--line:rgba(23,32,28,.14);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:auto}
+body{background:var(--bone);color:var(--ink);font:400 16px/1.5 var(--serif);overflow-x:hidden}
+/* ---------- pinned hero: a 500vh track, a sticky stage, a canvas scene scrubbed by scroll ---------- */
+#track{height:500vh;position:relative}
+#stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;background:#2e5a80;color:var(--bone)}
+#scene{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* scrims: white type over a sky needs its own darkness, top and bottom */
+#stage::before,#stage::after{content:"";position:absolute;left:0;right:0;pointer-events:none;z-index:1}
+#stage::before{top:0;height:46%;background:linear-gradient(180deg,rgba(9,18,20,.72),rgba(9,18,20,.38) 45%,rgba(9,18,20,0))}
+#stage::after{bottom:0;height:42%;background:linear-gradient(0deg,rgba(9,18,20,.82),rgba(9,18,20,.42) 55%,rgba(9,18,20,0))}
+#ui{position:absolute;inset:0;z-index:2}
+header{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:22px 40px}
+.brand{font:600 18px/1 var(--serif);letter-spacing:.3em;color:var(--bone);text-decoration:none;padding:8px 0;transition:letter-spacing .5s var(--e)}
+.brand:hover,.brand:focus-visible{letter-spacing:.38em;outline:none}
+.brand i{color:var(--ember);font-style:normal}
+nav{display:flex;align-items:center;gap:26px}
+nav a{color:rgba(243,239,230,.86);text-decoration:none;font:500 11.5px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;padding:10px 0;position:relative;transition:color .4s var(--e)}
+nav a::after{content:"";position:absolute;left:0;right:0;bottom:4px;height:1px;background:var(--bone);transform:scaleX(0);transform-origin:0 50%;transition:transform .5s var(--e)}
+nav a:hover,nav a:focus-visible{color:#fff;outline:none}
+nav a:hover::after,nav a:focus-visible::after{transform:scaleX(1)}
+nav a.pill{background:var(--bone);color:var(--ink);padding:12px 18px;border-radius:999px;font-weight:600;transition:transform .45s var(--e),background .45s var(--e)}
+nav a.pill::after{display:none}
+nav a.pill:hover,nav a.pill:focus-visible{transform:translateY(-2px);background:#fff}
+.hero{position:absolute;left:40px;top:22%;max-width:min(46vw,620px)}
+.eyebrow{font:500 11px/1 var(--mono);letter-spacing:.3em;text-transform:uppercase;opacity:.8}
+.hero .eyebrow{margin-bottom:22px}
+h1{font:300 clamp(46px,6.2vw,104px)/.98 var(--serif);letter-spacing:-.035em;text-wrap:balance;text-shadow:0 6px 40px rgba(9,18,20,.35)}
+h1 em{font-style:italic;color:#ffd7a6}
+/* stage captions: five stacked, one lit */
+.caps{position:absolute;left:40px;right:40px;bottom:64px;height:96px}
+.cap{position:absolute;left:0;bottom:0;max-width:44ch;opacity:0;transform:translateY(14px);transition:opacity .6s var(--e),transform .6s var(--e);pointer-events:none}
+.cap.on{opacity:1;transform:none;transition-delay:.12s}
+.cap .eyebrow{color:#ffd7a6;margin-bottom:10px}
+.cap p{font-size:clamp(18px,1.6vw,26px);line-height:1.3;letter-spacing:-.01em;text-shadow:0 2px 20px rgba(9,18,20,.5)}
+.foot{position:absolute;left:40px;right:40px;bottom:64px;display:flex;justify-content:flex-end;align-items:flex-end;gap:18px;font:500 11px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase}
+.hint{padding:11px 16px;border-radius:999px;background:rgba(9,18,20,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:opacity .6s var(--e),transform .6s var(--e)}
+.hint.off{opacity:0;transform:translateY(8px)}
+.idx{font-variant-numeric:tabular-nums;padding:11px 0;opacity:.85}
+#bar{position:absolute;left:40px;right:40px;bottom:36px;height:2px;background:rgba(243,239,230,.18)}
+#bar i{position:absolute;inset:0;background:var(--bone);transform-origin:0 50%;transform:scaleX(var(--p,0))}
+#bar s{position:absolute;top:-4px;width:1px;height:10px;background:rgba(243,239,230,.5)}
+/* ---------- the business page the hero hands off to ---------- */
+main{position:relative;z-index:3;background:var(--bone)}
+section{padding:14vh 6vw}
+.state h2,.cta h2{font:300 clamp(36px,4.6vw,72px)/1.02 var(--serif);letter-spacing:-.03em;text-wrap:balance}
+.state h2 em,.cta h2 em{font-style:italic;color:var(--moss)}
+.state .eyebrow{margin-bottom:26px;color:var(--moss)}
+.state p.lead{margin-top:28px;max-width:52ch;font-size:clamp(17px,1.3vw,21px);line-height:1.5;color:rgba(23,32,28,.78)}
+.stats{background:var(--ink);color:var(--bone);display:grid;grid-template-columns:repeat(4,1fr);gap:32px;padding:9vh 6vw}
+.stats b{display:block;font:300 clamp(48px,5vw,80px)/1 var(--serif);letter-spacing:-.04em}
+.stats b i{font-style:normal;font-size:.42em;color:var(--ember);margin-left:.15em}
+.stats span{display:block;margin-top:12px;font:500 11px/1.5 var(--mono);letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:40px}
+.homes .eyebrow,.process .eyebrow{color:var(--moss)}
+.homes h2,.process h2{margin-top:18px;font:300 clamp(30px,3.4vw,52px)/1.05 var(--serif);letter-spacing:-.03em}
+figure{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#e7e1d4;transition:transform .6s var(--e),box-shadow .6s var(--e)}
+figure:hover{transform:translateY(-6px);box-shadow:0 30px 60px rgba(23,32,28,.16)}
+figure canvas{display:block;width:100%;aspect-ratio:4/3;height:auto}
+figcaption{display:flex;justify-content:space-between;gap:12px;padding:14px 16px;font:500 11px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;background:var(--bone)}
+figcaption span{opacity:.6}
+.step{padding:28px 0 0;border-top:1px solid var(--ink)}
+.step b{display:block;font:300 44px/1 var(--serif);letter-spacing:-.04em;color:var(--moss)}
+.step h3{margin-top:20px;font:500 22px/1.2 var(--serif);letter-spacing:-.02em}
+.step p{margin-top:12px;color:rgba(23,32,28,.75);font-size:16px;max-width:34ch}
+.quote{text-align:center}
+.quote blockquote{max-width:24ch;margin:0 auto;font:300 italic clamp(28px,3.6vw,56px)/1.15 var(--serif);letter-spacing:-.025em;text-wrap:balance}
+.quote cite{display:block;margin-top:28px;font:500 11px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;font-style:normal;color:var(--moss)}
+.cta{background:var(--moss);color:var(--bone);display:grid;grid-template-columns:1.1fr 1fr;gap:6vw;align-items:center}
+.cta .eyebrow{color:#ffd7a6;margin-bottom:22px}
+.cta h2 em{color:#ffd7a6}
+.cta p{margin-top:22px;max-width:44ch;font-size:17px;line-height:1.5;color:rgba(243,239,230,.82)}
+.cta ul{margin-top:26px;list-style:none;display:grid;gap:10px;font:500 12px/1.5 var(--mono);letter-spacing:.1em}
+.cta li::before{content:"✓";color:#ffd7a6;margin-right:12px}
+form{display:grid;grid-template-columns:1fr 1fr;gap:14px;background:rgba(9,18,20,.28);border:1px solid rgba(243,239,230,.16);border-radius:8px;padding:26px}
+label{display:grid;gap:8px;font:500 10.5px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:rgba(243,239,230,.8)}
+label.w{grid-column:1/-1}
+input,select,textarea{width:100%;font:400 15px/1.4 var(--serif);color:var(--bone);background:rgba(243,239,230,.06);border:1px solid rgba(243,239,230,.24);border-radius:4px;padding:12px 14px;transition:border-color .4s var(--e),background .4s var(--e)}
+input::placeholder,textarea::placeholder{color:rgba(243,239,230,.45)}
+select{color:var(--bone)}select option{color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#ffd7a6;background:rgba(243,239,230,.1)}
+textarea{min-height:96px;resize:vertical}
+button{grid-column:1/-1;margin-top:6px;padding:16px 22px;border:0;border-radius:999px;background:var(--ember);color:var(--ink);font:600 13px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:transform .45s var(--e),background .45s var(--e)}
+button:hover,button:focus-visible{transform:translateY(-2px);background:#f0ad60;outline:none}
+footer{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:34px 6vw;border-top:1px solid var(--line);font:500 11px/1.6 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:rgba(23,32,28,.7)}
+footer a{color:var(--ink);text-decoration:none;margin-left:22px;position:relative}
+footer a::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:1px;background:var(--ink);transform:scaleX(0);transform-origin:0 50%;transition:transform .5s var(--e)}
+footer a:hover::after{transform:scaleX(1)}
+/* entrances: soft landing, once */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .8s var(--e),transform .8s var(--e)}
+.rv.in{opacity:1;transform:none}
+@media (max-width:760px){
+  header{padding:18px 20px}nav a:not(.pill){display:none}
+  .hero{left:20px;right:20px;top:15%;max-width:none}
+  h1{font-size:clamp(44px,13vw,64px)}
+  .caps,.foot,#bar{left:20px;right:20px}
+  .caps{bottom:88px;height:auto}.cap{max-width:none}.cap p{font-size:19px}
+  .foot{bottom:50px}.foot .hint{display:none}
+  #bar{bottom:30px}
+  section{padding:11vh 6vw}
+  .stats{grid-template-columns:1fr 1fr;gap:26px}
+  .grid{grid-template-columns:1fr;gap:18px}
+  .cta{grid-template-columns:1fr;gap:34px}
+  form{grid-template-columns:1fr;padding:18px}label{grid-column:1/-1}
+  footer{flex-direction:column;align-items:flex-start}footer a{margin:0 22px 0 0}
+}
+@media (prefers-reduced-motion:reduce){
+  .rv{opacity:1;transform:none;transition:none}.cap{transition:none}
+}
+</style>
+</head>
+<body>
+<div id="track"><div id="stage">
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div id="ui">
+    <header>
+      <a class="brand" href="#top">ALDER<i>.</i></a>
+      <nav aria-label="Primary">
+        <a href="#process">Process</a><a href="#homes">Homes</a><a href="#quote">Journal</a>
+        <a class="pill" href="#quote">Get a quote</a>
+      </nav>
+    </header>
+    <div class="hero">
+      <p class="eyebrow">Alder Cabin Co. — timber homes, raised by hand</p>
+      <h1>Scroll to raise <em>your</em> cabin.</h1>
+    </div>
+    <div class="caps" aria-live="polite">
+      <div class="cap on"><p class="eyebrow">01 — The site</p><p>Every cabin starts as a clearing and four stakes.</p></div>
+      <div class="cap"><p class="eyebrow">02 — Foundation</p><p>Piers set below the frost line, anchored to rock.</p></div>
+      <div class="cap"><p class="eyebrow">03 — The frame</p><p>Douglas fir, hand-cut joinery. Raised in a day.</p></div>
+      <div class="cap"><p class="eyebrow">04 — The shell</p><p>Cedar shingle, standing-seam roof, triple glazing.</p></div>
+      <div class="cap"><p class="eyebrow">05 — Move in</p><p>Lights on, kettle on. The rest is yours.</p></div>
+    </div>
+    <div class="foot"><span class="hint">Scroll — we build as you go</span><span class="idx"><b id="idx">01</b> / 05</span></div>
+    <div id="bar"><i></i><s style="left:20%"></s><s style="left:40%"></s><s style="left:60%"></s><s style="left:80%"></s></div>
+  </div>
+</div></div>
+
+<main id="top">
+  <section class="state">
+    <p class="eyebrow rv">Alder Cabin Co. — timber homes since 2012</p>
+    <h2 class="rv">Small houses, built to outlast <em>the trees around them.</em></h2>
+    <p class="lead rv">We design, cut and raise timber-frame cabins on land you already love. One crew from the first stake to the last coat of oil, so nothing gets lost between trades.</p>
+  </section>
+  <section class="stats">
+    <div class="rv"><b>14</b><span>years raising cabins</span></div>
+    <div class="rv"><b>210</b><span>homes handed over</span></div>
+    <div class="rv"><b>40<i>yr</i></b><span>frame warranty</span></div>
+    <div class="rv"><b>4.9</b><span>across 180+ reviews</span></div>
+  </section>
+  <section class="homes" id="homes">
+    <p class="eyebrow rv">Recent raisings</p>
+    <h2 class="rv">Three cabins, three seasons.</h2>
+    <div class="grid">
+      <figure class="rv"><canvas class="mini" data-p=".77" aria-label="Larch House, a timber cabin in a summer meadow"></canvas><figcaption><b>Larch House</b><span>Ashcombe · 64 m²</span></figcaption></figure>
+      <figure class="rv"><canvas class="mini" data-p="1" aria-label="Ridge Lantern, a cabin with lit windows at dusk"></canvas><figcaption><b>Ridge Lantern</b><span>Blackwater · 48 m²</span></figcaption></figure>
+      <figure class="rv"><canvas class="mini" data-p=".77" data-winter aria-label="Winter Sitting, a cabin in snow"></canvas><figcaption><b>Winter Sitting</b><span>Fell End · 72 m²</span></figcaption></figure>
+    </div>
+  </section>
+  <section class="process" id="process">
+    <p class="eyebrow rv">How a build goes</p>
+    <h2 class="rv">Fourteen weeks, one crew, no hand-offs.</h2>
+    <div class="grid">
+      <div class="step rv"><b>01</b><h3>Site walk</h3><p>We spend a morning on your land: sun, drainage, access, and the view you'll want from the kitchen sink.</p></div>
+      <div class="step rv"><b>02</b><h3>Design &amp; permits</h3><p>A fixed-price drawing set in three weeks. We handle the paperwork and the planning calls.</p></div>
+      <div class="step rv"><b>03</b><h3>Raise &amp; finish</h3><p>The frame goes up in a day. Shell, services and finish carpentry take ten to fourteen weeks.</p></div>
+    </div>
+  </section>
+  <section class="quote">
+    <blockquote class="rv">"They said fourteen weeks and handed us the key in thirteen. The frame went up while we ate lunch on the tailgate."</blockquote>
+    <cite class="rv">Ruth &amp; Ade — Larch House</cite>
+  </section>
+  <section class="cta" id="quote">
+    <div>
+      <p class="eyebrow rv">Free site walk</p>
+      <h2 class="rv">Let's site <em>your</em> cabin.</h2>
+      <p class="rv">Tell us about your land. We'll walk it with you, sketch a first plan, and quote a fixed price — no pressure, no deposit.</p>
+      <ul class="rv"><li>On-site walk &amp; soil check</li><li>Fixed-price build, no surprises</li><li>Financing partners available</li></ul>
+    </div>
+    <form class="rv" action="#quote" onsubmit="return false">
+      <label>Name<input type="text" name="name" placeholder="Your name" autocomplete="name"/></label>
+      <label>Email<input type="email" name="email" placeholder="you@example.com" autocomplete="email"/></label>
+      <label class="w">Land<select name="land"><option>I own land</option><option>Looking for land</option><option>Not sure yet</option></select></label>
+      <label class="w">Tell us about the site<textarea name="site" placeholder="Slope, trees, road access, what you'd like to see from the porch…"></textarea></label>
+      <button type="submit">Request a site walk</button>
+    </form>
+  </section>
+  <footer><span>ALDER. — © 2026 Alder Cabin Co. · Ashcombe</span><span><a href="#process">Process</a><a href="#homes">Homes</a><a href="#quote">Quote</a></span></footer>
+</main>
+
+<script>
+(()=>{
+const q=new URLSearchParams(location.search),RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const PIN=q.has('still')?.69:q.has('p')?Math.min(1,Math.max(0,+q.get('p')||0)):null;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const track=$('#track'),stage=$('#stage'),cv=$('#scene'),cx=cv.getContext('2d'),bar=$('#bar'),idxEl=$('#idx'),hint=$('.hint'),caps=$$('.cap');
+if(PIN!==null){track.style.height='100vh';document.body.style.overflow='hidden'}
+const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v,seg=(p,a,b)=>clamp((p-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3),eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const mix=(a,b,t)=>{const A=hex(a),B=hex(b);return`rgb(${A.map((v,i)=>Math.round(v+(B[i]-v)*t)).join(',')})`};
+const rnd=s=>()=>(s=(s*16807)%2147483647,(s-1)/2147483646);
+// cabin geometry (world units): W along x, D along y, deck top Z0, eave H, ridge R (steep enough that the back slope hides)
+const CW=6,CD=4.2,Z0=.72,H=Z0+2.4,R=H+2.6;
+
+// ---------- the scene: one function, driven by progress p ∈ [0,1] and time t ----------
+function drawScene(c,w,h,p,t,o={}){
+  const por=h>w*1.1,k=o.k||Math.min(w*.09,h*.062),ox=w*(o.k?.5:por?.5:.58),oy=h*(o.k?.66:por?.56:.6),WN=!!o.winter;
+  const P=(x,y,z)=>[ox+(x-y)*.866*k,oy+(x+y)*.5*k-z*k];
+  const poly=(pts,fill,al)=>{c.beginPath();pts.forEach((q,i)=>{const s=P(...q);i?c.lineTo(...s):c.moveTo(...s)});c.closePath();c.globalAlpha=al==null?1:al;c.fillStyle=fill;c.fill();c.globalAlpha=1};
+  const line=(a,b,col,lw,f=1)=>{if(f<=0)return;const A=P(...a),B=P(...b);c.beginPath();c.moveTo(...A);c.lineTo(A[0]+(B[0]-A[0])*f,A[1]+(B[1]-A[1])*f);c.strokeStyle=col;c.lineWidth=lw;c.lineCap='round';c.stroke()};
+  const box=(x,y,z,bw,bd,bh,ct,cl,cr,al)=>{if(bh<=0)return;poly([[x,y+bd,z],[x+bw,y+bd,z],[x+bw,y+bd,z+bh],[x,y+bd,z+bh]],cl,al);poly([[x+bw,y,z],[x+bw,y+bd,z],[x+bw,y+bd,z+bh],[x+bw,y,z+bh]],cr,al);poly([[x,y,z+bh],[x+bw,y,z+bh],[x+bw,y+bd,z+bh],[x,y+bd,z+bh]],ct,al)};
+  const disc=(x,y,r,col,al,halo)=>{if(halo){const g=c.createRadialGradient(x,y,r*.6,x,y,halo);g.addColorStop(0,col);g.addColorStop(1,'rgba(255,255,255,0)');c.globalAlpha=al*.5;c.fillStyle=g;c.fillRect(x-halo,y-halo,halo*2,halo*2)}c.globalAlpha=al;c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,7);c.fill();c.globalAlpha=1};
+  // timeline (what each stretch of scroll builds)
+  const stake=eo(seg(p,.02,.09)),str=seg(p,.06,.16),soil=seg(p,.14,.22),pier=i=>eo(seg(p,.18+i*.012,.25+i*.012)),deck=eo(seg(p,.28,.36)),
+    post=seg(p,.36,.44),plate=seg(p,.42,.5),raft=seg(p,.48,.56),wall=eo(seg(p,.56,.64)),gab=seg(p,.62,.68),roof=eo(seg(p,.66,.74)),open=seg(p,.72,.78),
+    d=eio(seg(p,.78,.92)),glow=eo(seg(p,.84,.97));
+  const hy=oy-5.2*k;
+  // sky
+  let g=c.createLinearGradient(0,0,0,hy+k);
+  g.addColorStop(0,mix(WN?'#8ea3b6':'#2e5a80','#101733',d));g.addColorStop(.6,mix(WN?'#c9d3da':'#7fa9c7','#4d3d6c',d));g.addColorStop(1,mix(WN?'#e9e9e6':'#e3d6bf','#f0a56a',d));
+  c.fillStyle=g;c.fillRect(0,0,w,hy+k);
+  if(d>0){const r=rnd(7);c.fillStyle='#fff4dc';for(let i=0;i<70;i++){const sx=r()*w,sy=r()*hy*.8,s=.7+r()*1.4;c.globalAlpha=d*(.55+.45*Math.sin(t*1.6+i));c.fillRect(sx,sy,s,s)}c.globalAlpha=1}
+  disc(w*(o.k?.3:por?.74:.7),hy-1.2*k+d*1.9*k,.5*k,mix('#fff3cc','#ff9c5a',d),1-d*.25,3.4*k);   // sun, sinks at dusk
+  if(d>0)disc(w*(o.k?.72:.9),hy-2.6*k,.3*k,'#f7f2e8',d,2*k);                                        // moon
+  // clouds drift (the page is never still)
+  const cr=rnd(3);c.fillStyle=mix(WN?'#f7f7f5':'#f2efe6','#c98a7a',d);
+  for(let i=0;i<4;i++){const bx=((cr()*w+t*(8+i*3))%(w+3*k))-1.5*k,by=hy-(1.6+cr()*1.8)*k,s=(.7+cr()*.7)*k;c.globalAlpha=.55-.35*d;
+    for(let j=0;j<4;j++){c.beginPath();c.ellipse(bx+(j-1.5)*s*.55,by+Math.abs(j-1.5)*s*.16,s*.5,s*.24,0,0,7);c.fill()}}
+  c.globalAlpha=1;
+  // ridges + pines
+  const ridge=(base,amp,ph,col,pines)=>{c.beginPath();c.moveTo(0,h);for(let x=0;x<=w;x+=8){c.lineTo(x,base+amp*(Math.sin(x/w*7+ph)+.5*Math.sin(x/w*19+ph*2)))}c.lineTo(w,h);c.closePath();c.fillStyle=col;c.fill();
+    if(pines){const r=rnd(11+ph|0);for(let i=0;i<pines;i++){const x=r()*w,y=base+amp*(Math.sin(x/w*7+ph)+.5*Math.sin(x/w*19+ph*2)),hh=(.7+r()*.9)*k,ww=hh*.42;
+      for(let j=0;j<3;j++){const ty=y-hh*(.32*(2-j)+.36*j*.2),sc=1-j*.22;c.beginPath();c.moveTo(x,ty-hh*.55*sc);c.lineTo(x-ww*sc,ty);c.lineTo(x+ww*sc,ty);c.closePath();c.fill()}}}};
+  ridge(hy,.4*k,.6,mix(WN?'#c3ced4':'#8fb0c3','#262e4c',d),0);
+  ridge(hy+.55*k,.45*k,2.1,mix(WN?'#a9b5b6':'#557a56','#1b2a26',d),14);
+  // ground + mown lot + build shadow
+  c.fillStyle=mix(WN?'#e7eaea':'#6f9550','#20342a',d);c.fillRect(0,hy+1.2*k,w,h);
+  g=c.createLinearGradient(0,hy+1.2*k,0,h);g.addColorStop(0,'rgba(255,240,200,0)');g.addColorStop(1,`rgba(255,235,190,${.14*(1-d)})`);c.fillStyle=g;c.fillRect(0,hy+1.2*k,w,h);
+  poly([[-1.6,-1.6,0],[CW+1.6,-1.6,0],[CW+1.6,CD+1.6,0],[-1.6,CD+1.6,0]],mix(WN?'#f1f2f0':'#86ad5e','#26402f',d));
+  const build=Math.max(deck,wall);if(build>0){const [sx,sy]=P(CW/2+.9,CD/2+.9,0);g=c.createRadialGradient(sx,sy,0,sx,sy,4.4*k);g.addColorStop(0,`rgba(10,20,15,${.32*build})`);g.addColorStop(1,'rgba(10,20,15,0)');c.fillStyle=g;c.save();c.translate(sx,sy);c.scale(1,.5);c.translate(-sx,-sy);c.beginPath();c.arc(sx,sy,4.4*k,0,7);c.fill();c.restore()}
+  // 01 — stakes and a string line
+  const corners=[[-.3,-.3],[CW+.3,-.3],[CW+.3,CD+.3],[-.3,CD+.3]];
+  if(stake>0&&deck<1){c.globalAlpha=1-deck;corners.forEach(([x,y])=>{line([x,y,0],[x,y,.6*stake],'#efe3cc',.07*k);const [fx,fy]=P(x,y,.6*stake);c.fillStyle='#ff7a3d';c.fillRect(fx,fy-.05*k,.16*k,.1*k)});c.globalAlpha=1}
+  if(str>0&&deck<1){const pts=corners.map(([x,y])=>P(x,y,.45));let L=0;for(let i=0;i<4;i++){const a=pts[i],b=pts[(i+1)%4];L+=Math.hypot(b[0]-a[0],b[1]-a[1])}
+    c.beginPath();pts.forEach((s,i)=>i?c.lineTo(...s):c.moveTo(...s));c.closePath();c.setLineDash([L*str,L]);c.strokeStyle=`rgba(255,140,80,${.95*(1-deck)})`;c.lineWidth=1.5;c.stroke();c.setLineDash([])}
+  if(soil>0)poly([[0,0,0],[CW,0,0],[CW,CD,0],[0,CD,0]],mix('#6b4a2f','#2a1f18',d),soil);
+  // 02 — piers, then the deck drops on
+  [[.3,.3],[3,.3],[5.7,.3],[.3,3.9],[3,3.9],[5.7,3.9]].map((s,i)=>[s,i]).sort((a,b)=>a[0][0]+a[0][1]-b[0][0]-b[0][1])
+    .forEach(([[x,y],i])=>box(x-.25,y-.25,0,.5,.5,.5*pier(i),mix('#c9c3b8','#4a4842',d),mix('#a49e93','#33312d',d),mix('#8b857b','#26251f',d)));
+  if(deck>0){const dz=(1-deck)*1.4;box(-.3,-.3,.5+dz,CW+.6,CD+.6,.22,mix('#c79a5e','#4a3a2c',d),mix('#a97d48','#382b22',d),mix('#8e6538','#2b211a',d),deck);
+    for(let y=.2;y<CD+.3;y+=.4)line([-.3,y,.72+dz],[CW+.3,y,.72+dz],`rgba(60,35,15,${.25*deck})`,1)}
+  // 03 — posts grow, plates run, rafters meet the ridge
+  const wood=mix('#d1a163','#5a4632',d),lw=.13*k;
+  [[0,0],[3,0],[6,0],[0,CD],[3,CD],[6,CD]].forEach(([x,y],i)=>line([x,y,Z0],[x,y,H],wood,lw,seg(post,i*.08,.6+i*.08)));
+  line([0,0,H],[CW,0,H],wood,lw,plate);line([0,CD,H],[CW,CD,H],wood,lw,plate);line([0,0,H],[0,CD,H],wood,lw,plate);line([CW,0,H],[CW,CD,H],wood,lw,plate);
+  [0,1.5,3,4.5,6].forEach((x,i)=>{const f=seg(raft,i*.1,.55+i*.1);line([x,CD,H],[x,CD/2,R],wood,lw*.8,f);line([x,0,H],[x,CD/2,R],wood,lw*.8,f)});
+  line([0,CD/2,R],[CW,CD/2,R],wood,lw,seg(raft,.5,1));
+  // 04 — walls rise, gable fills, roof lands, openings cut, chimney climbs
+  const lit=mix(WN?'#c99a68':'#d8a76a','#4a3d36',d),sha=mix(WN?'#a67a4c':'#b9834b','#332a26',d),hh=Z0+(H-Z0)*wall;
+  if(wall>0){poly([[0,CD,Z0],[CW,CD,Z0],[CW,CD,hh],[0,CD,hh]],lit);poly([[CW,0,Z0],[CW,CD,Z0],[CW,CD,hh],[CW,0,hh]],sha);
+    for(let z=Z0+.22;z<hh;z+=.24){line([0,CD,z],[CW,CD,z],'rgba(40,20,5,.14)',.8);line([CW,0,z],[CW,CD,z],'rgba(40,20,5,.14)',.8)}}
+  if(gab>0){poly([[CW,0,H],[CW,CD,H],[CW,CD/2,R]],sha,gab);for(let z=H+.22;z<R;z+=.24){const yy=(z-H)/(R-H)*CD/2;line([CW,yy,z],[CW,CD-yy,z],`rgba(40,20,5,${.14*gab})`,.8)}}
+  if(open>0){const ch=1.5*open;box(4.5,1.4,R-.9,.6,.6,ch,mix('#7a746c','#3a3733',d),mix('#66605a','#2a2826',d),mix('#524d48','#1f1e1b',d),open)}
+  if(roof>0){const dz=(1-roof)*1.6,E=H-.56;poly([[-.45,CD/2,R+dz],[CW+.45,CD/2,R+dz],[CW+.45,CD+.45,E+dz],[-.45,CD+.45,E+dz]],mix(WN?'#e6eaec':'#3a434b','#171b22',d),roof);
+    for(let x=-.45;x<=CW+.45;x+=.55)line([x,CD/2,R+dz],[x,CD+.45,E+dz],`rgba(${WN?'120,130,140':'255,255,255'},${.12*roof})`,1);
+    line([-.45,CD/2,R+dz],[CW+.45,CD/2,R+dz],mix('#2a3036','#0f1216',d),.09*k,roof);
+    line([-.45,CD+.45,E+dz],[CW+.45,CD+.45,E+dz],mix('#eadcc4','#5a4e42',d),.05*k,roof);line([CW+.45,CD/2,R+dz],[CW+.45,CD+.45,E+dz],mix('#eadcc4','#5a4e42',d),.05*k,roof)}
+  if(open>0){const glass=mix('#7fa9c7','#f6c77a',glow),fr=mix('#f0e6d2','#6a5a48',d);
+    const win=(pts,cen)=>{poly(pts,glass,open);c.globalAlpha=open;c.beginPath();pts.forEach((q,i)=>{const s=P(...q);i?c.lineTo(...s):c.moveTo(...s)});c.closePath();c.strokeStyle=fr;c.lineWidth=1.4;c.stroke();c.globalAlpha=1;return P(...cen)};
+    const wins=[win([[2.6,CD,Z0+.8],[3.7,CD,Z0+.8],[3.7,CD,Z0+1.9],[2.6,CD,Z0+1.9]],[3.15,CD,Z0+1.35]),
+      win([[4.4,CD,Z0+.8],[5.4,CD,Z0+.8],[5.4,CD,Z0+1.9],[4.4,CD,Z0+1.9]],[4.9,CD,Z0+1.35]),
+      win([[CW,1.2,Z0+.8],[CW,2.6,Z0+.8],[CW,2.6,Z0+1.9],[CW,1.2,Z0+1.9]],[CW,1.9,Z0+1.35]),
+      win([[CW,1.75,H+.5],[CW,2.45,H+.5],[CW,2.45,H+1.2],[CW,1.75,H+1.2]],[CW,2.1,H+.85])];
+    poly([[.8,CD,Z0],[1.7,CD,Z0],[1.7,CD,Z0+2],[.8,CD,Z0+2]],mix('#3b2a22','#1a1310',d),open);
+    poly([[.95,CD,Z0+1.1],[1.55,CD,Z0+1.1],[1.55,CD,Z0+1.8],[.95,CD,Z0+1.8]],glass,open);
+    line([-.2,CD+.05,Z0],[2.4,CD+.05,Z0],mix('#c79a5e','#4a3a2c',d),.06*k,open);                    // step
+    if(glow>0){wins.push(P(1.25,CD,Z0+1.45));wins.forEach(([x,y])=>disc(x,y,0,'rgba(255,190,110,.9)',.4*glow,1.4*k));const [px,py]=P(1.95,CD,Z0+2.2);disc(px,py,.05*k,'#ffe3b0',glow,.9*k)}
+    // smoke
+    if(glow>0||WN){const [sx,sy]=P(4.8,1.7,R+.6),a=WN?1:glow;for(let i=0;i<8;i++){const age=(t*.22+i/8)%1;c.globalAlpha=(1-age)*.32*a;c.fillStyle=WN?'#ffffff':'#e8dfd2';c.beginPath();c.arc(sx+age*.5*k+Math.sin(age*5+i)*.2*k,sy-age*1.8*k,(.1+age*.4)*k,0,7);c.fill()}c.globalAlpha=1}
+  }
+  if(WN){const r=rnd(5);c.fillStyle='#fff';for(let i=0;i<60;i++){const sx=(r()*w+t*12*(i%3+1))%w,sy=(r()*h+t*30*(1+(i%4)*.3))%h;c.globalAlpha=.6;c.fillRect(sx,sy,1.6,1.6)}c.globalAlpha=1}
+}
+
+// ---------- drive it ----------
+let W=0,Hh=0,DPR=1,p=PIN??0,target=PIN??0,t0=performance.now(),lastIdx=-1;
+function size(){DPR=Math.min(devicePixelRatio||1,2);W=stage.clientWidth;Hh=stage.clientHeight;cv.width=W*DPR;cv.height=Hh*DPR;cx.setTransform(DPR,0,0,DPR,0,0)}
+addEventListener('resize',size,{passive:true});size();
+function readScroll(){if(PIN!==null)return;const max=track.offsetHeight-innerHeight;target=clamp(max>0?scrollY/max:0)}
+addEventListener('scroll',readScroll,{passive:true});readScroll();
+const minis=$$('.mini'),vis=new Set();
+minis.forEach(m=>{m.width=640;m.height=480;m.dataset.seed=Math.random()});
+const mio=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting?vis.add(e.target):vis.delete(e.target)),{rootMargin:'10%'});minis.forEach(m=>mio.observe(m));
+function frame(now){
+  const t=q.has('still')?0:(now-t0)/1000;   // ?still freezes clouds, stars, smoke → deterministic frame
+  p=RM||PIN!==null?target:p+(target-p)*.1;
+  if(Math.abs(target-p)<.0005)p=target;
+  drawScene(cx,W,Hh,p,t);
+  bar.style.setProperty('--p',p.toFixed(4));
+  const idx=p<.17?0:p<.36?1:p<.56?2:p<.78?3:4;
+  if(idx!==lastIdx){caps.forEach((c,i)=>c.classList.toggle('on',i===idx));idxEl.textContent='0'+(idx+1);lastIdx=idx}
+  hint.classList.toggle('off',target>.02);
+  minis.forEach(m=>{if(vis.has(m)||PIN!==null)drawScene(m.getContext('2d'),640,480,+m.dataset.p,t,{k:46,winter:m.hasAttribute('data-winter')})});
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+// section entrances
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.08});
+$$('.rv').forEach(el=>io.observe(el));
+if(PIN!==null)$$('.rv').forEach(el=>el.classList.add('in'));
+})();
+</script>
+</body>
+</html>

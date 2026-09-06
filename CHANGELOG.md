@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **New archetype — ALDER, scroll-scrubbed process reveal** (`alder-build.html`, pure
+  DOM + one 2D canvas, audit-clean): a 500vh track with a sticky stage; scroll progress
+  raises a timber cabin through survey → piers → deck → frame → shell → lights-on at
+  dusk, drawn isometrically with a single `drawScene(p,t)` timeline (no image assets),
+  five crossfading captions, a ticked progress bar, then a hand-off into the business
+  page (stats, three "projects" rendered by the same scene function, process, quote
+  form). `?p=` pins, `?still` freezes time. Recipe in SKILL.md, build-spec prompt, bench
+  entry (ten re-themable archetypes).
+
 ## 0.2.0 — 2026-09-05
 
 Eleven archetypes, a measured study tool, and a bench that remixes every plate for

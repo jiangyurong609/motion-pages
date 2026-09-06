@@ -1,6 +1,6 @@
 ---
 name: motion-pages
-description: Build production-ready immersive motion pages in the award-site mold — Three.js worlds (foggy heroes, glass product stages with sonar rings, drag-orbit dome galleries, scroll-driven camera journeys with particle morphs) AND non-Three.js motion (raw-WebGL liquid-glass ripple typography, springy draggable poster walls, cursor-trail image reveals, horizontal scroll-snap stories, cursor mask reveals, gesture control) — each a single HTML file with a crisp DOM overlay, responsive to phone/tablet, touch-aware, with a mandatory multi-viewport screenshot loop and a design-review (aesthetic + conversion) pass. Use when asked for a "3D landing page", "Three.js hero", "living/breathing homepage", a 3D product page, a 3D gallery, a scroll-story page, "liquid glass", a ripple/distortion hero, a draggable poster wall, "images that follow the cursor", a horizontal-scrolling story, or to apply an award-site motion effect to a brand.
+description: Build production-ready immersive motion pages in the award-site mold — Three.js worlds (foggy heroes, glass product stages with sonar rings, drag-orbit dome galleries, scroll-driven camera journeys with particle morphs) AND non-Three.js motion (raw-WebGL liquid-glass ripple typography, springy draggable poster walls, cursor-trail image reveals, horizontal scroll-snap stories, scroll-scrubbed process reveals, cursor mask reveals, gesture control) — each a single HTML file with a crisp DOM overlay, responsive to phone/tablet, touch-aware, with a mandatory multi-viewport screenshot loop and a design-review (aesthetic + conversion) pass. Use when asked for a "3D landing page", "Three.js hero", "living/breathing homepage", a 3D product page, a 3D gallery, a scroll-story page, "liquid glass", a ripple/distortion hero, a draggable poster wall, "images that follow the cursor", a horizontal-scrolling story, a "scroll to build it" process explainer for a business, or to apply an award-site motion effect to a brand.
 ---
 
 # Motion Pages — Award-Site Immersive & Motion Recipes
@@ -22,6 +22,7 @@ task before building:
 - `examples/paperworks-posterwall.html` — springy draggable poster wall (no WebGL at all);
 - `examples/halde-trail.html` — cursor-trail image reveal: prints surface under the pointer (pure DOM);
 - `examples/kiln-horizontal.html` — horizontal scroll-snap story: wheel drives a sideways rail (pure DOM).
+- `examples/alder-build.html` — scroll-scrubbed process reveal: the hero builds what the business sells as you scroll, then hands off to the page (pure DOM + canvas).
 
 ## Architecture (non-negotiables)
 
@@ -304,6 +305,45 @@ DOM overlay, `?still` mode, screenshot loop).
     visibly mid-flight. `prefers-reduced-motion` = no smoothing, no snap.
   - Artwork = seeded canvas vessels lathed from a smooth radius function (48
     samples) — a distinct silhouette per chapter so the story reads at a glance.
+- **Scroll-scrubbed process reveal** (`alder-build.html`, the "scroll to build it"
+  business hero — a pool builder's site does this with construction photos, and agencies
+  charge for exactly this screen) — pure DOM + one canvas; scroll progress builds the
+  thing the business sells:
+  - A `#track{height:500vh}` with a `position:sticky;top:0;height:100vh` stage inside
+    it (sticky, not fixed — the stage scrolls away by itself when the track ends, no
+    unpin logic). `p = scrollY/(track.offsetHeight−innerHeight)`, smoothed per frame
+    (`p += (t−p)*.1`) so wheel notches read as a scrub, not steps.
+  - **One draw function, one timeline**: `drawScene(ctx,w,h,p,t)`; every stage is a
+    `seg(p,a,b)` window (stakes .02–.09, string .06–.16, soil .14–.22, piers .18–.25
+    staggered, deck .28–.36, posts .36–.44, plates .42–.50, rafters .48–.56, walls
+    .56–.64, gable .62–.68, roof .66–.74, openings .72–.78, dusk .78–.92, window glow
+    .84–.97). Windows overlap a little so the build never pauses.
+  - **Nothing snaps in**: piers grow from the ground, the deck drops from +1.4 units on
+    an ease-out, posts extend, beams and rafters draw along their length (partial
+    `lineTo`), walls rise with a clipped height, the roof lands from above. Grow, drop,
+    draw — three verbs, reused for every part.
+  - Scene = isometric projection `[ox+(x−y)·.866k, oy+(x+y)·.5k−z·k]` on a 2D canvas,
+    no 3D library. Pitch the roof steeper than the view angle (rise > half the depth)
+    or the camera sees the back slope over the ridge; draw the chimney BEFORE the roof
+    so the slope hides its base. Every colour is a `mix(day,dusk,d)` pair, so the
+    finale (lights on, stars, smoke) is the same scene, not a second one.
+  - Captions: five pre-rendered `.cap` nodes, index from `p` thresholds, `.on` toggles
+    a soft-landing crossfade — never swap text mid-transition. A 2 px bar with stage
+    ticks, a `01 / 05` counter, a hint pill that leaves after 2 % of scroll.
+  - White type over a sky needs scrims: top and bottom `linear-gradient`
+    pseudo-elements on the stage (.72→0, .82→0) — without them the contrast audit
+    fails on the day frames.
+  - The hero HANDS OFF: statement → dark stats strip → gallery (the same `drawScene` at
+    p=.77 / 1 / a winter palette into 640×480 minis = three "projects", zero images) →
+    process steps → testimonial → quote form. The build is the argument; the form is
+    the close.
+  - `?p=0..1` pins (100vh track, body scroll locked); `?still` = .69 (roof mid-drop)
+    with `t` frozen so clouds/stars/smoke hold; `prefers-reduced-motion` = `p` follows
+    scroll instantly, no entrances.
+  - Swap the drawing for photographs when the client has them: the same timeline
+    drives `ctx.drawImage(frames[Math.round(p·(N−1))])` from a preloaded frame
+    sequence (the Apple product-page trick) or `video.currentTime = p·duration` on a
+    muted `<video>`; keep the `seg()` captions, scrims and hand-off exactly as they are.
 - **Gesture control** (webcam demos) — MediaPipe Hands (or FaceLandmarker) mapped onto
   the SAME particle-morph machinery: pinch distance → gather/scatter blend, palm x/y →
   group rotation. Keep it an optional progressive enhancement behind a permission

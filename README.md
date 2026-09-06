@@ -14,7 +14,7 @@ On the showcase you can:
 
 - **▶ Run every demo inline** — each gallery card plays its world right in the grid;
 - **🎛 Use the Bench** — type a brand name + tagline, paste your brand hex (or pick
-  a hue), choose dark or light, and pick any of nine archetypes: three rebuild live
+  a hue), choose dark or light, and pick any of ten archetypes: three rebuild live
   as you type, the rest show their reference plate. Copy the prompt and it is the
   plate's full build-spec with a THEME block for your brand on top. Every card has a
   "↻ Remix for my brand" link that lands in the bench pre-selected, and every
@@ -33,7 +33,7 @@ On the showcase you can:
 ![motion-pages demo — scroll journey flythrough and example pages](assets/demo.gif)
 
 A [Claude Code](https://claude.com/claude-code) skill that teaches the agent to build
-**award-site-style motion pages** as a single HTML file with no build step. Eleven
+**award-site-style motion pages** as a single HTML file with no build step. Twelve
 archetypes, each a recipe + a bundled demo + a full build-spec prompt:
 
 - **Three.js worlds** (+ a vendored three.js): the Sylva-style foggy hero (organic
@@ -45,8 +45,8 @@ archetypes, each a recipe + a bundled demo + a full build-spec prompt:
 - **Raw WebGL**: liquid-glass ripple typography — a fragment shader warps giant serif
   type under the cursor;
 - **Pure DOM**: a springy draggable poster wall (MISC-style), a cursor-trail image
-  reveal, a horizontal scroll-snap story, and the easing grammar as an interactive
-  reference — plus recipes for cursor mask reveals (Lando Norris) and webcam gesture
+  reveal, a horizontal scroll-snap story, a scroll-to-build process reveal for a
+  business, and the easing grammar as an interactive reference — plus recipes for cursor mask reveals (Lando Norris) and webcam gesture
   control.
 
 Everything is **responsive down to phones, touch- and reduced-motion-aware**, verified
@@ -69,6 +69,10 @@ mount in a production webapp on day 1.
 | Cursor-trail image reveal (pure DOM) | Horizontal scroll-snap story (pure DOM) | Easing grammar, interactive |
 |---|---|---|
 | ![HALDE cursor trail](assets/halde-still.png) | ![KILN horizontal story](assets/kiln-still.png) | ![TEMPO easing grammar](assets/tempo-still.png) |
+
+| Scroll-to-build process reveal (pure DOM + canvas) |
+|---|
+| ![ALDER scroll-to-build reveal](assets/alder-still.png) |
 
 ## Install
 
@@ -181,7 +185,7 @@ The audit makes the skill's review passes executable: AI-slop tells (Inter displ
 type, blue-purple gradient text, default `ease .2s`…), easing grammar, reduced-motion
 handling, the stagger-delay hover-lag trap, console errors, blank-frame and
 canvas-alive pixel checks, rendered text contrast, phone overflow, tap targets,
-`?still=1` determinism, a11y names. All eleven bundled demos pass it.
+`?still=1` determinism, a11y names. All twelve bundled demos pass it.
 
 [`scripts/picker.js`](scripts/picker.js) is the live loop: paste it into the DevTools
 console on your page, click an element, and a precise context block (selector +
@@ -234,6 +238,13 @@ skill answers with 3 genuinely distinct variants and waits for your pick.
   five chapters (clay → wheel → glaze → kiln → table) with three-speed parallax from
   each chapter's local progress, soft snapping, dots + arrow keys, and canvas-lathed
   vessels. Try `?p=0.5` to pin the hand-off between chapters.
+- [`motion-pages/examples/alder-build.html`](motion-pages/examples/alder-build.html)
+  — **scroll-scrubbed process reveal** (pure DOM + canvas): a pinned hero raises a
+  timber cabin as you scroll (stakes → piers → deck → frame → shell → lights-on at
+  dusk), drawn isometrically from one `drawScene(p, t)` timeline with zero image
+  assets, five crossfading captions and a ticked bar, then hands off to the business
+  page — stats, three projects rendered by the same scene, process, quote form. Try
+  `?p=0.69` for the roof mid-drop.
 - [`motion-pages/examples/volera-morph.html`](motion-pages/examples/volera-morph.html)
   — **particle shape morph** (the standalone archetype): 6k seeded glow particles
   dissolve between a soaring crane (parametric wing sweeps), a quantized V-formation
@@ -267,7 +278,7 @@ build-spec prompt + a passing audit, as a set. See
   [Igloo Inc](https://igloo.inc) (Awwwards Site of the Year), the official Lando
   Norris site, MISC, and the ITOM sketch portfolio — no code or assets were taken
   from any of them; every brand in the demos (Fernline, SONA, Archive°, BOREAL,
-  PURA, Paperworks, VOLERA, HALDE, KILN, TEMPO) is fictional.
+  PURA, Paperworks, VOLERA, HALDE, KILN, TEMPO, ALDER) is fictional.
 - Built and verified with Claude Code.
 
 ## License

@@ -23,6 +23,7 @@
 - [Paperworks* — springy draggable poster wall, pure DOM](https://jiangyurong609.github.io/motion-pages/examples/paperworks-posterwall.html)
 - [HALDE — cursor-trail image reveal: prints surface under the pointer, pure DOM](https://jiangyurong609.github.io/motion-pages/examples/halde-trail.html)
 - [KILN — horizontal scroll-snap story: wheel drives a sideways rail, 3-speed parallax, pure DOM](https://jiangyurong609.github.io/motion-pages/examples/kiln-horizontal.html)
+- [ALDER — scroll-scrubbed process reveal: the pinned hero raises a cabin as you scroll, then hands off to the business page, pure DOM + canvas](https://jiangyurong609.github.io/motion-pages/examples/alder-build.html)
 - [VOLERA — particle shape morph: crane → V-flock → moon gate](https://jiangyurong609.github.io/motion-pages/examples/volera-morph.html)
 - [TEMPO — the easing grammar as an interactive one-file reference](https://jiangyurong609.github.io/motion-pages/examples/tempo-easing.html)
 
