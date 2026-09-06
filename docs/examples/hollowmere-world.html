@@ -353,9 +353,9 @@ const scene=new THREE.Scene();
 const ISO=new THREE.Vector3(1,1.32,1).normalize().multiplyScalar(48);
 const cam=new THREE.OrthographicCamera(-1,1,1,-1,.1,160);
 const pcam=new THREE.PerspectiveCamera(38,1,.1,160);
-let W=1,H=1,POR=false;
+let W=1,H=1,POR=false,RW=9.5;
 function resize(){W=hero.clientWidth;H=hero.clientHeight;POR=H>W*1.05;renderer.setSize(W,H,false);
- const S=POR?9.5:7.4,a=W/H;cam.left=-S*a;cam.right=S*a;cam.top=S;cam.bottom=-S;cam.updateProjectionMatrix();pcam.aspect=a;pcam.updateProjectionMatrix();}
+ const S=POR?8.2:7.4,a=W/H;RW=POR?Math.max(3.2,S*a*.85):9.5;cam.left=-S*a;cam.right=S*a;cam.top=S;cam.bottom=-S;cam.updateProjectionMatrix();pcam.aspect=a;pcam.updateProjectionMatrix();}
 resize();addEventListener("resize",resize);
 
 // ---------- light
@@ -516,7 +516,7 @@ function applyTod(){const d=ss(.02,.14,tod)*(1-ss(.5,.66,tod)),dusk=Math.exp(-((
 // ---------- input: click to walk, keys, hotbar
 const ray=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),0),hit=new THREE.Vector3(),ndc=new THREE.Vector2();
 let lastInput=-99,hasPointer=false;
-function walkTo(x,z){const r=Math.hypot(x,z),R=POR?3.8:9.5;if(r>R){x*=R/r;z*=R/r;}K.target=new THREE.Vector3(x,0,z);ringMk.position.set(x,groundY(x,z)+.04,z);ringMk.material.opacity=1;document.getElementById("hint").classList.add("off");}
+function walkTo(x,z){const r=Math.hypot(x,z),R=RW;if(r>R){x*=R/r;z*=R/r;}K.target=new THREE.Vector3(x,0,z);ringMk.position.set(x,groundY(x,z)+.04,z);ringMk.material.opacity=1;document.getElementById("hint").classList.add("off");}
 canvas.addEventListener("pointerdown",e=>{if(document.body.classList.contains("cine"))return;
  ndc.set(e.offsetX/W*2-1,-(e.offsetY/H*2-1));ray.setFromCamera(ndc,cam);if(ray.ray.intersectPlane(plane,hit)){walkTo(hit.x,hit.z);lastInput=T;}});
 function act(name){if(name==="night"){tod=tod<.5||tod>.9?.6:.2;applyTod();}
@@ -532,9 +532,9 @@ let px=0,py=0;addEventListener("pointermove",e=>{if(!hasPointer)return;px=e.clie
 
 // ---------- cinematic (the trailer is the same scene, a different camera)
 let cine=null;
-function startCine(){if(cine||STILL)return;cine={t0:T};document.body.classList.add("cine");document.body.classList.remove("card");K.act=null;walkTo(FIRE.x+1.1,FIRE.z+1.2);
+function startCine(){if(cine||STILL)return;cine={t0:T,tod};tod=.5;applyTod();document.body.classList.add("cine");document.body.classList.remove("card");K.act=null;walkTo(FIRE.x+1.1,FIRE.z+1.2);
  hero.scrollIntoView({behavior:REDUCED?"auto":"smooth",block:"start"});lastInput=T;}
-function endCine(){if(!cine)return;cine=null;document.body.classList.remove("cine","card");}
+function endCine(){if(!cine)return;if(TOD_PIN===null)tod=cine.tod;cine=null;applyTod();document.body.classList.remove("cine","card");}
 document.querySelectorAll("[data-cine]").forEach(b=>b.addEventListener("click",startCine));
 document.querySelector("[data-exit]").addEventListener("click",endCine);
 const lookAt=new THREE.Vector3(),cp=new THREE.Vector3();
@@ -573,7 +573,7 @@ function frame(){if(!visible&&!heroTop()){return;}
    const want=Math.atan2(dx,dz);let df=want-K.face;df=Math.atan2(Math.sin(df),Math.cos(df));K.face+=df*Math.min(1,dt*9);K.walk=Math.min(1,K.walk+dt*5);}}
  else K.walk=Math.max(0,K.walk-dt*6);
  if(K.dash>0){K.dash-=dt;K.pos.x+=Math.sin(K.face)*dt*9;K.pos.z+=Math.cos(K.face)*dt*9;}
- const r=Math.hypot(K.pos.x,K.pos.z),R=POR?4.2:10;if(r>R){K.pos.x*=R/r;K.pos.z*=R/r;}
+ const r=Math.hypot(K.pos.x,K.pos.z),R=RW+.5;if(r>R){K.pos.x*=R/r;K.pos.z*=R/r;}
  K.pos.y=groundY(K.pos.x,K.pos.z);
  knight.position.copy(K.pos);knight.rotation.y=K.face;
  const ph=T*9.5,sw=Math.sin(ph)*.7*K.walk;
@@ -584,7 +584,7 @@ function frame(){if(!visible&&!heroTop()){return;}
   else if(K.act==="strike")ar=-2.3*Math.sin(u*Math.PI);else{al=-1.5*Math.sin(Math.min(1,u*2)*Math.PI/2)*(u<.7?1:1-(u-.7)/.3);}}
  props.armR.rotation.x=ar;props.armL.rotation.x=al;props.armL.rotation.y=K.act==="guard"?.6:0;
  props.cloak.rotation.x=.18+K.walk*.35+Math.sin(T*2.2)*.04;
- WAYS.forEach(w=>{if(!w.lit&&Math.hypot(w.x-K.pos.x,w.z-K.pos.z)<(POR?3.6:1.5))lightWaystone(w);w.lamp.scale.setScalar(w.lit?1+Math.sin(T*3)*.06:1);});
+ WAYS.forEach(w=>{if(!w.lit&&Math.hypot(w.x-K.pos.x,w.z-K.pos.z)<(POR?Math.max(1.5,7.9-RW):1.5))lightWaystone(w);w.lamp.scale.setScalar(w.lit?1+Math.sin(T*3)*.06:1);});
  ringMk.material.opacity=K.target?.6+Math.sin(T*8)*.3:Math.max(0,ringMk.material.opacity-dt*2);ringMk.scale.setScalar(K.target?1+Math.sin(T*8)*.08:1);
  // fire
  const f=props.fire;f.flames.forEach((m,i)=>{m.scale.set(1+Math.sin(T*13+i)*.12,1+Math.sin(T*9.3+i*2)*.18,1);m.position.y=.85+Math.sin(T*11+i)*.05;});
