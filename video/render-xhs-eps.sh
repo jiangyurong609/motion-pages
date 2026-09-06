@@ -6,4 +6,5 @@ npx remotion render Xhs-pura out/xhs-ep2-pura.mp4 2>&1 | tail -1
 npx remotion render Xhs-boreal out/xhs-ep3-boreal.mp4 2>&1 | tail -1
 npx remotion render Xhs-dome out/xhs-ep4-dome.mp4 2>&1 | tail -1
 npx remotion render Xhs-paper out/xhs-ep5-paper.mp4 2>&1 | tail -1
+npx remotion render Xhs-tempo out/xhs-ep6-tempo.mp4 2>&1 | tail -1
 ls -la out/xhs-*

@@ -104,12 +104,70 @@ def paper(pg):
     pg.wait_for_timeout(2000)
 
 
+def tempo(pg):
+    # easing grammar. Playwright's screencast records at CSS-pixel size, so a
+    # phone viewport can't be upscaled; instead zoom the page 2x and force the
+    # page's own <=740px rules, which gives the single-column phone layout at
+    # full 1080px sharpness. Settle on the hero, scroll card by card replaying
+    # each verb (enter / exit / move), the signature overshoot is the sync
+    # point; replay it, then "Copy the curve set".
+    pg.context.grant_permissions(['clipboard-read', 'clipboard-write'])
+    pg.add_style_tag(content='''
+      html{zoom:2}
+      h1{font-size:44px} .hero{grid-template-columns:1fr;gap:26px;padding:38px 5% 58px}
+      .heroRight{flex-direction:row;align-items:center;gap:20px} .bigNum{font-size:56px}
+      .grid{grid-template-columns:1fr;padding-bottom:86px} .card.wide{grid-column:span 1}
+      header nav{display:none} .strip{margin:19px 0 58px}''')
+    pg.wait_for_timeout(400)
+    pg.mouse.move(270, 600)
+
+    def scroll_to(sel, target_y, n=10, dt=35):
+        y = pg.locator(sel).bounding_box()['y']
+        d = y - target_y
+        for _ in range(n):
+            pg.mouse.wheel(0, d / n)
+            pg.wait_for_timeout(dt)
+
+    def replay(i, hold, stamp=False):
+        b = pg.locator('.card .replay').nth(i).bounding_box()
+        x, y = b['x'] + b['width'] / 2, b['y'] + b['height'] / 2
+        pg.mouse.move(x, y, steps=10)
+        pg.wait_for_timeout(200)
+        if stamp:
+            tempo.sync = time.time()  # clip is trimmed so the overshoot starts at t≈9.3s
+        pg.mouse.click(x, y)
+        pg.wait_for_timeout(hold)
+
+    pg.wait_for_timeout(300)
+    scroll_to('.card:nth-child(1)', 120)
+    pg.wait_for_timeout(200)
+    replay(0, 1200)   # enter — toast lands soft
+    scroll_to('.card:nth-child(2)', 120)
+    pg.wait_for_timeout(200)
+    replay(1, 1200)   # exit — chip lets go
+    scroll_to('.card:nth-child(3)', 120)
+    pg.wait_for_timeout(200)
+    replay(2, 1300)   # move — panel crosses
+    scroll_to('.card:nth-child(5)', 200)
+    pg.wait_for_timeout(400)
+    replay(4, 1600, stamp=True)   # signature — one overshoot
+    scroll_to('#end', 300)
+    pg.wait_for_timeout(300)
+    b = pg.locator('#copyCss').bounding_box()
+    x, y = b['x'] + b['width'] / 2, b['y'] + b['height'] / 2
+    pg.mouse.move(x, y, steps=12)
+    pg.wait_for_timeout(400)
+    pg.mouse.click(x, y)
+    pg.wait_for_timeout(2600)
+
+
 CLIPS = [
     ('volera', 'examples/volera-morph.html', volera),
     ('pura', 'examples/pura-liquid-hero.html', pura),
     ('boreal', 'examples/boreal-journey.html', boreal),
     ('dome', 'examples/dome-gallery.html', dome),
     ('paper', 'examples/paperworks-posterwall.html', paper),
+    ('tempo', 'examples/tempo-easing.html', tempo),
 ]
 
 if len(sys.argv) > 1:
@@ -117,7 +175,7 @@ if len(sys.argv) > 1:
 
 try:
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = p.chromium.launch(args=['--disable-smooth-scrolling'])  # wheel lands where asked
         for name, path, action in CLIPS:
             ctx = browser.new_context(
                 viewport={'width': W, 'height': H},
@@ -130,10 +188,19 @@ try:
             action(pg)
             webm = pg.video.path()
             ctx.close()
+            t_end = time.time()
+            # the screencast's timeline runs ~10% slower than the wall clock
+            # (variable-rate frames re-stamped by the recorder), so map wall
+            # time onto video time with the measured stretch before trimming
+            dur = float(subprocess.check_output([
+                'ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                '-of', 'csv=p=0', webm]).strip() or t_end - t0)
+            k = dur / (t_end - t0)
             # actions may stamp a wall-clock sync point (action.sync) that the
             # trim aligns to clip t=9.3s; otherwise trim a fixed 1s of head
             sync = getattr(action, 'sync', None)
-            ss = max(0.0, sync - t0 - 9.3) if sync else 1.0
+            ss = max(0.0, k * (sync - t0) - 9.3) if sync else 1.0
+            print(f'{name}: stretch k={k:.3f}, ss={ss:.2f}')
             mp4 = os.path.join(OUT, f'{name}.mp4')
             subprocess.run([
                 'ffmpeg', '-y', '-loglevel', 'error', '-ss', str(ss), '-i', webm,

@@ -41,7 +41,7 @@ const sans = sansSC.fontFamily;
 
 // ---------- per-episode content ----------
 
-export type EpKey = 'volera' | 'pura' | 'boreal' | 'dome' | 'paper';
+export type EpKey = 'volera' | 'pura' | 'boreal' | 'dome' | 'paper' | 'tempo';
 
 type Ep = {
   num: number;
@@ -103,6 +103,16 @@ export const EPS: Record<EpKey, Ep> = {
       '用 motion-pages skill：无限拖拽海报墙，每张海报像纸一样随速度弯曲回弹，点开看大图。纯 DOM/CSS 不用库，单个 HTML 文件，自我验证到完美。',
     feats: ['速度越快，纸弯得越狠', '不用任何库，纯 CSS 3D', '整页只有一个 HTML 文件'],
     next: '动效语法课：缓动怎么选',
+  },
+  tempo: {
+    num: 6,
+    clip: 'clips/xhs/tempo.mp4',
+    name: 'TEMPO · 动效语法课',
+    hook: ['动效看着假，', '八成是缓动选错了'],
+    prompt:
+      '用 motion-pages skill：做一页交互式缓动语法参考，五条曲线五种用途：进场、退场、位移、循环、招牌回弹，每张卡片可重放，页面自己的动效也只用这五条。纯 DOM 不用库，单个 HTML 文件，自我验证到完美。',
+    feats: ['进场 ease-out，退场 ease-in', '循环永远 linear，否则像卡顿', '回弹只用一次，才叫招牌'],
+    next: '雾中首页套给真品牌',
   },
 };
 
