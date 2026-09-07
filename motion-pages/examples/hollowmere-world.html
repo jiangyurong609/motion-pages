@@ -648,9 +648,9 @@ document.querySelector("[data-exit]").addEventListener("click",endCine);
 const lookAt=new THREE.Vector3(),cp=new THREE.Vector3();
 function cineCam(t){// three shots, 4s each
  const s=Math.floor(t/4),u=(t%4)/4,e=u*u*(3-2*u);
- if(s===0){const a=lerp(-.9,.6,e);cp.set(K.pos.x+Math.cos(a)*4.4,K.pos.y+1.5-e*.4,K.pos.z+Math.sin(a)*4.4);lookAt.set(K.pos.x,K.pos.y+1.1,K.pos.z);}
+ if(s===0){const a=lerp(-1.1,.5,e),rad=POR?7.5:6.2;cp.set(FIRE.x+Math.cos(a)*rad,FIRE.y+1.7-e*.5,FIRE.z+Math.sin(a)*rad);lookAt.set((K.pos.x+FIRE.x)/2,FIRE.y+.9,(K.pos.z+FIRE.z)/2);}
  else if(s===1){cp.set(lerp(-2.2,-4,e),lerp(2.1,1.5,e),lerp(-.2,-2.8,e));lookAt.copy(props.arch.position).setY(props.arch.position.y-.6);}
- else{cp.set(lerp(3,10,e),lerp(2.6,12,e),lerp(6,10,e));lookAt.set(0,.4,0);if(u>.3)document.body.classList.add("card");}
+ else{cp.set(lerp(6,11,e),lerp(3,12,e),lerp(9,11,e));lookAt.set(0,.4,0);if(u>.3)document.body.classList.add("card");}
  pcam.position.copy(cp);pcam.lookAt(lookAt);return t>12.6;}
 
 // ---------- minimap (2D canvas from the same object lists)
