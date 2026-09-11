@@ -28,15 +28,47 @@
 - [VOLERA — particle shape morph: crane → V-flock → moon gate](https://jiangyurong609.github.io/motion-pages/examples/volera-morph.html)
 - [TEMPO — the easing grammar as an interactive one-file reference](https://jiangyurong609.github.io/motion-pages/examples/tempo-easing.html)
 
+## Build-spec prompts (the full spec that produces each demo — copy, re-theme, build)
+
+Not one-liners: each pins the layer stack, palette values, geometry parameters,
+shader math, timings, responsive rules and the self-verify recipe. Fetch the one
+nearest the task before writing code.
+
+- [Sylva replica](https://jiangyurong609.github.io/motion-pages/prompts/sylva-replica.txt)
+- [Fernline](https://jiangyurong609.github.io/motion-pages/prompts/fernline-hero.txt)
+- [SONA·1](https://jiangyurong609.github.io/motion-pages/prompts/sona-product-hero.txt)
+- [Archive°](https://jiangyurong609.github.io/motion-pages/prompts/dome-gallery.txt)
+- [BOREAL](https://jiangyurong609.github.io/motion-pages/prompts/boreal-journey.txt)
+- [PURA](https://jiangyurong609.github.io/motion-pages/prompts/pura-liquid-hero.txt)
+- [Paperworks*](https://jiangyurong609.github.io/motion-pages/prompts/paperworks-posterwall.txt)
+- [HALDE](https://jiangyurong609.github.io/motion-pages/prompts/halde-trail.txt)
+- [KILN](https://jiangyurong609.github.io/motion-pages/prompts/kiln-horizontal.txt)
+- [ALDER](https://jiangyurong609.github.io/motion-pages/prompts/alder-build.txt)
+- [HOLLOWMERE](https://jiangyurong609.github.io/motion-pages/prompts/hollowmere-world.txt)
+- [VOLERA](https://jiangyurong609.github.io/motion-pages/prompts/volera-morph.txt)
+- [TEMPO](https://jiangyurong609.github.io/motion-pages/prompts/tempo-easing.txt)
+
 ## Usage
 
-Install as a Claude Code skill (`cp -r motion-pages ~/.claude/skills/`), or paste
-SKILL.md into any coding agent's context, then prompt e.g. "Build a 3D product
-hero like AETHER — fresnel-glass case, sonar rings, orbital arcs. Self-verify
-until perfect."
+In Claude Code, install the plugin:
+
+```
+/plugin marketplace add jiangyurong609/motion-pages
+/plugin install motion-pages@motion-pages
+```
+
+Manually (forks, offline machines, other agents): `cp -r motion-pages ~/.claude/skills/`,
+or paste SKILL.md into any coding agent's context.
+
+Then prompt e.g. "Build a 3D product hero like AETHER — fresnel-glass case, sonar
+rings, orbital arcs. Self-verify until perfect."
+
+This file is the live index — SKILL.md ships a snapshot of the demo list that goes
+stale between releases, so prefer the links above when you have network access.
 
 ## Tooling (zero-dependency, Node ≥22 + Chrome)
 
 - [scripts/study.mjs — "clone the feel of this URL": storyboard, motion probes, palette/type, tech signals → build-spec prompt](https://raw.githubusercontent.com/jiangyurong609/motion-pages/main/scripts/study.mjs)
 - [scripts/audit.mjs — headless design lint, ~22 rules × 3 viewports, exit 1 on blockers](https://raw.githubusercontent.com/jiangyurong609/motion-pages/main/scripts/audit.mjs)
 - [scripts/picker.js — DevTools element picker → precise context block for the agent](https://raw.githubusercontent.com/jiangyurong609/motion-pages/main/scripts/picker.js)
+- [scripts/check-catalog.mjs — asserts this index, the prompts, SKILL.md and the demo counts still agree](https://raw.githubusercontent.com/jiangyurong609/motion-pages/main/scripts/check-catalog.mjs)

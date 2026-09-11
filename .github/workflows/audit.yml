@@ -6,6 +6,9 @@ on:
       - 'motion-pages/**'
       - 'scripts/**'
       - 'SKILL.md'
+      - 'README.md'
+      - 'docs/**'
+      - '.claude-plugin/**'
       - '.github/workflows/audit.yml'
   pull_request:
   workflow_dispatch:
@@ -25,6 +28,9 @@ jobs:
           diff -q scripts/audit.mjs motion-pages/scripts/audit.mjs
           diff -q scripts/study.mjs motion-pages/scripts/study.mjs
           diff -q scripts/picker.js motion-pages/scripts/picker.js
+          diff -q scripts/check-catalog.mjs motion-pages/scripts/check-catalog.mjs
+      - name: catalog agrees with itself (demos ↔ prompts ↔ llms.txt ↔ SKILL.md ↔ counts)
+        run: node scripts/check-catalog.mjs
       - name: study tool recognises its own archetypes
         env:
           CHROME_BIN: /usr/bin/google-chrome
