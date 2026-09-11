@@ -170,6 +170,7 @@ Zero-dependency (Node ≥22 + Chrome), lives in [`scripts/`](scripts/):
 node scripts/study.mjs https://site.you.love   # "clone the feel of this URL" → study/<host>/spec.md
 node scripts/audit.mjs mypage.html             # design lint: ~22 rules × 3 viewports
 node scripts/audit.mjs mypage.html --json      # exit 1 on blockers → CI pre-deploy gate
+node scripts/check-catalog.mjs                 # repo hygiene: the demo list agrees everywhere
 ```
 
 The study turns a reference URL into a measured spec instead of a guess: a storyboard

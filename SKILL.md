@@ -24,6 +24,17 @@ task before building:
 - `examples/kiln-horizontal.html` — horizontal scroll-snap story: wheel drives a sideways rail (pure DOM).
 - `examples/alder-build.html` — scroll-scrubbed process reveal: the hero builds what the business sells as you scroll, then hands off to the page (pure DOM + canvas).
 - `examples/hollowmere-world.html` — live game-world hero: a walkable procedural forest (canvas-painted textures, leaf-card canopies, wind, shadow maps, IBL) with the game's HUD as chrome and a trailer shot from the same scene (three.js, zero image assets).
+- `examples/volera-morph.html` — particle shape morph: crane → V-flock → moon gate (three.js).
+- `examples/tempo-easing.html` — the easing grammar as an interactive one-file reference (pure DOM).
+
+**The recipes below are the skill; the demo list above is only a snapshot.** New
+archetypes ship between releases, so if you have network access, fetch
+<https://motion-pages.pages.dev/llms.txt> for the current index — it lists every live
+demo and, for each, the full build-spec prompt at
+`https://motion-pages.pages.dev/prompts/<name>.txt`. Read the prompt for the archetype
+nearest your task: it pins the layer stack, palette values, geometry parameters, shader
+math and timings that this file describes in prose. Offline, work from the bundled
+`examples/` — they are always in sync with this copy of the skill.
 
 ## Architecture (non-negotiables)
 
