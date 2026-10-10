@@ -403,9 +403,9 @@ async function studyViewport(cdp, vp, opts) {
   if (nav.errorText) throw new Error(`navigation failed: ${nav.errorText}`);
   if (await loaded === 'timeout') console.error(`  (${vp.name}: load event did not fire in 25s — continuing with what rendered)`);
   await sleep(SETTLE_MS);
-  // dismiss the obvious cookie walls so the storyboard shows the page, not the banner
-  await cdp.send('Runtime.evaluate', {expression: `[...document.querySelectorAll('button, a')].filter(b => /^(accept|accept all|allow all|agree|i agree|ok|got it|同意|接受)$/i.test((b.textContent||'').trim())).slice(0,1).forEach(b => b.click())`}, sid).catch(() => {});
-  await sleep(400);
+  // Preserve consent banners and other page state. Generic accept/agree labels
+  // can refer to cookies, terms, or unrelated actions; a reference study must
+  // not activate them automatically. Review the captured banner separately.
 
   // Outlast preloaders: keep waiting while the frame is "thin" (no world, no text, no media)
   // or still changing wholesale (an intro sequence), up to READY_MAX_MS.
